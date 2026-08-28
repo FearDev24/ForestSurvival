@@ -1,0 +1,20 @@
+# Godot 4+
+.godot/
+
+# Exported builds
+build/
+dist/
+exports/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+
+# IDE
+.vscode/
+.idea/
+
+# Logs/local
+logs/
