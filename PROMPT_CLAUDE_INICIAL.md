@@ -18,7 +18,8 @@ Antes de alterar qualquer arquivo:
 6. Leia `docs/00_MASTER_PLAN.md`.
 7. Leia `docs/01_GAME_DESIGN.md`.
 8. Leia `docs/02_ARCHITECTURE.md`.
-9. Inspecione o conteúdo real do repositório.
+9. Leia `docs/ASSET_WORKFLOW.md`.
+10. Inspecione o conteúdo real do repositório.
 
 Depois, execute SOMENTE a próxima etapa necessária da FASE 0 indicada em `docs/HANDOFF.md` e `docs/ROADMAP.md`.
 
@@ -36,6 +37,10 @@ Regras:
 - Não crie abstrações complexas prematuramente.
 - Se já existir código, leia antes de substituir.
 - Se encontrar conflito entre código e documentação, registre claramente.
+- Não bloqueie nenhuma fase por falta de arte final (DEC-013).
+- Use placeholder quando não houver sprite, deixando claro que é placeholder.
+- Não invente nem redesenhe arte final sem solicitação explícita.
+- Mantenha sprites sob um nó `Visual` substituível e gameplay desacoplado da textura.
 
 Ao terminar:
 

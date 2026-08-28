@@ -89,6 +89,7 @@ Ao terminar:
 - `docs/03_SYSTEMS.md` — especificação dos sistemas
 - `docs/04_CONTENT_PLAN.md` — conteúdo planejado
 - `docs/05_ART_DIRECTION.md` — direção visual
+- `docs/ASSET_WORKFLOW.md` — política e fluxo progressivo de assets
 - `docs/ROADMAP.md` — fases de desenvolvimento
 - `docs/TEST_PLAN.md` — estratégia de testes
 - `docs/ANDROID.md` — requisitos mobile
@@ -97,6 +98,23 @@ Ao terminar:
 - `docs/CHANGELOG.md` — histórico
 - `docs/TODO.md` — próximas tarefas
 - `docs/BUGS.md` — bugs conhecidos
+
+## Política de assets
+
+Sprites, animações, efeitos e demais assets finais serão adicionados **progressivamente** durante o desenvolvimento.
+
+A ausência de arte final **não bloqueia nenhuma fase de programação**.
+
+- placeholders são permitidos durante prototipagem;
+- placeholder não é asset final;
+- assistentes de IA não devem inventar nem redesenhar arte final sem solicitação;
+- gameplay e camada visual permanecem desacoplados;
+- movimento, HP, IA, combate, XP e armas não dependem da textura provisória;
+- um asset só é oficial após aprovação.
+
+Estados: `PLACEHOLDER` → `CANDIDATE` → `APPROVED` → `INTEGRATED`.
+
+Detalhes em `docs/ASSET_WORKFLOW.md` e `DEC-013` em `docs/DECISIONS.md`.
 
 ## Primeira meta
 

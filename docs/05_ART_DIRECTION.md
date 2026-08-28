@@ -1,5 +1,17 @@
 # 05 — Direção de Arte
 
+# Entrega progressiva de arte
+
+Este documento descreve o **alvo** de arte, não um pré-requisito de programação.
+
+Conforme `DEC-013`, sprites, animações e efeitos finais entram progressivamente e a ausência deles **não bloqueia nenhuma fase do roadmap**. Prototipagem usa placeholders.
+
+Estados de um asset: `PLACEHOLDER` → `CANDIDATE` → `APPROVED` → `INTEGRATED`.
+
+Um asset só é oficial após aprovação do responsável pelo projeto. Assistentes de IA não devem inventar nem redesenhar arte final sem solicitação explícita.
+
+Fluxo completo em `docs/ASSET_WORKFLOW.md`.
+
 # Estilo
 
 - pixel art;
@@ -26,6 +38,8 @@ Para personagens top-down:
 - oeste/esquerda;
 - leste/direita.
 
+Direções podem chegar uma de cada vez. Enquanto faltar alguma, é permitido fallback temporário (espelhar a direção oposta ou reutilizar a direção sul).
+
 Cada direção deve preservar:
 - identidade;
 - proporções;
@@ -42,6 +56,8 @@ Prioridade:
 4. death, se necessário
 
 Como o combate é automático, animações específicas de ataque só entram quando aumentarem leitura.
+
+Animações também chegam gradualmente. Enquanto `walk` não existir para uma direção, manter o frame de `idle` é aceitável. A falta de uma animação nunca deve gerar erro em runtime.
 
 # Equipamento
 
@@ -66,6 +82,8 @@ Nunca depender de detalhes minúsculos.
 Testar leitura em tela de celular.
 
 # Asset policy
+
+Política completa em `docs/ASSET_WORKFLOW.md` (`DEC-013`).
 
 Cada asset deve registrar origem/licença quando não for produzido especificamente para o projeto.
 

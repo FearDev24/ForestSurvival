@@ -20,6 +20,10 @@ Forest Survival
 
 Estrutura inicial de documentação definida.
 
+Política de assets progressivos registrada (`DEC-013`) e detalhada em `docs/ASSET_WORKFLOW.md`.
+
+Nenhum asset existe ainda em nenhum estado (`PLACEHOLDER`/`CANDIDATE`/`APPROVED`/`INTEGRATED`).
+
 ## Código
 
 Ainda não validado por este handoff.
@@ -28,7 +32,9 @@ O próximo assistente deve inspecionar o repositório antes de presumir que `pro
 
 # Última tarefa concluída
 
-Criação da especificação inicial e protocolo de continuidade Claude ↔ ChatGPT.
+Registro da política de assets progressivos: criação de `docs/ASSET_WORKFLOW.md`, registro de `DEC-013` e atualização de README, AGENTS, arquitetura, direção de arte, changelog e prompts.
+
+Nenhuma alteração de gameplay foi feita. A FASE 1 não foi iniciada.
 
 # Tarefa atual
 
@@ -43,6 +49,10 @@ FASE 0 — Fundação.
 5. Criar `game.tscn`.
 6. Executar projeto vazio sem erros.
 7. Atualizar este HANDOFF.
+
+# Regra permanente de assets
+
+Falta de sprite, animação ou efeito **não é bloqueio**. Use placeholder sob o nó `Visual`, mantenha gameplay desacoplado da arte e siga `docs/ASSET_WORKFLOW.md`.
 
 # Critério de aceite
 
@@ -75,3 +85,4 @@ O repositório fornecido não estava acessível publicamente durante a preparaç
 - offline-first
 - sem serviços pagos no MVP
 - arquitetura preparada para mobile
+- desenvolvimento independente de arte final (DEC-013 / `docs/ASSET_WORKFLOW.md`)

@@ -15,12 +15,15 @@ Primeiro leia:
 - `docs/HANDOFF.md`
 - `docs/DECISIONS.md`
 - `docs/ROADMAP.md`
+- `docs/ASSET_WORKFLOW.md`
 
 Depois inspecione os arquivos citados no HANDOFF e confirme que o código corresponde à documentação.
 
 Continue somente a próxima tarefa incompleta.
 
 Não reescreva sistemas funcionais sem necessidade.
+
+Não bloqueie nenhuma fase por falta de arte final (DEC-013). Use placeholder sob o nó `Visual`, mantenha gameplay desacoplado da textura e não invente arte final sem solicitação.
 
 Ao terminar:
 - teste;

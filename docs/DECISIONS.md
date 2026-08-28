@@ -87,3 +87,29 @@ Otimização deve ser guiada por profiling, não por suposições.
 **Decisão:** `docs/HANDOFF.md` é o ponto oficial de retomada.
 
 Claude, ChatGPT e outros assistentes devem atualizá-lo ao terminar blocos de trabalho.
+
+---
+
+## DEC-013 — Desenvolvimento independente de arte final
+
+**Decisão:** sprites, animações, efeitos e demais assets finais serão adicionados progressivamente durante o desenvolvimento. A ausência de arte final não bloqueia nenhuma fase de programação.
+
+**Motivo:** a produção de arte tem ritmo próprio e não pode travar a validação de gameplay. Gameplay e camada visual são trilhas paralelas.
+
+Regras derivadas:
+
+1. Placeholders são permitidos durante prototipagem.
+2. Placeholder não é asset final.
+3. IA não deve inventar nem redesenhar arte final sem solicitação explícita.
+4. Gameplay e camada visual devem permanecer desacoplados.
+5. Sprites ficam sob uma camada/nó visual substituível (`Visual`) quando apropriado.
+6. Movimento, HP, IA, combate, XP e armas não dependem da textura provisória.
+7. `CollisionShape` / `Hurtbox` / `Hitbox` são configurados separadamente da arte sempre que possível.
+8. Sprites e animações podem chegar gradualmente.
+9. A falta de `idle`/`walk` de alguma direção deve permitir fallback temporário, sem erro em runtime.
+10. Um asset só é oficial após aprovação do responsável pelo projeto.
+11. A entrada de um asset aprovado não pode exigir reescrita de sistemas de gameplay.
+
+Estados oficiais: `PLACEHOLDER` → `CANDIDATE` → `APPROVED` → `INTEGRATED`.
+
+Fluxo detalhado em `docs/ASSET_WORKFLOW.md`.

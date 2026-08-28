@@ -6,7 +6,8 @@
 - fácil manutenção por IA/humano;
 - performance;
 - dados separados de comportamento;
-- facilidade para criar novas armas e inimigos.
+- facilidade para criar novas armas e inimigos;
+- independência entre gameplay e arte final (DEC-013).
 
 # Estrutura planejada
 
@@ -86,6 +87,21 @@ Enemy (CharacterBody2D)
 ├── Hitbox
 └── Hurtbox
 ```
+
+# Camada visual e assets
+
+Ver `docs/ASSET_WORKFLOW.md` e `DEC-013`.
+
+O nó `Visual` de `Player` e `Enemy` é o **único ponto de troca de arte** da entidade.
+
+Regras:
+
+- `Visual` pode conter um placeholder (`ColorRect`, `Polygon2D`, sprite temporário) ou a arte final; o restante da cena não muda entre os dois casos;
+- `CollisionShape2D`, `Hurtbox` e `Hitbox` são irmãos de `Visual`, nunca filhos dele, e são dimensionados por critério de gameplay;
+- scripts de movimento, HP, IA, combate, XP e armas não leem `texture`, `sprite_frames`, tamanho de sprite ou frame atual;
+- a lógica comunica **intenção** à camada visual (direção, estado "andando"/"parado", "levou dano"); a escolha de animação pertence à camada visual;
+- animação ausente resulta em fallback silencioso (espelhar direção oposta, reutilizar sul, ou manter `idle`), nunca em erro em runtime;
+- substituir um asset aprovado não deve exigir alteração em nenhum script de gameplay. Se exigir, o acoplamento é um defeito a corrigir.
 
 # Componentes
 
