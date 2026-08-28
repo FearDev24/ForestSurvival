@@ -22,10 +22,22 @@ Detalhes em `docs/HANDOFF.md`.
 - [ ] testar conforme a seção "Enemy" do `TEST_PLAN.md`
 - [ ] atualizar HANDOFF, CHANGELOG, TODO e ROADMAP
 
+# Pendências de arte (não bloqueiam programação — DEC-013)
+
+- [ ] confirmar se o sheet atual é frente (SOUTH) ou oeste (WEST); hoje está mapeado como SOUTH
+- [ ] gerar as direções que faltam: north, west, east
+- [ ] gerar `idle`; hoje o parado usa o primeiro frame da caminhada
+- [ ] regerar a caminhada com ciclo fechado (frame final emendando no inicial)
+- [ ] regerar com os frames alinhados entre si (hoje há ~18 px de deriva lateral)
+- [ ] reexportar o sheet em grade em vez de linha única (ver BUG-001)
+- [ ] aprovar ou recusar o asset: hoje está CANDIDATE, não APPROVED
+
 # Pendências técnicas
 
 - [ ] confirmar o projeto em Godot **4.7.2** stable (a validação rodou em 4.7.1; ver "Limitações e pendências" no HANDOFF)
 - [ ] confirmar manualmente o movimento com teclado físico no editor (o input automatizado usa `Input.action_press`)
+- [ ] revisar `camera_zoom` na FASE 3, quando houver hordas competindo com a legibilidade
+- [ ] habilitar Y-sort ao criar inimigos, separando o chão em uma camada abaixo das entidades
 
 # Depois
 

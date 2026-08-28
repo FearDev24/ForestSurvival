@@ -32,15 +32,32 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 **FASE 1 — Movimento e mundo. Concluída.**
 
-Ao rodar o jogo existe uma área de protótipo com grid e um Player placeholder controlável em oito direções, com câmera acompanhando e paredes de borda.
+Ao rodar o jogo existe uma área de protótipo com grid e um Player controlável em oito direções, com câmera acompanhando e paredes de borda.
+
+Depois da FASE 1, o sprite do druida (estado CANDIDATE) foi integrado no lugar do placeholder geométrico e a câmera foi ajustada para top-down. Isso **não** avança o ROADMAP: a FASE 2 continua não iniciada.
 
 Não existe combate, inimigo, arma, XP nem HUD — correto para esta fase.
 
 ## Assets
 
-Nenhum asset em nenhum estado (`PLACEHOLDER` / `CANDIDATE` / `APPROVED` / `INTEGRATED`).
+Inventário (`docs/ASSET_WORKFLOW.md`):
 
-Os placeholders atuais são geometria nativa da Godot (`Polygon2D`, `_draw()`), **não** arquivos de arte. Nenhuma imagem foi criada, baixada ou inventada.
+| Asset | Estado | Observação |
+|---|---|---|
+| `assets/characters/druidwalkesquerda-walk-west.png` (+ `.json`) | **CANDIDATE** | druida de frente, 120 frames de 64x96, pivot bottom-center. Gerado por "SpriteForge AI" (ver `generator` no `.json`). Está no jogo **só para avaliação** de leitura e escala. Não aprovado. |
+| mundo de teste (chão + grid) | **PLACEHOLDER** | geometria nativa, `_draw()`, sem arquivo de arte |
+
+Nenhuma arte foi criada, baixada, redesenhada ou inventada por IA.
+
+### Ressalvas do asset atual (para quem for gerar as próximas direções)
+
+1. **O nome diz `walk-west`, mas o desenho é de frente.** Foi mapeado como `SOUTH`. Se a intenção era oeste, mude a única entrada de `_FRAMES_BY_FACING` em `scripts/player/player_visual.gd`.
+2. **Não há ciclo de caminhada.** Medida a distância entre frames para todos os lags de 1 a 40: ela cresce de forma monotônica, sem mínimo periódico. Os 120 frames são únicos e derivam; frame 0 e frame 119 não fecham. A animação não vai loopar de forma limpa.
+3. **Os frames não estão alinhados entre si.** O personagem desliza horizontalmente dentro do quadro: no frame 0 a cabeça ocupa x 4..41, no frame 60 ocupa x 23..58 — cerca de 18 px de deriva. Em movimento isso aparece como oscilação lateral. A baseline (y=96) está correta e constante em todos os frames.
+4. **A arte encosta nas bordas do quadro** (x chega a 0 e a 64), então pode haver corte lateral.
+5. Resíduo mínimo do chroma verde do despill: 122 pixels em 381.605 opacos (0,03%). Desprezível.
+
+Nada disso foi "corrigido" no arquivo: alterar o asset seria redesenhar arte, o que DEC-013 proíbe sem solicitação. São pontos para regerar na origem.
 
 # Implementação do Player
 
@@ -57,11 +74,14 @@ Os placeholders atuais são geometria nativa da Godot (`Polygon2D`, `_draw()`), 
 ```text
 Player (CharacterBody2D)   grupo "player", layer 1, mask 128
 ├── Visual (Node2D)                    <- player_visual.gd
-│   ├── PlaceholderBody (Polygon2D)
-│   └── PlaceholderFacingMarker (Polygon2D)
+│   └── Sprite (Sprite2D)              <- sheet do druida, hframes = 120
 ├── CollisionShape2D (CircleShape2D, raio 14)
-└── Camera2D
+└── Camera2D                           <- zoom 2, offset y = -40
 ```
+
+O `Sprite` tem `position.y = -48`, o que coloca os pés na origem do `Player`.
+A `CollisionShape2D` fica centrada na origem, ou seja, na pegada do personagem
+— o padrão para top-down. Ela **não** foi dimensionada a partir da arte.
 
 `Hurtbox`, `PickupArea` e `WeaponManager` **não** foram criados: não são necessários para movimento e pertencem às fases de combate, XP e armas.
 
@@ -90,11 +110,22 @@ Foi implementado agora por ser barato e por ser exatamente a costura que as spri
 
 ## Contrato com a camada visual (DEC-013)
 
-`player.gd` **nunca** lê textura, sprite, tamanho de imagem ou animação. Ele emite `facing_changed(facing)` quando a direção muda; a conexão para `Visual.set_facing()` está declarada na própria `player.tscn`.
+`player.gd` **nunca** lê textura, sprite, tamanho de imagem ou animação. Ele emite dois sinais, ambos conectados na própria `player.tscn`:
 
-Ou seja: a lógica informa **intenção**, a camada visual decide a **representação**. Quando a sprite aprovada do druida chegar, substituem-se os filhos de `Visual` (e, se preciso, `player_visual.gd`). `player.gd` não muda.
+| Sinal | Método no `Visual` | Significado |
+|---|---|---|
+| `facing_changed(facing)` | `set_facing()` | direção encarada mudou |
+| `movement_state_changed(is_moving)` | `set_moving()` | começou ou parou de andar |
 
-Ambos os placeholders e a `CollisionShape2D` têm `editor_description` explicando isso dentro do editor.
+Ou seja: a lógica informa **intenção**, a camada visual decide a **representação**. `player.gd` não sabe quantos frames existem, nem que animações existem, nem qual direção tem arte.
+
+O sheet do druida foi integrado exatamente por essa costura, sem alterar uma linha de `player.gd`.
+
+`player_visual.gd` resolve a direção por uma tabela (`_FRAMES_BY_FACING`) com fallback para `SOUTH`. Hoje só `SOUTH` tem arte, então **as quatro direções mostram o mesmo desenho** — é o fallback previsto na regra 9 do `ASSET_WORKFLOW`, e não gera erro. Não há espelhamento horizontal para leste/oeste de propósito: a arte é frontal e espelhar trocaria o cajado de mão, contrariando `docs/05_ART_DIRECTION.md`.
+
+Quando o conjunto completo chegar, o caminho provável é trocar o `Sprite2D` por `AnimatedSprite2D` + `SpriteFrames` dentro do `Visual`, acrescentando entradas na tabela. `player.gd` continua intocado.
+
+O nó `Visual` e a `CollisionShape2D` têm `editor_description` explicando isso dentro do editor.
 
 ## Physics layer / mask
 
@@ -107,7 +138,18 @@ Mask mínima de propósito. Nada foi marcado preventivamente.
 
 ## Câmera
 
-`Camera2D` filha do Player, centralizada, sem zoom, sem smoothing, sem shake. Os limites (`limit_left/top/right/bottom`) são aplicados em runtime por `Player.apply_camera_limits(bounds)`.
+`Camera2D` filha do Player, sem smoothing e sem shake. Os limites (`limit_left/top/right/bottom`) são aplicados em runtime por `Player.apply_camera_limits(bounds)`.
+
+Ajustes de enquadramento top-down feitos com a arte real:
+
+- `@export var camera_zoom: float = 2.0` no Player, aplicado no `_ready()`. Comparei 1.0, 1.5 e 2.0 em execução: a 1.0 o druida ocupa 13% da altura da tela e perde detalhe; a 2.0 fica legível, o que importa pela prioridade Android (`docs/ANDROID.md`). **Usar zoom inteiro** — 1.5 deforma pixel art, produzindo pixels de tamanhos diferentes.
+- `Camera2D.position.y = -40`, para enquadrar o corpo em vez dos pés.
+
+Ambos são **provisórios** e devem ser revistos na FASE 3: com hordas na tela, campo de visão passa a competir com legibilidade, e o zoom 2 reduz a área visível para 640x360 unidades de mundo.
+
+### Pendente para top-down: Y-sort
+
+Sprites altos em top-down precisam ordenar por Y, para que quem está mais abaixo desenhe na frente. **Não foi habilitado agora**, de propósito: com `y_sort_enabled` na raiz, o chão do `TestWorld` (origem em y=0) passaria a ordenar contra o Player, e o Player desapareceria atrás do chão ao andar para cima. Fazer direito exige separar o chão em uma camada própria, abaixo das entidades. Fica para quando existirem inimigos (FASE 2/3).
 
 # Mundo de teste
 
@@ -154,6 +196,7 @@ Game (Node2D)                <- scripts/systems/game.gd
 
 - `scenes/player/player.tscn`
 - `scenes/game/test_world.tscn`
+- `assets/characters/druidwalkesquerda-walk-west.png.import` (gerado pela Godot ao importar a textura)
 - `scripts/player/player.gd` (+ `.uid`)
 - `scripts/player/player_visual.gd` (+ `.uid`)
 - `scripts/systems/test_world.gd` (+ `.uid`)
@@ -172,6 +215,8 @@ Game (Node2D)                <- scripts/systems/game.gd
 
 `.gitkeep` removidos de `scenes/player/`, `scripts/player/` e `scripts/systems/`, que agora têm conteúdo real.
 
+Na integração do sprite (depois da FASE 1) mudaram: `scenes/player/player.tscn`, `scripts/player/player.gd` (sinal `movement_state_changed`, export `camera_zoom`) e `scripts/player/player_visual.gd` (reescrito para o sheet). O `.png` e o `.json` do asset entraram versionados.
+
 # Testes executados
 
 Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`).
@@ -184,6 +229,8 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 4 | `--headless --script res://tests/test_phase1.gd` | `FASE 1 OK`, exit 0 |
 | 5 | `--quit-after 180 --resolution 1280x720` (com render) | Vulkan / Forward Mobile, exit 0, sem erro |
 | 6 | Captura de tela em execução real (script temporário, não versionado) | ver abaixo |
+| 7 | Suíte completa reexecutada após integrar o sprite | `FASE 0 OK` e `FASE 1 OK`, exit 0 nos dois |
+| 8 | Captura em execução com o sprite, zoom 1.0 / 1.5 / 2.0 e caminhada | arte renderiza, anima e a câmera acompanha |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -217,10 +264,13 @@ Executado com renderização, capturando o viewport. Confirmado: Player visível
 
 # Limitações e pendências
 
+- **Textura de 7680 x 96 px.** O sheet é largo demais para GPUs Android antigas, cujo limite de textura é 4096. Aparelhos modernos costumam suportar 8192+, então não é bloqueio, mas precisa ser confirmado em device real antes do export Android. Registrado em `docs/BUGS.md` como BUG-001.
+- **Só existe a direção frontal.** North, west e east caem no fallback e mostram o mesmo desenho. Não é erro; é a regra 9 do `ASSET_WORKFLOW`.
+- **A animação não fecha ciclo e os frames oscilam lateralmente.** Ver "Ressalvas do asset atual" acima. É problema de origem do asset, não de integração.
 - **Godot 4.7.2 continua não validado.** O ambiente só tem 4.7.1 stable; procurei por 4.7.2 e não existe na máquina. DEC-001 não foi alterada e nada fora de 4.7 foi usado. Quem tiver 4.7.2 deve abrir o projeto uma vez e rodar as duas suítes.
 - Movimento não foi testado com teclado físico por uma pessoa (ver acima).
 - O mundo de teste é protótipo descartável, não arquitetura de mapa.
-- Nenhum bug encontrado. `docs/BUGS.md` não foi alterado.
+- Nenhum bug de código. `docs/BUGS.md` tem BUG-001 (largura da textura) em investigação.
 
 # Próxima tarefa
 

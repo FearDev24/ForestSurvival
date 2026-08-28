@@ -35,6 +35,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **Integração do sprite do druida (estado CANDIDATE, não avança o ROADMAP):**
+  - `assets/characters/druidwalkesquerda-walk-west.png` + `.json` versionados e importados;
+  - `Sprite2D` com 120 frames sob o nó `Visual`, no lugar do placeholder geométrico;
+  - sinal `movement_state_changed` no Player, para a camada visual alternar entre parado e caminhando;
+  - `camera_zoom` exportado (2.0) e câmera deslocada para enquadrar o corpo, ajuste top-down;
+  - `BUG-001` em `docs/BUGS.md`: largura de 7680 px do sheet contra o limite de textura de GPUs Android antigas.
 
 ### Changed
 

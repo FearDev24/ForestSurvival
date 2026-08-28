@@ -23,19 +23,35 @@ enum Facing { SOUTH, NORTH, WEST, EAST }
 ## Emitido somente quando a direção muda, não a cada frame.
 signal facing_changed(facing: Facing)
 
+## Emitido somente quando o jogador começa ou para de se mover.
+## A camada visual usa isto para alternar entre parado e caminhando; a lógica
+## não sabe que animações existem.
+signal movement_state_changed(is_moving: bool)
+
 ## Velocidade em pixels por segundo.
 ## Faixa planejada no GDD (`docs/01_GAME_DESIGN.md`): 180–220 px/s.
 ## Valor provisório: o sistema de Stats só entra na FASE 6.
 @export var move_speed: float = 200.0
 
+## Zoom da câmera. Provisório, para avaliar a leitura do personagem.
+##
+## Usar valores inteiros: a arte é pixel art e zoom fracionário produz pixels
+## de tamanhos diferentes. Deve ser revisto na FASE 3, quando existirem hordas
+## e o campo de visão passar a competir com a legibilidade.
+@export var camera_zoom: float = 2.0
+
 var facing: Facing = Facing.SOUTH
+
+var _is_moving := false
 
 @onready var _camera: Camera2D = $Camera2D
 
 
 func _ready() -> void:
+	_camera.zoom = Vector2(camera_zoom, camera_zoom)
 	# Garante que a camada visual comece coerente com o estado inicial.
 	facing_changed.emit(facing)
+	movement_state_changed.emit(_is_moving)
 
 
 func _physics_process(_delta: float) -> void:
@@ -46,6 +62,7 @@ func _physics_process(_delta: float) -> void:
 
 	velocity = direction * move_speed
 	_update_facing(direction)
+	_update_movement_state(direction)
 	move_and_slide()
 
 
@@ -58,6 +75,14 @@ func apply_camera_limits(bounds: Rect2) -> void:
 	_camera.limit_top = roundi(bounds.position.y)
 	_camera.limit_right = roundi(bounds.end.x)
 	_camera.limit_bottom = roundi(bounds.end.y)
+
+
+func _update_movement_state(direction: Vector2) -> void:
+	var moving := not direction.is_zero_approx()
+	if moving == _is_moving:
+		return
+	_is_moving = moving
+	movement_state_changed.emit(_is_moving)
 
 
 func _update_facing(direction: Vector2) -> void:
