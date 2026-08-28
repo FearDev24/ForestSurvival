@@ -48,6 +48,7 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `player_visual.gd` escolhe a animação por estado + direção, com degradação em quatro níveis quando a animação pedida não existe;
   - `assets/characters/frames/` com os frames avulsos como fonte, marcada com `.gdignore` para a Godot não importá-los;
   - removido o sheet antigo `druidwalkesquerda-walk-west` (7680 px), o que **corrige BUG-001**.
+- **Remoção do `idle_south`** (arte incorreta, a pedido): sheet, `.json`, `.import` e os 14 frames avulsos removidos; `druida_sprite_frames.tres` regerado com 4 animações e 57 frames; animação padrão da cena passou para `walk_south`. Nenhuma mudança de lógica foi necessária — a degradação já prevista em `player_visual.gd` cobriu a ausência de idle.
 
 ### Changed
 

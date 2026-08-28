@@ -20,7 +20,7 @@ script = ExtResource("2_visual")
 texture_filter = 1
 position = Vector2(0, -48)
 sprite_frames = ExtResource("3_druida")
-animation = &"idle_south"
+animation = &"walk_south"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 editor_description = "Colisao de gameplay, centrada nos pes. Dimensionada por criterio de movimento, nao pela arte. Nao redimensionar so porque a sprite mudou. Ver DEC-013."

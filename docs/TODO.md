@@ -25,11 +25,10 @@ Detalhes em `docs/HANDOFF.md`.
 # Pendências de arte (não bloqueiam programação — DEC-013)
 
 - [x] gerar as direções que faltam: north, west, east
-- [x] gerar `idle` (existe para south)
+- [ ] gerar `idle` para as quatro direções (o `idle_south` que existia estava errado e foi removido)
 - [x] regerar com os frames alinhados (deriva caiu de ~18 px para 1,5–2,5 px)
 - [x] reexportar em sheets menores (ver BUG-001, corrigido)
-- [ ] gerar `idle` para north, west e east; hoje elas congelam no frame 0 da caminhada
-- [ ] revisar a velocidade das animações: caminhadas a 15 fps, idle a 8 fps — valores iniciais, não testados com o jogo em ritmo real
+- [ ] revisar a velocidade das caminhadas: 15 fps, valor inicial, não testado com o jogo em ritmo real
 - [ ] aprovar ou recusar o conjunto: hoje está CANDIDATE, não APPROVED
 
 # Pendências técnicas

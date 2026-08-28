@@ -59,9 +59,10 @@ func _apply() -> void:
 	if animation.is_empty():
 		return
 
-	# Só existe `idle_south`. Nas outras direções o parado reaproveita o
-	# primeiro frame da caminhada, congelado — melhor preservar a direção
-	# correta do que trocar para uma pose frontal errada.
+	# Ainda não existe nenhuma animação de idle. Parado, o druida congela no
+	# primeiro frame da caminhada da direção atual — preserva a direção certa
+	# e não inventa pose. Quando um `idle_<direção>` entrar no `.tres`, o
+	# passo 1 de `_pick_animation` passa a valer sozinho, sem mexer aqui.
 	var freeze := not _moving and animation.begins_with("walk_")
 
 	if _sprite.animation != animation:
