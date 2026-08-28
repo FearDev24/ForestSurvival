@@ -159,10 +159,22 @@ Mask mínima de propósito. Nada foi marcado preventivamente.
 
 Ajustes de enquadramento top-down feitos com a arte real:
 
-- `@export var camera_zoom: float = 2.0` no Player, aplicado no `_ready()`. Comparei 1.0, 1.5 e 2.0 em execução: a 1.0 o druida ocupa 13% da altura da tela e perde detalhe; a 2.0 fica legível, o que importa pela prioridade Android (`docs/ANDROID.md`). **Usar zoom inteiro** — 1.5 deforma pixel art, produzindo pixels de tamanhos diferentes.
+- `@export var camera_zoom: float = 1.0` no Player, aplicado no `_ready()`.
 - `Camera2D.position.y = -40`, para enquadrar o corpo em vez dos pés.
 
-Ambos são **provisórios** e devem ser revistos na FASE 3: com hordas na tela, campo de visão passa a competir com legibilidade, e o zoom 2 reduz a área visível para 640x360 unidades de mundo.
+O zoom começou em 2.0 e foi reduzido para 1.0 depois de ver o jogo em tela cheia: o druida ocupava 26,7% da altura, sobrando pouco espaço de jogo. Medições em 1920 x 1080:
+
+| zoom | mundo visível | altura do druida |
+|---|---|---|
+| 2.0 | 640 x 360 | 26,7% da tela |
+| 1.5 | 853 x 480 | 20,0% da tela |
+| **1.0** | **1280 x 720** | **13,3% da tela** |
+
+Abaixo de 1.0 a arte passa a ser reduzida abaixo da resolução nativa e a pixel art perde definição. Se for preciso mais campo de visão, o caminho é gerar sprites menores, não diminuir mais o zoom.
+
+Nota sobre nitidez: com `stretch/mode = canvas_items`, a escala total é `camera_zoom x (altura_da_janela / 720)`. Em 1920 x 1080 isso dá 1,5x em zoom 1.0 — escala não inteira, então alguns pixels da arte saem com o dobro da largura de outros. É sutil e o custo foi aceito em troca da área de jogo.
+
+`stretch/scale_mode = integer` foi testado e **descartado**: em 1920 x 1080 ele reduz o render para 1280 x 720 e letterboxa a janela, em vez de mostrar mais mundo.
 
 ### Pendente para top-down: Y-sort
 

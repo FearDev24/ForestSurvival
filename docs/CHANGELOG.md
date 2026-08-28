@@ -49,6 +49,7 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `assets/characters/frames/` com os frames avulsos como fonte, marcada com `.gdignore` para a Godot não importá-los;
   - removido o sheet antigo `druidwalkesquerda-walk-west` (7680 px), o que **corrige BUG-001**.
 - **Remoção do `idle_south`** (arte incorreta, a pedido): sheet, `.json`, `.import` e os 14 frames avulsos removidos; `druida_sprite_frames.tres` regerado com 4 animações e 57 frames; animação padrão da cena passou para `walk_south`. Nenhuma mudança de lógica foi necessária — a degradação já prevista em `player_visual.gd` cobriu a ausência de idle.
+- **Câmera afastada:** `camera_zoom` de 2.0 para 1.0. Em 1920 x 1080 a área visível passa de 640 x 360 para 1280 x 720 unidades de mundo, e o druida de 26,7% para 13,3% da altura da tela.
 
 ### Changed
 

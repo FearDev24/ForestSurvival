@@ -35,7 +35,7 @@ Detalhes em `docs/HANDOFF.md`.
 
 - [ ] confirmar o projeto em Godot **4.7.2** stable (a validação rodou em 4.7.1; ver "Limitações e pendências" no HANDOFF)
 - [ ] confirmar manualmente o movimento com teclado físico no editor (o input automatizado usa `Input.action_press`)
-- [ ] revisar `camera_zoom` na FASE 3, quando houver hordas competindo com a legibilidade
+- [ ] revalidar `camera_zoom` (hoje 1.0) na FASE 3, com hordas na tela, e em tela de celular
 - [ ] habilitar Y-sort ao criar inimigos, separando o chão em uma camada abaixo das entidades
 
 # Depois

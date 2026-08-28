@@ -33,12 +33,24 @@ signal movement_state_changed(is_moving: bool)
 ## Valor provisório: o sistema de Stats só entra na FASE 6.
 @export var move_speed: float = 200.0
 
-## Zoom da câmera. Provisório, para avaliar a leitura do personagem.
+## Zoom da câmera. Quanto menor, mais mundo cabe na tela.
 ##
-## Usar valores inteiros: a arte é pixel art e zoom fracionário produz pixels
-## de tamanhos diferentes. Deve ser revisto na FASE 3, quando existirem hordas
-## e o campo de visão passar a competir com a legibilidade.
-@export var camera_zoom: float = 2.0
+## Em 1.0 a área visível é a resolução base inteira (1280 x 720 unidades de
+## mundo) e o druida ocupa cerca de 13% da altura da tela — proporção adequada
+## para um survivor-like, que precisa de espaço para hordas.
+##
+## Medições feitas em 1920 x 1080:
+##
+## | zoom | mundo visível | altura do druida |
+## |------|---------------|------------------|
+## | 2.0  | 640 x 360     | 26,7% da tela    |
+## | 1.5  | 853 x 480     | 20,0% da tela    |
+## | 1.0  | 1280 x 720    | 13,3% da tela    |
+##
+## Abaixo de 1.0 a arte passa a ser reduzida abaixo da resolução nativa e a
+## pixel art perde definição; nesse caso o certo é gerar sprites menores, não
+## diminuir mais o zoom.
+@export var camera_zoom: float = 1.0
 
 var facing: Facing = Facing.SOUTH
 
