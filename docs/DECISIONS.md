@@ -113,3 +113,44 @@ Regras derivadas:
 Estados oficiais: `PLACEHOLDER` → `CANDIDATE` → `APPROVED` → `INTEGRATED`.
 
 Fluxo detalhado em `docs/ASSET_WORKFLOW.md`.
+
+---
+
+## DEC-014 — Numeração final das physics layers 2D
+
+**Decisão:** as camadas de física 2D ficam fixadas assim, nomeadas em `project.godot`:
+
+| # | Nome |
+|---|---|
+| 1 | PlayerBody |
+| 2 | EnemyBody |
+| 3 | PlayerHurtbox |
+| 4 | EnemyHurtbox |
+| 5 | PlayerAttack |
+| 6 | EnemyAttack |
+| 7 | Pickup |
+
+**Motivo:** `docs/02_ARCHITECTURE.md` exigia registrar a numeração definitiva após a implementação. A ordem planejada foi mantida sem alteração.
+
+Renumerar uma camada existente quebra cenas já configuradas. Camadas novas devem ser acrescentadas a partir da 8, nunca inseridas no meio.
+
+As *masks* de cada entidade não fazem parte desta decisão: são definidas por nó quando Player, Enemy, projéteis e pickups forem criados.
+
+---
+
+## DEC-015 — Renderer e modo de stretch
+
+**Decisão:**
+
+- `renderer/rendering_method = "mobile"` (Forward Mobile) também no desenvolvimento em PC;
+- viewport base `1280 × 720`, landscape;
+- `stretch/mode = "canvas_items"` e `stretch/aspect = "expand"`;
+- `textures/canvas_textures/default_texture_filter = 0` (Nearest).
+
+**Motivo:**
+
+- Android é a plataforma prioritária de publicação (DEC-005). Desenvolver no mesmo renderer da plataforma alvo evita descobrir incompatibilidades de shader e de features só no fim;
+- `canvas_items` + `expand` mantém a escala da UI e mostra mais mundo em telas mais largas, em vez de distorcer ou adicionar barras — necessário pela variedade de proporções de tela em Android;
+- filtro Nearest preserva a leitura de pixel art (`docs/05_ART_DIRECTION.md`).
+
+Mudar para Forward+ ou Compatibility exige nova decisão registrada.

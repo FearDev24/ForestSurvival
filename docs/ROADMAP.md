@@ -9,17 +9,21 @@ Legenda:
 
 # FASE 0 — Fundação
 
-- [ ] Criar projeto Godot 4.7.2
-- [ ] Configurar Git
-- [ ] Configurar `.gitignore`
-- [ ] Criar estrutura de pastas
-- [ ] Configurar resolução
-- [ ] Configurar Input Map
-- [ ] Definir layers/masks
-- [ ] Criar cena `game.tscn`
+- [x] Criar projeto Godot 4.7.2
+- [x] Configurar Git
+- [x] Configurar `.gitignore`
+- [x] Criar estrutura de pastas
+- [x] Configurar resolução
+- [x] Configurar Input Map
+- [x] Definir layers/masks
+- [x] Criar cena `game.tscn`
 
 Critério de saída:
-projeto abre e roda sem erro.
+projeto abre e roda sem erro. **Atingido.**
+
+Observações:
+- as *layers* 2D estão nomeadas em `project.godot` (DEC-014); as *masks* de cada entidade serão aplicadas quando Player e Enemy existirem (FASE 1/2);
+- validação automatizada: `tests/test_foundation.gd`.
 
 # FASE 1 — Movimento e mundo
 

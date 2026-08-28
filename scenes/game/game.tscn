@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://bfsgame0forest1"]
+
+[node name="Game" type="Node2D"]
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="EnemyContainer" type="Node2D" parent="."]
+
+[node name="ProjectileContainer" type="Node2D" parent="."]
+
+[node name="PickupContainer" type="Node2D" parent="."]
+
+[node name="EffectContainer" type="Node2D" parent="."]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
