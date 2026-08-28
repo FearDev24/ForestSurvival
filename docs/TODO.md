@@ -2,35 +2,30 @@
 
 # Concluído
 
-FASE 0 — Fundação. Ver `docs/HANDOFF.md`.
+FASE 0 — Fundação.
+FASE 1 — Movimento e mundo.
 
-- [x] colocar documentação no repositório
-- [x] criar projeto Godot
-- [x] criar estrutura de pastas
-- [x] criar `.gitignore`
-- [x] configurar resolução
-- [x] configurar Input Map
-- [x] nomear physics layers 2D
-- [x] criar cena principal e defini-la como Main Scene
-- [x] commit da fundação
+Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 1 (movimento e mundo)
+# Agora — FASE 2 (primeiro inimigo)
 
-- [ ] criar `scenes/player/player.tscn` (raiz `Player`, `CharacterBody2D`)
-- [ ] criar `scripts/player/player.gd` com movimento por Input Actions
-- [ ] normalizar input para que a diagonal não seja mais rápida
-- [ ] usar `delta` (velocidade independente do FPS)
-- [ ] adicionar `Camera2D` seguindo o jogador
-- [ ] adicionar sprite **placeholder** sob o nó `Visual`
-- [ ] criar mapa placeholder e limites de mundo
-- [ ] instanciar o Player em `game.tscn` sob `World`
-- [ ] testar conforme a seção "Movimento" de `TEST_PLAN.md`
+- [ ] criar `scenes/enemies/enemy.tscn` (raiz `Enemy`, `CharacterBody2D`)
+- [ ] criar `scripts/enemies/enemy.gd` com perseguição direta simples (sem pathfinding — DEC-008)
+- [ ] guardar a referência ao Player uma única vez, nunca buscar por frame
+- [ ] criar `HealthComponent` em `scripts/components/`
+- [ ] fluxo de dano `Hitbox` -> `Hurtbox` -> `HealthComponent`
+- [ ] morte do inimigo, garantindo que ocorra uma única vez
+- [ ] definir layers/masks de Player e Enemy (layer 2 EnemyBody)
+- [ ] placeholder visual do inimigo sob o nó `Visual`
+- [ ] instanciar um inimigo em `game.tscn` sob `EnemyContainer`
+- [ ] criar `tests/test_phase2.gd`
+- [ ] testar conforme a seção "Enemy" do `TEST_PLAN.md`
 - [ ] atualizar HANDOFF, CHANGELOG, TODO e ROADMAP
 
 # Pendências técnicas
 
-- [ ] confirmar o projeto em Godot **4.7.2** stable (a validação da FASE 0 rodou em 4.7.1; ver "Problemas conhecidos" no HANDOFF)
-- [ ] definir as *masks* de física por entidade quando Player e Enemy existirem (as *layers* já estão nomeadas — DEC-014)
+- [ ] confirmar o projeto em Godot **4.7.2** stable (a validação rodou em 4.7.1; ver "Limitações e pendências" no HANDOFF)
+- [ ] confirmar manualmente o movimento com teclado físico no editor (o input automatizado usa `Input.action_press`)
 
 # Depois
 

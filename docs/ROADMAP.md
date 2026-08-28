@@ -27,15 +27,20 @@ Observações:
 
 # FASE 1 — Movimento e mundo
 
-- [ ] Player
-- [ ] movimento WASD/setas
-- [ ] câmera
-- [ ] sprite placeholder
-- [ ] mapa placeholder
-- [ ] limites/teste de mundo
+- [x] Player
+- [x] movimento WASD/setas
+- [x] câmera
+- [x] sprite placeholder
+- [x] mapa placeholder
+- [x] limites/teste de mundo
 
 Critério:
-player se move corretamente.
+player se move corretamente. **Atingido.**
+
+Observações:
+- o "sprite placeholder" e o "mapa placeholder" são geometria nativa da Godot, não arte (DEC-013);
+- limites de mundo são paredes `StaticBody2D` na layer 8 (DEC-016), de protótipo — não são a arquitetura final do mapa;
+- validação automatizada: `tests/test_phase1.gd`.
 
 # FASE 2 — Primeiro inimigo
 

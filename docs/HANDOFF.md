@@ -14,146 +14,242 @@ Forest Survival
 - survivor-like
 - Android como plataforma prioritária futura
 
+# Commit base encontrado
+
+`3df8d99 feat: cria fundacao inicial do projeto Godot`
+
+Árvore limpa e sincronizada com `origin/main` no início da sessão.
+
+# Estado inicial encontrado
+
+FASE 0 concluída e íntegra. `tests/test_foundation.gd` foi executado antes de qualquer alteração e passou.
+
+Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. `scenes/player/` e `scripts/player/` continham apenas `.gitkeep`.
+
 # Estado atual
 
 ## Fase concluída
 
-**FASE 0 — Fundação. Concluída.**
+**FASE 1 — Movimento e mundo. Concluída.**
 
-O projeto Godot existe, abre, roda e não apresenta erros estruturais.
+Ao rodar o jogo existe uma área de protótipo com grid e um Player placeholder controlável em oito direções, com câmera acompanhando e paredes de borda.
 
-## Documentação
-
-Estrutura de documentação definida e atualizada.
-
-Política de assets progressivos registrada (`DEC-013`) e detalhada em `docs/ASSET_WORKFLOW.md`.
-
-## Código
-
-- `project.godot` criado e válido;
-- estrutura de pastas da arquitetura criada (pastas ainda vazias usam `.gitkeep`);
-- `res://scenes/game/game.tscn` criada e definida como Main Scene;
-- nenhum script de gameplay existe ainda — isso é esperado nesta fase;
-- nenhum autoload registrado ainda (`autoload/` está vazia de propósito).
+Não existe combate, inimigo, arma, XP nem HUD — correto para esta fase.
 
 ## Assets
 
-Nenhum asset existe em nenhum estado (`PLACEHOLDER` / `CANDIDATE` / `APPROVED` / `INTEGRATED`).
+Nenhum asset em nenhum estado (`PLACEHOLDER` / `CANDIDATE` / `APPROVED` / `INTEGRATED`).
 
-# Última tarefa concluída
+Os placeholders atuais são geometria nativa da Godot (`Polygon2D`, `_draw()`), **não** arquivos de arte. Nenhuma imagem foi criada, baixada ou inventada.
 
-FASE 0 — Fundação.
+# Implementação do Player
 
-## Arquivos criados
+## Caminhos
 
-- `project.godot`
-- `scenes/game/game.tscn`
-- `tests/test_foundation.gd`
-- `.gitkeep` nas pastas novas da estrutura
-
-## Arquivos modificados
-
-- `docs/ROADMAP.md` (FASE 0 marcada como concluída)
-- `docs/DECISIONS.md` (DEC-014, DEC-015)
-- `docs/HANDOFF.md`
-- `docs/CHANGELOG.md`
-- `docs/TODO.md`
-
-## Configurações realizadas
-
-### Janela
-
-- viewport base `1280 × 720`, landscape;
-- `stretch/mode = canvas_items`;
-- `stretch/aspect = expand`;
-- `handheld/orientation = 0` (landscape).
-
-### Renderer
-
-- `mobile` (Forward Mobile), filtro de textura Nearest, clear color verde-escuro. Ver DEC-015.
-
-### Input Map
-
-Todas as ações usam `physical_keycode` (funciona em layouts não-QWERTY):
-
-| Ação | Teclas |
+| O quê | Caminho |
 |---|---|
-| `move_up` | W, ↑ |
-| `move_down` | S, ↓ |
-| `move_left` | A, ← |
-| `move_right` | D, → |
-| `pause` | Escape |
+| Cena | `res://scenes/player/player.tscn` |
+| Script | `res://scripts/player/player.gd` (`class_name Player`) |
+| Camada visual | `res://scripts/player/player_visual.gd` |
 
-O gameplay **deve** consultar essas ações. Nunca ler teclas diretamente — isso permitirá plugar joystick virtual no Android sem reescrever o Player (`docs/ANDROID.md`).
-
-### Physics layers 2D
-
-Nomeadas em `project.godot` conforme DEC-014: 1 PlayerBody, 2 EnemyBody, 3 PlayerHurtbox, 4 EnemyHurtbox, 5 PlayerAttack, 6 EnemyAttack, 7 Pickup.
-
-As *masks* por entidade ainda não existem — serão definidas ao criar Player e Enemy.
-
-### Cena principal
+## Estrutura de `player.tscn`
 
 ```text
-Game (Node2D)
+Player (CharacterBody2D)   grupo "player", layer 1, mask 128
+├── Visual (Node2D)                    <- player_visual.gd
+│   ├── PlaceholderBody (Polygon2D)
+│   └── PlaceholderFacingMarker (Polygon2D)
+├── CollisionShape2D (CircleShape2D, raio 14)
+└── Camera2D
+```
+
+`Hurtbox`, `PickupArea` e `WeaponManager` **não** foram criados: não são necessários para movimento e pertencem às fases de combate, XP e armas.
+
+## Velocidade
+
+`@export var move_speed: float = 200.0` — px/s, dentro da faixa 180–220 do GDD. Valor provisório; o sistema de Stats só entra na FASE 6.
+
+## Movimento
+
+```gdscript
+var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+velocity = direction * move_speed
+move_and_slide()
+```
+
+- só Input Actions; nenhuma tecla lida diretamente, nenhum `Input.is_key_pressed()`;
+- `Input.get_vector` já limita o comprimento a 1, então a diagonal **não** é mais rápida;
+- `velocity` **não** é multiplicado por `delta`: em `CharacterBody2D` é px/s e `move_and_slide()` aplica o passo de física;
+- roda em `_physics_process`.
+
+## Facing
+
+`enum Facing { SOUTH, NORTH, WEST, EAST }`, determinado pelo eixo de maior magnitude. Empate (diagonal exata) resolve para o eixo **vertical** — regra fixa para a direção não oscilar na diagonal. Parado mantém a última direção válida.
+
+Foi implementado agora por ser barato e por ser exatamente a costura que as sprites direcionais vão usar depois. Não há `AnimationTree`, nem state machine de animação, nem animação fictícia.
+
+## Contrato com a camada visual (DEC-013)
+
+`player.gd` **nunca** lê textura, sprite, tamanho de imagem ou animação. Ele emite `facing_changed(facing)` quando a direção muda; a conexão para `Visual.set_facing()` está declarada na própria `player.tscn`.
+
+Ou seja: a lógica informa **intenção**, a camada visual decide a **representação**. Quando a sprite aprovada do druida chegar, substituem-se os filhos de `Visual` (e, se preciso, `player_visual.gd`). `player.gd` não muda.
+
+Ambos os placeholders e a `CollisionShape2D` têm `editor_description` explicando isso dentro do editor.
+
+## Physics layer / mask
+
+| Nó | layer | mask |
+|---|---|---|
+| `Player` | 1 — PlayerBody | 128 — WorldStatic (DEC-016) |
+| paredes do `TestWorld` | 128 — WorldStatic | 0 |
+
+Mask mínima de propósito. Nada foi marcado preventivamente.
+
+## Câmera
+
+`Camera2D` filha do Player, centralizada, sem zoom, sem smoothing, sem shake. Os limites (`limit_left/top/right/bottom`) são aplicados em runtime por `Player.apply_camera_limits(bounds)`.
+
+# Mundo de teste
+
+| O quê | Caminho |
+|---|---|
+| Cena | `res://scenes/game/test_world.tscn` |
+| Script | `res://scripts/systems/test_world.gd` (`class_name TestWorld`) |
+
+`@export var world_size := Vector2(3072, 3072)` é a **única fonte de verdade** das dimensões. Dela derivam, sem duplicação:
+
+1. o chão e o grid, desenhados em `_draw()` (grid a cada 256 px, só para tornar o deslocamento perceptível);
+2. as quatro paredes `StaticBody2D`, construídas em código em `_ready()`;
+3. os limites da câmera.
+
+Os limites usam **paredes físicas** (Opção A), não clamp de posição: assim o mapa não precisa vazar para dentro de `player.gd`, e trocar o mapa não mexe no Player.
+
+**Isto é protótipo.** Não é TileSet, não é floresta, não é a arquitetura final do mapa. O mapa do survivor-like poderá ser muito maior, rolar infinitamente ou funcionar de outra forma.
+
+# Composição da partida
+
+`res://scripts/systems/game.gd`, na raiz de `game.tscn`, faz uma coisa só:
+
+```gdscript
+_player.apply_camera_limits(_test_world.get_bounds())
+```
+
+Não é manager e não guarda estado. Existe para que o Player não conheça o mapa e o mapa não alcance dentro do Player. GameManager, SpawnManager e WaveManager entram nas fases previstas no ROADMAP.
+
+## Estrutura de `game.tscn`
+
+```text
+Game (Node2D)                <- scripts/systems/game.gd
 ├── World (Node2D)
+│   └── TestWorld            <- instância de test_world.tscn
+├── Player                   <- instância de player.tscn, em (0, 0)
 ├── EnemyContainer (Node2D)
 ├── ProjectileContainer (Node2D)
 ├── PickupContainer (Node2D)
 ├── EffectContainer (Node2D)
-└── CanvasLayer (CanvasLayer)
+└── CanvasLayer
 ```
 
-Sem script e sem managers, de propósito.
+# Arquivos criados
+
+- `scenes/player/player.tscn`
+- `scenes/game/test_world.tscn`
+- `scripts/player/player.gd` (+ `.uid`)
+- `scripts/player/player_visual.gd` (+ `.uid`)
+- `scripts/systems/test_world.gd` (+ `.uid`)
+- `scripts/systems/game.gd` (+ `.uid`)
+- `tests/test_phase1.gd` (+ `.uid`)
+- `tests/test_foundation.gd.uid` (gerado pela Godot, versionado agora)
+
+# Arquivos modificados
+
+- `scenes/game/game.tscn` (script de composição, instâncias de TestWorld e Player)
+- `docs/ROADMAP.md` (FASE 1 marcada)
+- `docs/DECISIONS.md` (DEC-016)
+- `docs/HANDOFF.md`
+- `docs/CHANGELOG.md`
+- `docs/TODO.md`
+
+`.gitkeep` removidos de `scenes/player/`, `scripts/player/` e `scripts/systems/`, que agora têm conteúdo real.
 
 # Testes executados
 
-1. `godot --headless --path . --import` → concluiu sem erro (exit 0).
-2. `godot --headless --path . --script res://tests/test_foundation.gd` → `FASE 0 OK — fundação validada.` (exit 0).
-3. `godot --path . --quit-after 180 --resolution 1280x720` → main scene carregou com Vulkan / Forward Mobile, sem erro (exit 0).
+Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`).
 
-## Resultado
+| # | Comando | Resultado |
+|---|---|---|
+| 1 | `--headless --script res://tests/test_foundation.gd` (antes de alterar nada) | `FASE 0 OK`, exit 0 |
+| 2 | `--headless --import` | exit 0, `Player` e `TestWorld` registrados como classes globais |
+| 3 | `--headless --script res://tests/test_foundation.gd` (depois) | `FASE 0 OK`, exit 0 |
+| 4 | `--headless --script res://tests/test_phase1.gd` | `FASE 1 OK`, exit 0 |
+| 5 | `--quit-after 180 --resolution 1280x720` (com render) | Vulkan / Forward Mobile, exit 0, sem erro |
+| 6 | Captura de tela em execução real (script temporário, não versionado) | ver abaixo |
 
-Todos passaram. Debugger sem erros estruturais.
+## O que `tests/test_phase1.gd` cobre
 
-## Como repetir a validação
+Estrutura: `player.tscn` existe, raiz é `CharacterBody2D`, script anexado, grupo `player`, `Visual` presente, `CollisionShape2D` com shape, `Camera2D` presente, `collision_layer`/`collision_mask` corretos, `move_speed` válido, `game.tscn` instancia Player e área de teste maior que a viewport, Input Actions presentes.
+
+Comportamento, em execução real: deslocamento medido a **60 Hz** e a **30 Hz**, limites da câmera aplicados, e Player empurrado contra a parede.
+
+## Resultado das medições
 
 ```
-godot --headless --path . --script res://tests/test_foundation.gd
+60 Hz: 100.0 px em 0.50s
+30 Hz: 100.0 px em 0.50s
 ```
 
-O script confere Main Scene, resolução, stretch, as 5 ações de input, as 7 physics layers e os nós de `game.tscn`. Sai com código 1 se algo regredir.
+Exatamente `200 px/s x 0,5 s` nas duas taxas — velocidade independente do FPS, medida, não presumida.
 
-# Problemas conhecidos
+## Verificação de que os testes não são vacuosos
 
-- **Versão do Godot no ambiente de desenvolvimento local:** a máquina usada tinha apenas **Godot 4.7.1 stable** instalado, não 4.7.2. O `project.godot` declara `config/features = PackedStringArray("4.7", "Mobile")`, que é compatível com toda a linha 4.7, e a validação acima foi executada em 4.7.1. **A fundação ainda não foi verificada em 4.7.2.** DEC-001 permanece válida e não foi alterada. Quem tiver 4.7.2 instalado deve abrir o projeto uma vez e confirmar que não há avisos de migração.
-- Nenhum bug de gameplay registrado (não há gameplay ainda).
+Dois erros foram injetados de propósito e revertidos em seguida:
+
+1. `velocity = direction * move_speed * delta` → o teste falhou com 1,7 px a 60 Hz contra 3,3 px a 30 Hz;
+2. `collision_mask = 0` no Player → o teste falhou com "Player atravessou a parede: x=1842.7, borda em 1536.0".
+
+Ambos foram desfeitos e a suíte voltou a passar.
+
+## Verificação visual
+
+Executado com renderização, capturando o viewport. Confirmado: Player visível no centro com o grid ao redor, câmera acompanhando o movimento, câmera travando na borda do mundo, e Player parando em `x = 1521.995` — exatamente `1536 - 14` (borda menos o raio da colisão). `facing` terminou em `EAST`, e os limites da câmera em `[-1536, -1536, 1536, 1536]`.
+
+**Não foi feito teste com teclado humano.** O input foi simulado via `Input.action_press`, que percorre o mesmo caminho de Input Actions que o teclado. Vale confirmar manualmente no editor.
+
+# Limitações e pendências
+
+- **Godot 4.7.2 continua não validado.** O ambiente só tem 4.7.1 stable; procurei por 4.7.2 e não existe na máquina. DEC-001 não foi alterada e nada fora de 4.7 foi usado. Quem tiver 4.7.2 deve abrir o projeto uma vez e rodar as duas suítes.
+- Movimento não foi testado com teclado físico por uma pessoa (ver acima).
+- O mundo de teste é protótipo descartável, não arquitetura de mapa.
+- Nenhum bug encontrado. `docs/BUGS.md` não foi alterado.
 
 # Próxima tarefa
 
-**FASE 1 — Movimento e mundo.** Não iniciada.
+**FASE 2 — Primeiro inimigo.** Não iniciada.
 
 Itens, na ordem do `docs/ROADMAP.md`:
 
-1. criar `scenes/player/player.tscn` com raiz `Player (CharacterBody2D)` e a estrutura de `docs/02_ARCHITECTURE.md`: `Visual`, `CollisionShape2D`, `Hurtbox`, `PickupArea`, `WeaponManager`, `Camera2D` — criando apenas o que a fase exigir;
-2. criar `scripts/player/player.gd` com movimento em 8 direções usando **somente** as ações `move_up` / `move_down` / `move_left` / `move_right`;
-3. normalizar o vetor de input para que a diagonal não seja mais rápida;
-4. usar `delta` para que a velocidade não dependa do FPS;
-5. `Camera2D` seguindo o jogador;
-6. sprite **placeholder** sob o nó `Visual`, conforme `docs/ASSET_WORKFLOW.md` — não criar arte final;
-7. mapa placeholder e limites de mundo para teste;
-8. instanciar o Player em `game.tscn` sob `World`;
-9. testar conforme a seção "Movimento" de `docs/TEST_PLAN.md`;
-10. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
+1. criar `scenes/enemies/enemy.tscn` com raiz `Enemy (CharacterBody2D)` e a estrutura de `docs/02_ARCHITECTURE.md`: `Visual`, `CollisionShape2D`, `Hitbox`, `Hurtbox`;
+2. criar `scripts/enemies/enemy.gd` com perseguição direta simples ao Player — **sem** `NavigationAgent2D` e sem pathfinding (DEC-008);
+3. colisão: `Enemy` na layer 2 (EnemyBody); definir as masks de Player e Enemy conforme DEC-014/DEC-016 — o Player passa a precisar da layer 2 na mask;
+4. criar `HealthComponent` em `scripts/components/` com `max_health`, `current_health`, `damage()`, `heal()` e sinal de morte (`docs/03_SYSTEMS.md` §3);
+5. dano por contato via `Hitbox` -> `Hurtbox` -> `HealthComponent` (`docs/03_SYSTEMS.md` §4);
+6. morte do inimigo, garantindo que ocorra uma única vez;
+7. placeholder visual do inimigo sob o nó `Visual`, conforme `docs/ASSET_WORKFLOW.md` — não criar arte;
+8. instanciar um inimigo em `game.tscn` sob `EnemyContainer` para teste manual;
+9. testar conforme a seção "Enemy" do `docs/TEST_PLAN.md`, inclusive "não deixa erro após player morrer";
+10. criar `tests/test_phase2.gd`; manter `test_foundation.gd` e `test_phase1.gd` passando;
+11. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
-## Critério de aceite da FASE 1
+Para achar o Player, o inimigo deve usar o grupo `player` **uma vez**, guardando a referência — nunca `get_nodes_in_group()` dentro de `_physics_process` (`docs/02_ARCHITECTURE.md`, pensando em centenas de inimigos).
 
-- player se move nas 8 direções;
-- diagonal não é mais rápida;
-- velocidade independente do FPS;
-- câmera acompanha corretamente;
-- nenhum script de gameplay lê teclas diretamente;
-- nenhum script de gameplay depende da textura do placeholder.
+## Critério de aceite da FASE 2
+
+- inimigo encontra e persegue o Player;
+- inimigo recebe dano e morre uma única vez;
+- Player e inimigo colidem de forma coerente;
+- nenhum erro no debugger depois da morte do Player;
+- nenhum inimigo faz busca global por frame;
+- placeholder continua desacoplado da lógica.
 
 # Não alterar sem registrar decisão
 
@@ -167,6 +263,8 @@ Itens, na ordem do `docs/ROADMAP.md`:
 - desenvolvimento independente de arte final (DEC-013 / `docs/ASSET_WORKFLOW.md`)
 - numeração das physics layers 2D (DEC-014)
 - renderer `mobile` e stretch `canvas_items`/`expand` (DEC-015)
+- layer 8 WorldStatic (DEC-016)
+- movimento por Input Actions, nunca por tecla direta
 
 # Regra permanente de assets
 

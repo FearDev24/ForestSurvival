@@ -1,8 +1,18 @@
-[gd_scene format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=4 format=3 uid="uid://bfsgame0forest1"]
+
+[ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
+[ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
+[ext_resource type="PackedScene" uid="uid://bfsplayer0forest" path="res://scenes/player/player.tscn" id="3_player"]
 
 [node name="Game" type="Node2D"]
+script = ExtResource("1_game")
 
 [node name="World" type="Node2D" parent="."]
+
+[node name="TestWorld" parent="World" instance=ExtResource("2_world")]
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+position = Vector2(0, 0)
 
 [node name="EnemyContainer" type="Node2D" parent="."]
 

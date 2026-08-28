@@ -154,3 +154,22 @@ As *masks* de cada entidade não fazem parte desta decisão: são definidas por 
 - filtro Nearest preserva a leitura de pixel art (`docs/05_ART_DIRECTION.md`).
 
 Mudar para Forward+ ou Compatibility exige nova decisão registrada.
+
+---
+
+## DEC-016 — Layer 8: WorldStatic
+
+**Decisão:** a geometria estática do mundo (paredes, obstáculos, bloqueios de cenário) usa a **layer 8 — WorldStatic**.
+
+**Motivo:** as sete camadas de DEC-014 cobrem apenas entidades (corpos, hurtboxes, ataques, pickups). Nenhuma delas descreve cenário. A FASE 1 precisou de paredes de borda, e DEC-014 determina que camadas novas sejam acrescentadas a partir da 8, nunca inseridas no meio.
+
+Configuração resultante nesta fase:
+
+| Nó | `collision_layer` | `collision_mask` |
+|---|---|---|
+| `Player` | 1 (PlayerBody) | 128 (WorldStatic) |
+| paredes do `TestWorld` | 128 (WorldStatic) | 0 |
+
+A mask do Player é deliberadamente mínima: só o necessário para ser barrado pelo cenário. Inimigos, hurtboxes e pickups entram nas masks quando esses sistemas existirem — não antes.
+
+A camada é conceitual e não depende do mapa de protótipo: o mapa definitivo, quando existir, usa a mesma layer 8.
