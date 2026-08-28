@@ -2,53 +2,37 @@ extends Node2D
 ## Camada visual do Player.
 ##
 ## Estado do asset: **CANDIDATE** (`docs/ASSET_WORKFLOW.md`, DEC-013).
-## `assets/characters/druidwalkesquerda-walk-west.png` está no jogo apenas para
-## avaliar leitura, escala e contraste. Não é asset aprovado e não deve servir
-## de base para ajustes definitivos de offset, escala ou colisão.
+## As sprites do druida estão no jogo para avaliação de leitura, escala e
+## animação. Ainda não são `APPROVED`.
 ##
-## Este nó é o único ponto de troca de arte do Player. Quando o conjunto
-## completo de direções for aprovado, o mais provável é trocar este `Sprite2D`
-## por um `AnimatedSprite2D` com `SpriteFrames`. Nada em `player.gd` muda:
-## o contrato continua sendo `set_facing()` e `set_moving()`.
+## Este nó é o único ponto de troca de arte do Player. Trocar as sprites
+## significa trocar `assets/characters/druida_sprite_frames.tres` — nada em
+## `player.gd` muda.
 ##
-## Contrato com o gameplay: a lógica informa **intenção** (direção encarada,
-## se está andando); a representação é decidida aqui.
+## Contrato com o gameplay: a lógica informa **intenção** (direção encarada, se
+## está andando); a representação é decidida aqui. `player.gd` não sabe quantas
+## animações existem, nem quais direções têm arte.
 
-## Direção usada quando a direção pedida ainda não tem arte (regra 9 do
-## `ASSET_WORKFLOW`: falta de direção permite fallback temporário).
-const _FALLBACK_FACING := Player.Facing.SOUTH
-
-## Direções que já possuem arte, mapeadas para a faixa de frames do sheet.
-##
-## Hoje só existe um sheet. O nome do arquivo diz "west", mas o desenho é de
-## frente, então ele entra como SOUTH. Quando chegarem north/west/east, basta
-## acrescentar entradas aqui.
-const _FRAMES_BY_FACING := {
-	Player.Facing.SOUTH: Vector2i(0, 120),
+## Sufixo de animação por direção.
+const _DIRECTION_SUFFIX := {
+	Player.Facing.SOUTH: "south",
+	Player.Facing.NORTH: "north",
+	Player.Facing.WEST: "west",
+	Player.Facing.EAST: "east",
 }
 
-## Frames por segundo da caminhada.
-@export var walk_fps: float = 18.0
+## Direção usada quando a pedida não tem nenhuma animação (regra 9 do
+## `ASSET_WORKFLOW`: falta de direção permite fallback temporário).
+const _FALLBACK_SUFFIX := "south"
 
-## Frame exibido parado, relativo ao início da faixa da direção atual.
-@export var idle_frame: int = 0
-
-var _facing: Player.Facing = _FALLBACK_FACING
+var _facing: Player.Facing = Player.Facing.SOUTH
 var _moving := false
-var _elapsed := 0.0
 
-@onready var _sprite: Sprite2D = $Sprite
+@onready var _sprite: AnimatedSprite2D = $Sprite
 
 
 func _ready() -> void:
-	_apply_frame()
-
-
-func _process(delta: float) -> void:
-	if not _moving:
-		return
-	_elapsed += delta
-	_apply_frame()
+	_apply()
 
 
 ## Recebe a direção encarada pelo jogador.
@@ -56,7 +40,7 @@ func set_facing(facing: Player.Facing) -> void:
 	if facing == _facing:
 		return
 	_facing = facing
-	_apply_frame()
+	_apply()
 
 
 ## Recebe se o jogador está em movimento.
@@ -64,29 +48,48 @@ func set_moving(moving: bool) -> void:
 	if moving == _moving:
 		return
 	_moving = moving
-	if not _moving:
-		_elapsed = 0.0
-	_apply_frame()
+	_apply()
 
 
-## Faixa de frames da direção atual, caindo no fallback quando não há arte.
-func _current_range() -> Vector2i:
-	if _FRAMES_BY_FACING.has(_facing):
-		return _FRAMES_BY_FACING[_facing]
-	return _FRAMES_BY_FACING[_FALLBACK_FACING]
-
-
-func _apply_frame() -> void:
-	if _sprite == null:
+func _apply() -> void:
+	if _sprite == null or _sprite.sprite_frames == null:
 		return
 
-	var range_ := _current_range()
-	var first := range_.x
-	var count := maxi(range_.y, 1)
-
-	if not _moving:
-		_sprite.frame = first + clampi(idle_frame, 0, count - 1)
+	var animation := _pick_animation()
+	if animation.is_empty():
 		return
 
-	var step := int(_elapsed * walk_fps) % count
-	_sprite.frame = first + step
+	# Só existe `idle_south`. Nas outras direções o parado reaproveita o
+	# primeiro frame da caminhada, congelado — melhor preservar a direção
+	# correta do que trocar para uma pose frontal errada.
+	var freeze := not _moving and animation.begins_with("walk_")
+
+	if _sprite.animation != animation:
+		_sprite.animation = animation
+		_sprite.frame = 0
+
+	if freeze:
+		_sprite.frame = 0
+		_sprite.pause()
+	elif not _sprite.is_playing():
+		_sprite.play()
+
+
+## Escolhe a animação mais específica que existir, degradando em ordem:
+## estado + direção, caminhada da mesma direção, estado no sul, caminhada sul.
+func _pick_animation() -> StringName:
+	var frames := _sprite.sprite_frames
+	var suffix: String = _DIRECTION_SUFFIX.get(_facing, _FALLBACK_SUFFIX)
+	var state := "walk" if _moving else "idle"
+
+	for candidate in [
+		"%s_%s" % [state, suffix],
+		"walk_%s" % suffix,
+		"%s_%s" % [state, _FALLBACK_SUFFIX],
+		"walk_%s" % _FALLBACK_SUFFIX,
+	]:
+		if frames.has_animation(candidate):
+			return candidate
+
+	push_warning("Nenhuma animação disponível para o Player (direção '%s')." % suffix)
+	return &""

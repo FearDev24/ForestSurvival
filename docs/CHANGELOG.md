@@ -41,6 +41,13 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - sinal `movement_state_changed` no Player, para a camada visual alternar entre parado e caminhando;
   - `camera_zoom` exportado (2.0) e câmera deslocada para enquadrar o corpo, ajuste top-down;
   - `BUG-001` em `docs/BUGS.md`: largura de 7680 px do sheet contra o limite de textura de GPUs Android antigas.
+- **Sprites por direção (estado CANDIDATE, não avança o ROADMAP):**
+  - cinco sheets em `assets/characters/`: `idle_south` (14 frames), `walk_south` (13), `walk_north` (12), `walk_west` (17), `walk_east` (15), todos 64 x 96 e pivot bottom-center;
+  - `assets/characters/druida_sprite_frames.tres` reunindo as 5 animações (71 frames), caminhadas a 15 fps e idle a 8 fps;
+  - `Visual/Sprite` passou de `Sprite2D` para `AnimatedSprite2D`;
+  - `player_visual.gd` escolhe a animação por estado + direção, com degradação em quatro níveis quando a animação pedida não existe;
+  - `assets/characters/frames/` com os frames avulsos como fonte, marcada com `.gdignore` para a Godot não importá-los;
+  - removido o sheet antigo `druidwalkesquerda-walk-west` (7680 px), o que **corrige BUG-001**.
 
 ### Changed
 

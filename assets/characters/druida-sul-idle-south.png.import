@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://deausj25d2mtp"
-path="res://.godot/imported/druidwalkesquerda-walk-west.png-170378d3b7f686e72c031aa17fdd4867.ctex"
+uid="uid://bu2rj7ydjvbip"
+path="res://.godot/imported/druida-sul-idle-south.png-d7e019af1a084a0bbb328e721cb75081.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/druidwalkesquerda-walk-west.png"
-dest_files=["res://.godot/imported/druidwalkesquerda-walk-west.png-170378d3b7f686e72c031aa17fdd4867.ctex"]
+source_file="res://assets/characters/druida-sul-idle-south.png"
+dest_files=["res://.godot/imported/druida-sul-idle-south.png-d7e019af1a084a0bbb328e721cb75081.ctex"]
 
 [params]
 

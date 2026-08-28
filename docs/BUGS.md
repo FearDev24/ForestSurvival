@@ -2,7 +2,7 @@
 
 ## BUG-001 — Sheet do druida excede o limite de textura de GPUs Android antigas
 
-**Status:** investigando
+**Status:** corrigido
 
 `assets/characters/druidwalkesquerda-walk-west.png` tem **7680 x 96 px** (120 frames de 64 x 96 em linha única).
 
@@ -21,7 +21,7 @@ GPUs Android antigas expõem `GL_MAX_TEXTURE_SIZE` de 4096. Nelas a textura falh
 - `assets/characters/druidwalkesquerda-walk-west.png`
 - `scenes/player/player.tscn`
 
-**Correção possível (não aplicada):** reexportar o sheet em grade (por exemplo 12 x 10) em vez de linha única, o que traria a largura para 768 px. Exige regerar o asset na origem, não editar o arquivo aqui — alterar arte sem solicitação é vedado por DEC-013.
+**Correção:** o asset foi substituído na origem por cinco sheets por direção, todos com no máximo **1088 x 96 px** (`druida-west-walk-west.png`, o mais largo). O arquivo de 7680 px foi removido do repositório. Nenhuma largura fica perto do limite de 4096, então o risco deixou de existir.
 
 ---
 

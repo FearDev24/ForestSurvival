@@ -24,13 +24,13 @@ Detalhes em `docs/HANDOFF.md`.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 
-- [ ] confirmar se o sheet atual é frente (SOUTH) ou oeste (WEST); hoje está mapeado como SOUTH
-- [ ] gerar as direções que faltam: north, west, east
-- [ ] gerar `idle`; hoje o parado usa o primeiro frame da caminhada
-- [ ] regerar a caminhada com ciclo fechado (frame final emendando no inicial)
-- [ ] regerar com os frames alinhados entre si (hoje há ~18 px de deriva lateral)
-- [ ] reexportar o sheet em grade em vez de linha única (ver BUG-001)
-- [ ] aprovar ou recusar o asset: hoje está CANDIDATE, não APPROVED
+- [x] gerar as direções que faltam: north, west, east
+- [x] gerar `idle` (existe para south)
+- [x] regerar com os frames alinhados (deriva caiu de ~18 px para 1,5–2,5 px)
+- [x] reexportar em sheets menores (ver BUG-001, corrigido)
+- [ ] gerar `idle` para north, west e east; hoje elas congelam no frame 0 da caminhada
+- [ ] revisar a velocidade das animações: caminhadas a 15 fps, idle a 8 fps — valores iniciais, não testados com o jogo em ritmo real
+- [ ] aprovar ou recusar o conjunto: hoje está CANDIDATE, não APPROVED
 
 # Pendências técnicas
 

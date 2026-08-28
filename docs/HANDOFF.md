@@ -42,22 +42,31 @@ Não existe combate, inimigo, arma, XP nem HUD — correto para esta fase.
 
 Inventário (`docs/ASSET_WORKFLOW.md`):
 
-| Asset | Estado | Observação |
-|---|---|---|
-| `assets/characters/druidwalkesquerda-walk-west.png` (+ `.json`) | **CANDIDATE** | druida de frente, 120 frames de 64x96, pivot bottom-center. Gerado por "SpriteForge AI" (ver `generator` no `.json`). Está no jogo **só para avaliação** de leitura e escala. Não aprovado. |
-| mundo de teste (chão + grid) | **PLACEHOLDER** | geometria nativa, `_draw()`, sem arquivo de arte |
+| Asset | Estado | Frames | Sheet |
+|---|---|---|---|
+| `druida-sul-idle-south.png` | **CANDIDATE** | 14 | 896 x 96 |
+| `druida-sul-walk-south.png` | **CANDIDATE** | 13 | 832 x 96 |
+| `druida-north-walk-north.png` | **CANDIDATE** | 12 | 768 x 96 |
+| `druida-west-walk-west.png` | **CANDIDATE** | 17 | 1088 x 96 |
+| `druida-east-walk-east.png` | **CANDIDATE** | 15 | 960 x 96 |
+| mundo de teste (chão + grid) | **PLACEHOLDER** | — | geometria nativa, sem arquivo |
+
+Todos em `assets/characters/`, quadro de 64 x 96, pivot bottom-center, layout horizontal de linha única, com `.json` de metadados ao lado. Reunidos em `assets/characters/druida_sprite_frames.tres` (5 animações, 71 frames).
+
+`assets/characters/frames/` guarda os frames avulsos como **fonte**. Tem um `.gdignore` para a Godot não importar os 71 PNGs individualmente; o jogo carrega só os sheets.
 
 Nenhuma arte foi criada, baixada, redesenhada ou inventada por IA.
 
-### Ressalvas do asset atual (para quem for gerar as próximas direções)
+### Verificação feita nos sheets
 
-1. **O nome diz `walk-west`, mas o desenho é de frente.** Foi mapeado como `SOUTH`. Se a intenção era oeste, mude a única entrada de `_FRAMES_BY_FACING` em `scripts/player/player_visual.gd`.
-2. **Não há ciclo de caminhada.** Medida a distância entre frames para todos os lags de 1 a 40: ela cresce de forma monotônica, sem mínimo periódico. Os 120 frames são únicos e derivam; frame 0 e frame 119 não fecham. A animação não vai loopar de forma limpa.
-3. **Os frames não estão alinhados entre si.** O personagem desliza horizontalmente dentro do quadro: no frame 0 a cabeça ocupa x 4..41, no frame 60 ocupa x 23..58 — cerca de 18 px de deriva. Em movimento isso aparece como oscilação lateral. A baseline (y=96) está correta e constante em todos os frames.
-4. **A arte encosta nas bordas do quadro** (x chega a 0 e a 64), então pode haver corte lateral.
-5. Resíduo mínimo do chroma verde do despill: 122 pixels em 381.605 opacos (0,03%). Desprezível.
+- **As direções conferem com os nomes.** Conferido visualmente frame a frame: east olha para a direita, west para a esquerda, north é de costas (sem rosto), south é de frente. Isto foi checado porque o asset anterior estava rotulado errado.
+- **Baseline constante** em y=96 nos cinco sheets — pivot bottom-center correto.
+- **Alinhamento bom:** deriva horizontal do centro entre frames de 1,5 px (south, east, idle) a 2,5 px (north, west). O asset anterior tinha 18 px.
+- **Ciclo fecha de forma aceitável:** a diferença entre o primeiro e o último frame (15,6 a 21,1) está na mesma faixa da diferença entre frames vizinhos (13,0 a 14,9), ou seja, a emenda do loop não salta mais que uma transição normal.
 
-Nada disso foi "corrigido" no arquivo: alterar o asset seria redesenhar arte, o que DEC-013 proíbe sem solicitação. São pontos para regerar na origem.
+### Ressalva que permanece
+
+Falta `idle` para north, west e east. Nessas direções o parado congela no primeiro frame da caminhada, preservando a direção correta. É o fallback da regra 9 do `ASSET_WORKFLOW`, não um erro.
 
 # Implementação do Player
 
@@ -74,7 +83,7 @@ Nada disso foi "corrigido" no arquivo: alterar o asset seria redesenhar arte, o 
 ```text
 Player (CharacterBody2D)   grupo "player", layer 1, mask 128
 ├── Visual (Node2D)                    <- player_visual.gd
-│   └── Sprite (Sprite2D)              <- sheet do druida, hframes = 120
+│   └── Sprite (AnimatedSprite2D)      <- druida_sprite_frames.tres
 ├── CollisionShape2D (CircleShape2D, raio 14)
 └── Camera2D                           <- zoom 2, offset y = -40
 ```
@@ -121,9 +130,16 @@ Ou seja: a lógica informa **intenção**, a camada visual decide a **representa
 
 O sheet do druida foi integrado exatamente por essa costura, sem alterar uma linha de `player.gd`.
 
-`player_visual.gd` resolve a direção por uma tabela (`_FRAMES_BY_FACING`) com fallback para `SOUTH`. Hoje só `SOUTH` tem arte, então **as quatro direções mostram o mesmo desenho** — é o fallback previsto na regra 9 do `ASSET_WORKFLOW`, e não gera erro. Não há espelhamento horizontal para leste/oeste de propósito: a arte é frontal e espelhar trocaria o cajado de mão, contrariando `docs/05_ART_DIRECTION.md`.
+`player_visual.gd` monta o nome da animação a partir do estado e da direção (`walk_north`, `idle_south`, ...) e degrada em ordem quando a animação pedida não existe:
 
-Quando o conjunto completo chegar, o caminho provável é trocar o `Sprite2D` por `AnimatedSprite2D` + `SpriteFrames` dentro do `Visual`, acrescentando entradas na tabela. `player.gd` continua intocado.
+1. `<estado>_<direção>`
+2. `walk_<direção>` — mantém a direção certa, congelada no frame 0
+3. `<estado>_south`
+4. `walk_south`
+
+Nenhum passo gera erro. Acrescentar `idle_north` ao `.tres` faz o passo 1 passar a valer sozinho, sem tocar em código.
+
+Não há espelhamento horizontal para leste/oeste: existem sheets próprios para as duas direções, com o cajado na mão correta.
 
 O nó `Visual` e a `CollisionShape2D` têm `editor_description` explicando isso dentro do editor.
 
@@ -196,7 +212,8 @@ Game (Node2D)                <- scripts/systems/game.gd
 
 - `scenes/player/player.tscn`
 - `scenes/game/test_world.tscn`
-- `assets/characters/druidwalkesquerda-walk-west.png.import` (gerado pela Godot ao importar a textura)
+- `assets/characters/druida_sprite_frames.tres` (5 animações, 71 frames)
+- `assets/characters/frames/.gitkeep` substituído por `.gdignore` + `README.md`
 - `scripts/player/player.gd` (+ `.uid`)
 - `scripts/player/player_visual.gd` (+ `.uid`)
 - `scripts/systems/test_world.gd` (+ `.uid`)
@@ -231,6 +248,7 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 6 | Captura de tela em execução real (script temporário, não versionado) | ver abaixo |
 | 7 | Suíte completa reexecutada após integrar o sprite | `FASE 0 OK` e `FASE 1 OK`, exit 0 nos dois |
 | 8 | Captura em execução com o sprite, zoom 1.0 / 1.5 / 2.0 e caminhada | arte renderiza, anima e a câmera acompanha |
+| 9 | Após trocar pelos sheets por direção: suíte completa + captura das 5 animações em execução | `FASE 0 OK` e `FASE 1 OK`; `idle_south`, `walk_south`, `walk_north`, `walk_west` e `walk_east` resolvem e tocam corretamente |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -264,13 +282,13 @@ Executado com renderização, capturando o viewport. Confirmado: Player visível
 
 # Limitações e pendências
 
-- **Textura de 7680 x 96 px.** O sheet é largo demais para GPUs Android antigas, cujo limite de textura é 4096. Aparelhos modernos costumam suportar 8192+, então não é bloqueio, mas precisa ser confirmado em device real antes do export Android. Registrado em `docs/BUGS.md` como BUG-001.
-- **Só existe a direção frontal.** North, west e east caem no fallback e mostram o mesmo desenho. Não é erro; é a regra 9 do `ASSET_WORKFLOW`.
-- **A animação não fecha ciclo e os frames oscilam lateralmente.** Ver "Ressalvas do asset atual" acima. É problema de origem do asset, não de integração.
+- **Falta `idle` para north, west e east.** Nessas direções o parado congela no primeiro frame da caminhada. Fallback previsto, não erro.
+- **Diagonal mostra a direção vertical.** Andando na diagonal, o empate de magnitude resolve para north/south. É a regra fixa do `facing`; se preferir horizontal na diagonal, é uma linha em `_update_facing`.
+- BUG-001 (largura da textura) foi **corrigido** pela troca do asset.
 - **Godot 4.7.2 continua não validado.** O ambiente só tem 4.7.1 stable; procurei por 4.7.2 e não existe na máquina. DEC-001 não foi alterada e nada fora de 4.7 foi usado. Quem tiver 4.7.2 deve abrir o projeto uma vez e rodar as duas suítes.
 - Movimento não foi testado com teclado físico por uma pessoa (ver acima).
 - O mundo de teste é protótipo descartável, não arquitetura de mapa.
-- Nenhum bug de código. `docs/BUGS.md` tem BUG-001 (largura da textura) em investigação.
+- Nenhum bug de código. BUG-001 está corrigido em `docs/BUGS.md`.
 
 # Próxima tarefa
 

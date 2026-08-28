@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/player_visual.gd" id="2_visual"]
-[ext_resource type="Texture2D" path="res://assets/characters/druidwalkesquerda-walk-west.png" id="3_druid"]
+[ext_resource type="SpriteFrames" uid="uid://bfsdruidaframes" path="res://assets/characters/druida_sprite_frames.tres" id="3_druida"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 14.0
@@ -13,14 +13,14 @@ collision_mask = 128
 script = ExtResource("1_player")
 
 [node name="Visual" type="Node2D" parent="."]
-editor_description = "Unico ponto de troca de arte do Player. Asset atual em estado CANDIDATE: entra so para avaliacao de leitura e escala, nao e arte aprovada. Ver docs/ASSET_WORKFLOW.md e DEC-013. Nao adicionar logica de gameplay aqui."
+editor_description = "Unico ponto de troca de arte do Player. Asset atual em estado CANDIDATE: entra para avaliacao, nao e arte aprovada. Ver docs/ASSET_WORKFLOW.md e DEC-013. Nao adicionar logica de gameplay aqui."
 script = ExtResource("2_visual")
 
-[node name="Sprite" type="Sprite2D" parent="Visual"]
+[node name="Sprite" type="AnimatedSprite2D" parent="Visual"]
 texture_filter = 1
 position = Vector2(0, -48)
-texture = ExtResource("3_druid")
-hframes = 120
+sprite_frames = ExtResource("3_druida")
+animation = &"idle_south"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 editor_description = "Colisao de gameplay, centrada nos pes. Dimensionada por criterio de movimento, nao pela arte. Nao redimensionar so porque a sprite mudou. Ver DEC-013."
