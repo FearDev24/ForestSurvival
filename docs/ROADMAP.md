@@ -40,19 +40,27 @@ player se move corretamente. **Atingido.**
 Observações:
 - o "sprite placeholder" e o "mapa placeholder" são geometria nativa da Godot, não arte (DEC-013);
 - limites de mundo são paredes `StaticBody2D` na layer 8 (DEC-016), de protótipo — não são a arquitetura final do mapa;
+- o Y-sort ficou pendente nesta fase e foi habilitado junto com a FASE 2 (ver HANDOFF);
 - validação automatizada: `tests/test_phase1.gd`.
 
 # FASE 2 — Primeiro inimigo
 
-- [ ] cena base Enemy
-- [ ] perseguição simples
-- [ ] colisão
-- [ ] HP
-- [ ] dano
-- [ ] morte
+- [x] cena base Enemy
+- [x] perseguição simples
+- [x] colisão
+- [x] HP
+- [x] dano
+- [x] morte
 
 Critério:
-player e inimigo podem interagir e inimigo pode morrer.
+player e inimigo podem interagir e inimigo pode morrer. **Atingido.**
+
+Observações:
+- perseguição direta simples, sem pathfinding (DEC-008); referência ao Player resolvida uma única vez;
+- componentes reutilizáveis em `scripts/components/`: `HealthComponent`, `HitboxComponent`, `HurtboxComponent`;
+- fluxo de dano e masks registrados em `DEC-017`;
+- as sprites do diabrete entraram direto no nó `Visual`, em estado CANDIDATE — não foi preciso placeholder (DEC-013);
+- validação automatizada: `tests/test_phase2.gd`.
 
 # FASE 3 — Spawn e horda
 

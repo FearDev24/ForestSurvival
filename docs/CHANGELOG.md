@@ -35,6 +35,27 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **FASE 2 — Primeiro inimigo:**
+  - `scripts/components/health_component.gd` — `max_health`, `current_health`, `damage()`, `heal()`, sinais `health_changed`, `damaged` e `died`, com morte emitida uma única vez;
+  - `scripts/components/hitbox_component.gd` — dano por contato com `hit_interval`, sem `Timer` por entidade e com `_physics_process` desligado quando não há alvo sobreposto;
+  - `scripts/components/hurtbox_component.gd` — único ponto de entrada de dano de uma entidade;
+  - `Health` e `Hurtbox` no Player (100 de vida), `Health`, `Hitbox` e `Hurtbox` no Enemy (30 de vida, 10 de dano por contato a cada 1 s);
+  - morte do inimigo (sai da partida) e morte do Player (para de andar e sai do radar; game over é da FASE 9);
+  - colisão de corpos conforme `DEC-018`: inimigo separa-se de inimigo (mask 130, raio 14) e o Player atravessa a horda levando dano por contato;
+  - `tests/test_phase2.gd` — estrutura, componentes, layers/masks, perseguição, dano por contato com intervalo, morte única e ausência de erro após a morte do Player;
+  - Y-sort habilitado: `y_sort_enabled` na raiz de `game.tscn` e no `EnemyContainer`, com `z_index = -1` no `World` para manter o cenário abaixo das entidades — pendência aberta desde a FASE 1;
+  - `DEC-017 — Fluxo de dano: a hitbox procura, a hurtbox espera`;
+  - `DEC-018 — Inimigo colide com inimigo, nunca com o Player`.
+- **Diabrete — sprites do primeiro inimigo (estado CANDIDATE):**
+  - `assets/characters/inimigos/diabrete-{south,north,west,east}-walk-*.png` + `.json`, limpos do resíduo de chroma key e versionados;
+  - `assets/characters/inimigos/_raw/` com os PNGs originais como fonte, ignorados pela Godot (`.gdignore`);
+  - `assets/characters/inimigos/diabrete_sprite_frames.tres` — 4 animações, 57 frames, 12 fps;
+  - `scenes/enemies/enemy.tscn` — `Enemy (CharacterBody2D)` no grupo `enemy`, com `Visual` e `CollisionShape2D` (círculo, raio 12);
+  - `scripts/enemies/enemy.gd` — perseguição direta simples (DEC-008), referência ao Player resolvida uma única vez, enum `Facing`, sinais `facing_changed` e `movement_state_changed`;
+  - `scripts/enemies/enemy_visual.gd` — camada visual com a mesma cadeia de fallback do Player;
+  - quatro diabretes instanciados em `game.tscn` sob `EnemyContainer`, para teste manual;
+  - `Visual.scale = 0.5` no inimigo e `CollisionShape2D` com raio 8: o diabrete é uma criatura pequena, de cerca de metade da altura do druida;
+  - seção "Limpeza de resíduo de chroma key" em `docs/ASSET_WORKFLOW.md`.
 - **Integração do sprite do druida (estado CANDIDATE, não avança o ROADMAP):**
   - `assets/characters/druidwalkesquerda-walk-west.png` + `.json` versionados e importados;
   - `Sprite2D` com 120 frames sob o nó `Visual`, no lugar do placeholder geométrico;

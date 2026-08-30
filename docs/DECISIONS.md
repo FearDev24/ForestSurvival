@@ -173,3 +173,113 @@ Configuração resultante nesta fase:
 A mask do Player é deliberadamente mínima: só o necessário para ser barrado pelo cenário. Inimigos, hurtboxes e pickups entram nas masks quando esses sistemas existirem — não antes.
 
 A camada é conceitual e não depende do mapa de protótipo: o mapa definitivo, quando existir, usa a mesma layer 8.
+
+---
+
+## DEC-017 — Fluxo de dano: a hitbox procura, a hurtbox espera
+
+**Decisão:** no fluxo `Hitbox -> Hurtbox -> HealthComponent -> morte`
+(`docs/03_SYSTEMS.md` §4), quem detecta é sempre a **hitbox**:
+
+- `HitboxComponent`: `monitoring = true`, `monitorable = false`;
+- `HurtboxComponent`: `monitoring = false`, `monitorable = true`, `collision_mask = 0`.
+
+A hurtbox nunca procura ninguém e não roda lógica por frame. Ela só expõe
+`take_damage()`, que é o único ponto de entrada de dano de uma entidade.
+
+**Motivo:** com centenas de inimigos em tela (DEC-011), o custo tem de ficar do
+lado de quem ataca, que é sempre em menor número. Se cada inimigo ficasse
+varrendo o mundo à procura de ataques, o custo cresceria com a horda.
+
+Decisões derivadas, no mesmo espírito:
+
+1. **Intervalo entre golpes por delta acumulado, não por `Timer`.** Um nó
+   `Timer` por hitbox seria centenas de nós de processamento
+   (`docs/02_ARCHITECTURE.md`, "Evitar"). O `hit_interval` é contado em
+   `_physics_process`.
+2. **`_physics_process` desligado quando não há sobreposição.** Um inimigo
+   perseguindo do outro lado do mapa não paga nada; só quem está encostando
+   processa.
+3. **A morte acontece uma única vez.** O guarda fica no `HealthComponent`, não
+   em cada entidade: dois golpes letais no mesmo frame emitem `died` uma vez só.
+   É isso que impede XP dobrado e `queue_free()` duplo.
+
+**Masks resultantes na FASE 2:**
+
+| Nó | `collision_layer` | `collision_mask` |
+|---|---|---|
+| `Player` | 1 — PlayerBody | 2 (EnemyBody) + 128 (WorldStatic) = 130 |
+| `Player/Hurtbox` | 4 — PlayerHurtbox | 0 |
+| `Enemy` | 2 — EnemyBody | 1 (PlayerBody) + 128 (WorldStatic) = 129 |
+| `Enemy/Hitbox` | 32 — EnemyAttack | 4 (PlayerHurtbox) |
+| `Enemy/Hurtbox` | 8 — EnemyHurtbox | 0 |
+
+As armas do jogador, na FASE 4, entram como layer 16 (PlayerAttack) com mask 8
+(EnemyHurtbox) — o espelho exato disto, sem inventar camada nova.
+
+---
+
+## DEC-018 — Inimigo colide com inimigo, nunca com o Player
+
+**Decisão:** o corpo do inimigo (`CollisionShape2D` de `Enemy`) serve para
+separar inimigos entre si e para ser barrado pelo cenário. Ele **não** colide
+com o corpo do Player.
+
+| Nó | `collision_layer` | `collision_mask` |
+|---|---|---|
+| `Player` | 1 — PlayerBody | 128 (WorldStatic) |
+| `Enemy` | 2 — EnemyBody | 2 (EnemyBody) + 128 (WorldStatic) = 130 |
+
+Consequências:
+
+1. **Inimigos não se empilham.** Sem isso, uma horda inteira ocupa o mesmo
+   ponto e vira uma sprite só — ilegível.
+2. **O Player atravessa a horda.** Ele pode escapar passando por dentro dos
+   inimigos, e leva dano por contato ao fazer isso — dano, não empurrão.
+3. **Ninguém empurra o Player.** Em um survivor-like, dezenas de corpos
+   empurrando o jogador tiram o controle dele das mãos do jogador.
+
+**Motivo:** fuga é a mecânica central do gênero. Se a horda barrasse o
+movimento, cercar o jogador seria morte certa por bloqueio, não por dano — e o
+jogador perderia sem poder reagir.
+
+O dano continua vindo por `Hitbox` -> `Hurtbox` (DEC-017), que é `Area2D` e não
+depende de colisão de corpo nenhuma.
+
+**Raio do corpo do inimigo:** 14 px, o mesmo do Player, apesar de o diabrete ser
+menor. O raio aqui não representa "o tamanho do bicho": ele define **o espaço
+que um inimigo reserva na horda**, e foi escolhido a partir da largura visível
+da sprite (24 a 30 px em escala 0.5) para que duas sprites vizinhas encostem sem
+se sobrepor. Reexportar a arte em 32 x 48 não muda este número, porque o tamanho
+na tela é o mesmo.
+
+Isto não contradiz a regra 7 do `ASSET_WORKFLOW` ("colisão é dado de gameplay,
+não consequência do sprite"): o critério continua sendo de jogo — leitura da
+horda —, e não "o desenho tem tantos pixels".
+
+---
+
+## DEC-019 — `idle` só para o druida
+
+**Decisão:** apenas o druida terá animação de `idle`. Inimigos e demais
+personagens recebem somente `walk` nas quatro direções.
+
+Parados, eles congelam no **primeiro frame do `walk` da direção que encaram** —
+que é exatamente o que a camada visual já faz hoje, pelo passo 2 da cadeia de
+fallback (`docs/ASSET_WORKFLOW.md`, regra 9).
+
+**Motivo:** decisão do responsável pelo projeto. Em um survivor-like, o inimigo
+está praticamente sempre em movimento: ele nasce fora da tela e caminha até o
+jogador. `idle` de inimigo seria arte produzida para um estado que quase não
+aparece.
+
+Consequências:
+
+1. **A falta de `idle` em inimigo deixa de ser pendência.** Não deve mais
+   aparecer em `docs/TODO.md`, nem como ressalva no HANDOFF.
+2. **A cadeia de fallback continua como está.** `enemy_visual.gd` segue tentando
+   `idle_<direção>` antes de `walk_<direção>`: não custa nada, não gera erro, e
+   mantém a porta aberta caso um inimigo específico (um boss, por exemplo) um dia
+   ganhe pose parada.
+3. **Nenhum script de gameplay muda.** A lógica informa "estou parado"; o que a
+   camada visual faz com isso é problema dela (DEC-013).

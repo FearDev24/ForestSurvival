@@ -50,14 +50,17 @@ Cada direção deve preservar:
 # Animações
 
 Prioridade:
-1. idle
-2. walk
-3. hurt
-4. death, se necessário
+1. walk
+2. hurt
+3. death, se necessário
+
+**`idle` existe só para o druida.** Inimigos e demais personagens terão apenas
+caminhada; parados, congelam no primeiro frame do `walk` da direção que
+encaram. Não é uma pendência de arte: é o alvo. Ver `DEC-019`.
 
 Como o combate é automático, animações específicas de ataque só entram quando aumentarem leitura.
 
-Animações também chegam gradualmente. Enquanto `walk` não existir para uma direção, manter o frame de `idle` é aceitável. A falta de uma animação nunca deve gerar erro em runtime.
+Animações também chegam gradualmente. A falta de uma animação nunca deve gerar erro em runtime.
 
 # Equipamento
 
