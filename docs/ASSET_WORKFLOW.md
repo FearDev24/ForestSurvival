@@ -86,6 +86,35 @@ Detalhamento de cada etapa:
 - Uma animação ausente deve resultar em fallback silencioso, nunca em erro.
 - Placeholders ficam sob `assets/` seguindo a mesma estrutura da arte final, para que a substituição seja direta.
 
+# Limpeza de resíduo de chroma key
+
+Os sheets vindos do SpriteForge AI são recortados sobre fundo verde
+(`settings.despill.hex`, por volta de `#11D121`). Mesmo depois de limpar o
+fundo, sobra um contorno de pixels esverdeados semitransparentes em volta da
+silhueta, mais alguns pontos de spill dentro dela. Sobre o chão escuro quase não
+aparece; sobre fundo claro vira um halo verde.
+
+Isto é **limpeza técnica de resíduo**, não redesenho: nenhum pixel de arte é
+inventado, recolorido de forma criativa ou substituído. Continua valendo a regra
+3 (IA não inventa nem redesenha arte).
+
+Procedimento aplicado (feito no diabrete, 2026-08-29):
+
+1. **remoção da franja** — pixel com `verde > max(vermelho, azul) + 3` **e**
+   `alpha <= 200` tem o alpha zerado. Só atinge borda semitransparente, que é
+   onde o chroma sobra;
+2. **despill do que ficou** — nos pixels mantidos, `verde` é limitado a
+   `max(vermelho, azul)`, removendo o tingimento sem mexer na luminância;
+3. **verificação** — nenhum pixel com componente verde dominante pode restar, e
+   nenhuma ilha de pixels soltos pode aparecer ou sumir.
+
+Antes de sobrescrever, o PNG original é copiado para uma pasta `_raw/` ao lado,
+com `.gdignore`, no mesmo espírito de `assets/characters/frames/`. Nada é
+apagado.
+
+O passo 2 só é seguro em arte **sem verde legítimo**. No druida (capuz e cajado
+verdes) ele **não** pode ser aplicado às cegas.
+
 # Como registrar o estado dos assets
 
 Enquanto não houver um inventário dedicado, o estado de cada asset relevante deve ser mencionado em `docs/HANDOFF.md` na seção de estado atual, e a promoção para `INTEGRATED` registrada em `docs/CHANGELOG.md`.
