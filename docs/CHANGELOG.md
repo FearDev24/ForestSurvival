@@ -35,6 +35,16 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **Morte do druida, game over e raio (arte nova, estado CANDIDATE):**
+  - `assets/characters/morte-druid-morte-south.png` — 27 frames de morte, animação `death_south` sem loop no `SpriteFrames` do druida;
+  - `assets/ui/gameover.png` e `assets/effects/raio.png`, limpos da franja de chroma e movidos para as pastas da estrutura de `02_ARCHITECTURE`;
+  - `player_visual.gd` toca a morte uma vez e avisa quando acaba; `player.gd` repassa como `death_finished`, sem saber o que foi apresentado;
+  - `game.gd` mostra a imagem de game over no lugar onde o druida caiu, e desliga spawn e raio;
+  - `scenes/effects/lightning_strike.tscn` + `scripts/effects/lightning_strike.gd` — raio com dano só a partir do frame de impacto, que some sozinho ao fim da animação;
+  - `scripts/effects/lightning_caster.gd` — disparo automático **provisório**, fora do Player (DEC-009), até o `WeaponManager` da FASE 4;
+  - `HitboxComponent` ganha **golpe único** (`hit_interval = 0`): cada alvo leva dano uma vez só. É o modo que projéteis e explosões vão usar;
+  - botão `REINICIAR` na `CanvasLayer`, que aparece com o game over e recarrega a partida;
+  - `tests/test_raio.gd`, e checagens de morte, game over e botão de reiniciar em `tests/test_phase2.gd`.
 - **FASE 3 — Spawn e horda:**
   - `scripts/systems/spawn_manager.gd` — ponto de spawn fora da câmera, teto de população e rampa de densidade, sem `Timer` e sem busca por grupo;
   - `SpawnManager` em `game.tscn`, ligado ao Player, ao `EnemyContainer` e aos limites do mundo por `game.gd`;

@@ -30,6 +30,11 @@ signal facing_changed(facing: Facing)
 ## apenas para de responder e deixa de ser alvo.
 signal died
 
+## Emitido quando a apresentação da morte acaba — hoje, quando a animação de
+## morte chega ao fim. Repassa o aviso da camada visual sem que a lógica saiba o
+## que foi apresentado, nem quanto tempo durou (DEC-013).
+signal death_finished
+
 ## Emitido somente quando o jogador começa ou para de se mover.
 ## A camada visual usa isto para alternar entre parado e caminhando; a lógica
 ## não sabe que animações existem.
@@ -105,6 +110,11 @@ func _on_health_died() -> void:
 	_update_movement_state(Vector2.ZERO)
 
 	died.emit()
+
+
+## Repassa o fim da apresentação da morte, vindo do nó `Visual`.
+func _on_visual_death_animation_finished() -> void:
+	death_finished.emit()
 
 
 func is_dead() -> bool:

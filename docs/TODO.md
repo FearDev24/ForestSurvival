@@ -11,6 +11,9 @@ Detalhes em `docs/HANDOFF.md`.
 
 # Agora — FASE 4 (primeira arma)
 
+- [ ] transformar o `RaioTeste` em arma de verdade e apagar o andaime
+
+
 - [ ] criar `WeaponManager` no Player, sem comportamento de arma específica (DEC-009)
 - [ ] Cajado da Floresta: primeira arma
 - [ ] targeting do inimigo mais próximo, sem busca global por frame
@@ -28,6 +31,9 @@ Detalhes em `docs/HANDOFF.md`.
 - [ ] revisar a velocidade das caminhadas: 15 fps, valor inicial, não testado com o jogo em ritmo real
 - [ ] aprovar ou recusar o conjunto do druida: hoje está CANDIDATE, não APPROVED
 - [ ] aprovar ou recusar o conjunto do diabrete: hoje está CANDIDATE, não APPROVED
+- [ ] aprovar ou recusar a morte do druida, o `gameover` e o raio: hoje estão CANDIDATE
+- [ ] tela de game over de verdade — tempo, level, reiniciar, voltar ao menu (FASE 9); hoje só a imagem aparece
+- [ ] animação de morte do **inimigo**: hoje ele simplesmente some
 - [ ] revisar a velocidade da caminhada do diabrete: 12 fps, valor inicial
 - [ ] **reexportar o diabrete em 32 x 48** e devolver `Visual.scale` para 1 (hoje está em 0.5, o que reduz pixel art abaixo da resolução nativa)
 

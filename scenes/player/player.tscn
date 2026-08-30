@@ -53,4 +53,6 @@ position = Vector2(0, -40)
 
 [connection signal="facing_changed" from="." to="Visual" method="set_facing"]
 [connection signal="movement_state_changed" from="." to="Visual" method="set_moving"]
+[connection signal="died" from="." to="Visual" method="play_death"]
+[connection signal="death_animation_finished" from="Visual" to="." method="_on_visual_death_animation_finished"]
 [connection signal="died" from="Health" to="." method="_on_health_died"]

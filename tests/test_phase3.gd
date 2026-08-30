@@ -170,6 +170,11 @@ func _build_running_scene() -> bool:
 		_fail("game.tscn sem Player, SpawnManager ou EnemyContainer")
 		return false
 
+	# O raio de teste mataria os inimigos no meio da contagem de população.
+	var caster := _game.get_node_or_null("RaioTeste") as LightningCaster
+	if caster != null:
+		caster.enabled = false
+
 	_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	return true
 

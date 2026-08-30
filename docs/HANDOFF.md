@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-08-30
+Última atualização: 2026-08-30 (segunda leva)
 
 # Projeto
 
@@ -40,6 +40,10 @@ Em 2026-08-29 entrou o **diabrete**, primeiro inimigo, com sprites nas quatro di
 
 **FASE 2 — Primeiro inimigo. Concluída.** O diabrete persegue, causa dano por contato, recebe dano e morre uma única vez; o Player tem vida e morre. Componentes de vida, hitbox e hurtbox existem em `scripts/components/` e são reutilizáveis pelas armas da FASE 4.
 
+O druida agora **morre em cena**: animação de morte, imagem de game over no
+lugar onde ele caiu, e uma primeira habilidade — o **raio** — caindo sozinha
+sobre o inimigo mais próximo. O raio é andaime até a FASE 4.
+
 Desde 2026-08-30 os inimigos aparecem sozinhos: o `SpawnManager` cria diabretes fora da tela, em ritmo que aumenta com o tempo e com teto de população. Os quatro diabretes fixos saíram de `game.tscn`.
 
 Não existe arma, XP nem HUD — correto para esta fase. A vida do Player só é visível por script: a barra de HP é da FASE 9. Sem arma, a partida ainda não é vencível: a horda cresce até matar o druida.
@@ -58,6 +62,9 @@ Inventário (`docs/ASSET_WORKFLOW.md`):
 | `diabrete-north-walk-north.png` | **CANDIDATE** | 13 | 832 x 96 |
 | `diabrete-west-walk-west.png` | **CANDIDATE** | 11 | 704 x 96 |
 | `diabrete-east-walk-east.png` | **CANDIDATE** | 15 | 960 x 96 |
+| `morte-druid-morte-south.png` | **CANDIDATE** | 27 | 1728 x 96 |
+| `ui/gameover.png` | **CANDIDATE** | — | 1448 x 1086 |
+| `effects/raio.png` | **CANDIDATE** | 8 | 2048 x 264 |
 | mundo de teste (chão + grid) | **PLACEHOLDER** | — | geometria nativa, sem arquivo |
 
 Todos em `assets/characters/`, quadro de 64 x 96, pivot bottom-center, layout horizontal de linha única, com `.json` de metadados ao lado. Reunidos em `assets/characters/druida_sprite_frames.tres` (4 animações, 57 frames).
@@ -437,6 +444,115 @@ ficaria com 0 de vida. O comportamento em cena não muda.
 Todos provisórios até o sistema de Stats, na FASE 6. Na prática: quatro
 diabretes encostados matam o druida parado em cerca de 2 s.
 
+# Morte, game over e raio
+
+Arte nova, em estado **CANDIDATE**. Os três arquivos tinham a mesma franja verde
+de chroma key das sprites anteriores, e foram limpos. Como os três têm verde
+**legítimo** (manto do druida, folhas do game over), aplicou-se só a remoção da
+franja, sem despill — ver `docs/ASSET_WORKFLOW.md`.
+
+Os originais estão em `assets/_raw/`, com `.gdignore`. O `gameover.png` e o
+`raiopronto.png` saíram da raiz de `assets/` para `assets/ui/` e
+`assets/effects/`, seguindo a estrutura de `docs/02_ARCHITECTURE.md`; o raio foi
+renomeado para `raio.png`.
+
+## Morte do druida
+
+27 frames, entram no `SpriteFrames` do druida como `death_south`, com
+**`loop = false`** — a animação acontece e acaba.
+
+A costura respeita o contrato de DEC-013 ponta a ponta:
+
+```text
+Health.died -> Player.died -> Visual.play_death()
+                                   |
+                          (animação toca uma vez)
+                                   |
+        Visual.death_animation_finished -> Player.death_finished -> Game
+```
+
+`player.gd` **não** sabe que existe animação de morte, quantos frames ela tem ou
+quanto dura. Ele avisa que morreu e é avisado de que a apresentação acabou. Se
+um dia a morte virar um shader, uma partícula ou nada, nada muda na lógica.
+
+Só existe arte de morte virada para o **sul**. Morrer virado para outro lado cai
+nela pela mesma cadeia de fallback das outras animações — pose certa na direção
+errada é melhor que pose nenhuma. Sem nenhuma arte de morte, o sinal de fim é
+emitido na hora e a partida segue.
+
+## Game over
+
+`Sprite2D` em `game.tscn`, invisível até a hora, com `z_index = 100` para ficar
+acima de tudo e fora da ordenação por Y. Escala 0,45 — a arte tem 1448 x 1086 e
+ocuparia mais que a tela inteira em tamanho original.
+
+Aparece **em coordenada de mundo**, centrada onde o druida caiu (com 48 px de
+sobe para ficar sobre o corpo, não sobre os pés), não numa `CanvasLayer`: a
+ideia é marcar o ponto da morte, e a câmera já está parada ali junto com o corpo.
+
+Ao aparecer, `game.gd` desliga o `SpawnManager` e o raio — "interromper spawn" e
+"interromper gameplay" do `docs/03_SYSTEMS.md` §16.
+
+## Reiniciar
+
+Botão `REINICIAR` na `CanvasLayer`, invisível até a morte, que aparece junto com
+a imagem e já nasce com o foco — dá para acionar no teclado, sem mouse.
+
+Fica em coordenada de **tela**, não de mundo: um botão no mundo sairia de vista
+se a câmera se mexesse, e o alvo de clique dependeria do zoom.
+
+`get_tree().reload_current_scene()` recria `game.tscn` inteira: druida com vida
+cheia, nenhum inimigo, spawn zerado. Serve enquanto não há nada a preservar
+entre partidas — meta-progressão é FASE 13.
+
+**Isto ainda não é a tela de game over.** Falta tempo de partida, level
+alcançado e voltar ao menu, que são da FASE 9, com o `GameManager` e o estado
+`GAME_OVER`. O que existe hoje é a imagem aparecendo na hora certa, no lugar
+certo, e um caminho de volta para o jogo.
+
+## Raio
+
+| O quê | Caminho |
+|---|---|
+| Efeito | `res://scenes/effects/lightning_strike.tscn` |
+| Script do efeito | `res://scripts/effects/lightning_strike.gd` |
+| Disparo (provisório) | `res://scripts/effects/lightning_caster.gd`, nó `RaioTeste` |
+
+8 frames de 256 x 264, sem loop. A **origem do nó é o ponto de impacto**, no
+chão: a sprite é deslocada 132 px para cima para que a explosão da base caia na
+origem. Assim, mandar o raio para a posição de um inimigo faz ele cair em cima
+do inimigo, sem conta nenhuma do lado de quem dispara.
+
+A hitbox só liga no **frame 4**, quando o raio encosta no chão. Antes disso é
+nuvem se formando, e dar dano ali pareceria injusto. Terminada a animação, o nó
+se libera: efeito não pode virar nó eterno.
+
+### Golpe único no `HitboxComponent`
+
+O raio estreou um modo novo: **`hit_interval = 0` significa um golpe por alvo**.
+Cada hurtbox leva dano uma vez só, por mais que continue dentro da área.
+
+É o modo que projétil, explosão e área vão usar na FASE 4 — e era a dúvida
+registrada aqui como pendência da fase. Ficou resolvida: o componente atende os
+dois casos, sem duplicar código e sem `if` espalhado por quem usa.
+
+### O disparo é andaime
+
+`RaioTeste` fica em `game.tscn`, **fora do Player**. Ele escolhe o inimigo mais
+próximo dentro de 640 px e joga um raio em cima, a cada 1,5 s.
+
+Colocar isso dentro do Player seria exatamente o acoplamento que a DEC-009
+proíbe, e sair dele depois custaria mais do que escrever certo agora. Quando o
+`WeaponManager` existir, este nó some e a arma vira dado em `Resource`
+(DEC-010).
+
+A varredura de inimigos acontece **só no instante do disparo** — 40 varreduras
+por minuto, não 3600. Guardar o alvo entre disparos não serviria: o mais próximo
+muda o tempo todo, e ele pode ter morrido.
+
+Números provisórios: 30 de dano (mata um diabrete de uma vez), raio de 40 px de
+área, 1,5 s de intervalo, 640 px de alcance.
+
 # Spawn e horda (FASE 3)
 
 ## Caminhos
@@ -641,6 +757,9 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 21 | `--headless --script res://tests/test_phase3.gd` | `FASE 3 OK`, exit 0 |
 | 22 | Suíte completa depois da FASE 3 | `FASE 0/1/2/3 OK`, exit 0 nas quatro |
 | 23 | Carga com renderização, 50 a 300 inimigos empilhados | ver "Carga: quantos diabretes cabem" |
+| 24 | `--headless --script res://tests/test_raio.gd` | `RAIO OK`, exit 0 |
+| 25 | Dois erros injetados no raio | `hit_interval` deixando de ser 0, e hitbox ligada desde o frame 0; os dois foram pegos |
+| 26 | Execução com render: morte, game over e raio | ver abaixo |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -782,8 +901,32 @@ Corrigido em `HurtboxComponent.set_vulnerable()` e em `Enemy._on_health_died()`,
 que agora usam `set_deferred`. Nenhuma mudança de comportamento: o golpe
 seguinte só viria no frame seguinte de qualquer forma.
 
+## Morte, game over e raio em execução
+
+Com render, 8 diabretes em volta do druida:
+
+```
+raios lancados: 2 | inimigos vivos: 0 | mortos: 8
+efeitos na cena: 0
+game over visivel no meio da animacao: false
+game over visivel depois: true | posicao (0.0, -48.0) | player morreu em (0.0, 0.0)
+efeitos deixados na cena: 0
+```
+
+Dois raios limparam os oito diabretes — a área de 40 px pega vários quando eles
+estão empilhados em volta do jogador. Nenhum efeito ficou na cena. A imagem de
+game over **não** aparece durante a animação de morte, aparece depois, e no
+lugar exato onde o druida caiu.
+
+Capturas frame a frame confirmam o raio caindo sobre a linha dos inimigos, com o
+impacto no chão, e o druida se desfazendo em partículas azuis até sobrar só o
+cajado.
+
 # Limitações e pendências
 
+- **O inimigo não tem animação de morte**: some na hora. A do druida existe; a dele não.
+- **A imagem de game over não é tela de game over**: tem o botão de reiniciar, mas não tem tempo de partida, level alcançado nem voltar ao menu. É da FASE 9.
+- **O raio é andaime.** Dispara sozinho, não tem nível, não tem upgrade e não passa por `WeaponManager`. Vira arma de verdade na FASE 4.
 - **Inimigo não tem nem terá `idle`** (DEC-019). Parado, congela no frame 0 da caminhada. É o alvo, não pendência.
 - **Sprites de mesma linha ainda se misturam.** O Y-sort resolve a profundidade, mas dois inimigos praticamente na mesma coordenada Y têm ordem indefinida entre si, e a sprite de 96 px de altura sobre uma pegada de 28 px faz a horda se sobrepor verticalmente de qualquer jeito. É característica de top-down com personagem alto, não defeito de ordenação.
 - **Não há feedback visual de dano**: nem no Player nem no inimigo. A `Hurtbox` já emite `hit`, que é o gancho para piscar ou mostrar número — falta a arte e é assunto da FASE 11.
@@ -819,10 +962,15 @@ As layers do ataque do jogador já estão decididas e são o espelho exato do qu
 inimigo faz hoje (DEC-017): **layer 5 PlayerAttack (16), mask 8 EnemyHurtbox**.
 Nenhuma camada nova precisa ser inventada.
 
-O `HitboxComponent` foi escrito pensando nisso, mas nasceu para dano por
-contato: um projétil quer acertar **uma vez** e sumir, não a cada `hit_interval`.
-Provavelmente vai precisar de um modo de golpe único — vale conferir antes de
-duplicar código.
+O modo de **golpe único** do `HitboxComponent` já existe: `hit_interval = 0` faz
+cada alvo levar dano uma vez só. Foi o raio que estreou, e é o que projétil,
+explosão e área precisam. Não é preciso inventar nada novo para o dano.
+
+Boa parte do caminho da arma também já está andada pelo raio: efeito que nasce,
+acerta e some; alvo escolhido no instante do disparo; layers corretas. O que
+falta é a **arquitetura**: `WeaponManager`, dados em `Resource`, nível e
+cooldown por arma. Ao terminar, apagar o `RaioTeste`, o
+`scripts/effects/lightning_caster.gd` e o `tests/test_raio.gd`.
 
 ## Critério de aceite da FASE 4
 

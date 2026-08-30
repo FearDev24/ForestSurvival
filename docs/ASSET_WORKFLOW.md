@@ -112,8 +112,10 @@ Antes de sobrescrever, o PNG original é copiado para uma pasta `_raw/` ao lado,
 com `.gdignore`, no mesmo espírito de `assets/characters/frames/`. Nada é
 apagado.
 
-O passo 2 só é seguro em arte **sem verde legítimo**. No druida (capuz e cajado
-verdes) ele **não** pode ser aplicado às cegas.
+O passo 2 só é seguro em arte **sem verde legítimo**. Na morte do druida (manto
+verde), no `gameover` (folhas) e no raio, **só o passo 1 foi aplicado**: a franja
+some e o interior não é tocado. Vale a regra: se a peça tem verde de verdade,
+remove-se a franja e não se faz despill.
 
 # Como registrar o estado dos assets
 

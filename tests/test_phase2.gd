@@ -14,6 +14,7 @@ extends SceneTree
 const ENEMY_SCENE := "res://scenes/enemies/enemy.tscn"
 const PLAYER_SCENE := "res://scenes/player/player.tscn"
 const GAME_SCENE := "res://scenes/game/game.tscn"
+const PLAYER_FRAMES := "res://assets/characters/druida_sprite_frames.tres"
 
 ## Layers da DEC-014, em valor de bit.
 const LAYER_PLAYER_BODY := 1 << 0
@@ -45,6 +46,10 @@ const PASSTHROUGH_SECONDS := 1.0
 ## inimigo bloqueasse, o Player pararia por volta de 72 px (raio 14 + raio 14).
 const PASSTHROUGH_MIN_X := 160.0
 
+## Quanto esperar pelo game over depois da morte, em frames. A animação de
+## morte tem 27 frames a 15 fps, ou seja, 1,8 s; 200 frames dão folga de sobra.
+const GAME_OVER_TIMEOUT_FRAMES := 200
+
 ## Distância inicial entre dois inimigos no teste de separação. Quase colados,
 ## mas não no mesmo ponto: sobreposição exata é caso degenerado de física.
 const SEPARATION_START_GAP := 6.0
@@ -63,6 +68,9 @@ var _frames_left := 0
 var _chase_start_distance := 0.0
 var _player_health_before := 0.0
 var _second_enemy: CharacterBody2D = null
+var _death_position := Vector2.ZERO
+var _game_over_frame := -1
+var _frames_since_death := 0
 var _enemy_died_count := 0
 ## Contador do teste unitário do `HealthComponent`. É campo, e não variável
 ## local, porque lambdas em GDScript capturam locais **por valor**: um contador
@@ -74,6 +82,7 @@ var _enemy_path := NodePath()
 func _initialize() -> void:
 	_check_enemy_scene()
 	_check_render_order()
+	_check_death_presentation()
 	_check_player_scene()
 
 	if not _build_running_scene():
@@ -120,6 +129,15 @@ func _physics_process(_delta: float) -> bool:
 			_frames_left -= 1
 			if _frames_left <= 0:
 				_check_after_player_death()
+				_start_game_over_watch()
+		8:
+			_frames_since_death += 1
+			_frames_left -= 1
+			var game_over := _game.get_node_or_null("GameOver") as CanvasItem
+			if _game_over_frame < 0 and game_over != null and game_over.visible:
+				_game_over_frame = _frames_since_death
+			if _game_over_frame >= 0 or _frames_left <= 0:
+				_check_game_over()
 				_start_target_removal()
 		7:
 			_frames_left -= 1
@@ -313,6 +331,48 @@ func _check_render_order() -> void:
 	game.free()
 
 
+## Arte da morte e imagem de game over. Só a configuração: o resultado na tela
+## foi conferido com render (ver HANDOFF).
+func _check_death_presentation() -> void:
+	if ResourceLoader.exists(PLAYER_FRAMES):
+		var frames: SpriteFrames = load(PLAYER_FRAMES)
+		if not frames.has_animation(&"death_south"):
+			_fail("SpriteFrames do druida sem a animação 'death_south'")
+		else:
+			if frames.get_animation_loop(&"death_south"):
+				_fail("A morte não pode estar em loop: ela toca uma vez e acaba")
+			if frames.get_frame_count(&"death_south") < 2:
+				_fail("Animação de morte com menos de 2 frames")
+	else:
+		_fail("SpriteFrames do druida não encontrado: %s" % PLAYER_FRAMES)
+
+	if not ResourceLoader.exists(GAME_SCENE):
+		return
+
+	var game: Node = (load(GAME_SCENE) as PackedScene).instantiate()
+	var game_over := game.get_node_or_null("GameOver") as Sprite2D
+	if game_over == null:
+		_fail("game.tscn sem o nó GameOver")
+	else:
+		if game_over.visible:
+			_fail("GameOver deveria começar invisível")
+		if game_over.texture == null:
+			_fail("GameOver sem textura")
+		if game_over.z_index <= 0:
+			_fail("GameOver precisa de z_index positivo para ficar acima de tudo")
+
+	var restart := game.get_node_or_null("CanvasLayer/RestartButton") as Button
+	if restart == null:
+		_fail("game.tscn sem o botão de reiniciar em CanvasLayer/RestartButton")
+	else:
+		if restart.visible:
+			_fail("O botão de reiniciar deveria começar invisível")
+		if restart.text.strip_edges().is_empty():
+			_fail("Botão de reiniciar sem texto")
+
+	game.free()
+
+
 # ------------------------------------------------------------ comportamento --
 
 
@@ -332,10 +392,14 @@ func _build_running_scene() -> bool:
 		_fail("game.tscn sem Player ou EnemyContainer")
 		return false
 
-	# O SpawnManager encheria a cena de inimigos no meio das medições.
+	# O SpawnManager encheria a cena de inimigos no meio das medições, e o raio
+	# de teste mataria justamente o inimigo que está sendo medido.
 	var spawner := _game.get_node_or_null("SpawnManager") as SpawnManager
 	if spawner != null:
 		spawner.enabled = false
+	var caster := _game.get_node_or_null("RaioTeste") as LightningCaster
+	if caster != null:
+		caster.enabled = false
 
 	for child in container.get_children():
 		child.free()
@@ -533,6 +597,43 @@ func _check_after_player_death() -> void:
 		_fail("Player morto continua com velocidade %s" % _player.velocity)
 	if not is_instance_valid(_enemy):
 		_fail("Inimigo sumiu depois da morte do Player")
+
+
+## A imagem de game over só pode aparecer **depois** que a morte termina de ser
+## apresentada, e no lugar onde o druida caiu.
+func _start_game_over_watch() -> void:
+	_death_position = _player.global_position
+	_game_over_frame = -1
+	_frames_since_death = 0
+	_frames_left = GAME_OVER_TIMEOUT_FRAMES
+	_stage = 8
+
+
+func _check_game_over() -> void:
+	var game_over := _game.get_node_or_null("GameOver") as Sprite2D
+	if game_over == null:
+		_fail("game.tscn sem o nó GameOver na cena em execução")
+		return
+
+	if _game_over_frame < 0:
+		_fail("Game over não apareceu em %d frames depois da morte" % GAME_OVER_TIMEOUT_FRAMES)
+		return
+
+	# 60 frames já haviam corrido antes desta etapa; a animação tem 108.
+	if _game_over_frame <= 5:
+		_fail("Game over apareceu cedo demais: %d frames, antes de a morte terminar" % _game_over_frame)
+
+	var offset := game_over.global_position.distance_to(_death_position)
+	if offset > 96.0:
+		_fail("Game over apareceu a %.0f px de onde o druida morreu" % offset)
+
+	var restart := _game.get_node_or_null("CanvasLayer/RestartButton") as Button
+	if restart == null:
+		_fail("Botão de reiniciar ausente na cena em execução")
+	elif not restart.visible:
+		_fail("Botão de reiniciar não apareceu junto com o game over")
+	elif restart.pressed.get_connections().is_empty():
+		_fail("Botão de reiniciar não está ligado a nada")
 
 
 ## Último caso: o alvo deixa de existir. O inimigo tem de parar, não estourar.

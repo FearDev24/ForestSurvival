@@ -1,9 +1,10 @@
-[gd_resource type="SpriteFrames" load_steps=62 format=3 uid="uid://bfsdruidaframes"]
+[gd_resource type="SpriteFrames" load_steps=90 format=3 uid="uid://bfsdruidaframes"]
 
 [ext_resource type="Texture2D" path="res://assets/characters/druida-sul-walk-south.png" id="1_walk_south"]
 [ext_resource type="Texture2D" path="res://assets/characters/druida-north-walk-north.png" id="2_walk_north"]
 [ext_resource type="Texture2D" path="res://assets/characters/druida-west-walk-west.png" id="3_walk_west"]
 [ext_resource type="Texture2D" path="res://assets/characters/druida-east-walk-east.png" id="4_walk_east"]
+[ext_resource type="Texture2D" path="res://assets/characters/morte-druid-morte-south.png" id="5_death_south"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_00"]
 atlas = ExtResource("1_walk_south")
@@ -233,6 +234,114 @@ region = Rect2(832, 0, 64, 96)
 atlas = ExtResource("4_walk_east")
 region = Rect2(896, 0, 64, 96)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_00"]
+atlas = ExtResource("5_death_south")
+region = Rect2(0, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_01"]
+atlas = ExtResource("5_death_south")
+region = Rect2(64, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_02"]
+atlas = ExtResource("5_death_south")
+region = Rect2(128, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_03"]
+atlas = ExtResource("5_death_south")
+region = Rect2(192, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_04"]
+atlas = ExtResource("5_death_south")
+region = Rect2(256, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_05"]
+atlas = ExtResource("5_death_south")
+region = Rect2(320, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_06"]
+atlas = ExtResource("5_death_south")
+region = Rect2(384, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_07"]
+atlas = ExtResource("5_death_south")
+region = Rect2(448, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_08"]
+atlas = ExtResource("5_death_south")
+region = Rect2(512, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_09"]
+atlas = ExtResource("5_death_south")
+region = Rect2(576, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_10"]
+atlas = ExtResource("5_death_south")
+region = Rect2(640, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_11"]
+atlas = ExtResource("5_death_south")
+region = Rect2(704, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_12"]
+atlas = ExtResource("5_death_south")
+region = Rect2(768, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_13"]
+atlas = ExtResource("5_death_south")
+region = Rect2(832, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_14"]
+atlas = ExtResource("5_death_south")
+region = Rect2(896, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_15"]
+atlas = ExtResource("5_death_south")
+region = Rect2(960, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_16"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1024, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_17"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1088, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_18"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1152, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_19"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1216, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_20"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1280, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_21"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1344, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_22"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1408, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_23"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1472, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_24"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1536, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_25"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1600, 0, 64, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_death_south_26"]
+atlas = ExtResource("5_death_south")
+region = Rect2(1664, 0, 64, 96)
+
 [resource]
 animations = [{
 "frames": [{
@@ -424,5 +533,91 @@ animations = [{
 }],
 "loop": true,
 "name": &"walk_east",
+"speed": 15.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_00")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_01")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_02")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_03")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_04")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_05")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_06")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_07")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_08")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_09")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_10")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_11")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_12")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_13")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_14")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_15")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_16")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_17")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_18")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_19")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_20")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_21")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_22")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_23")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_24")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_25")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_death_south_26")
+}],
+"loop": false,
+"name": &"death_south",
 "speed": 15.0
 }]

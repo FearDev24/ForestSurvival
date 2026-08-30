@@ -1,10 +1,13 @@
-[gd_scene load_steps=6 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=9 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
 [ext_resource type="PackedScene" uid="uid://bfsplayer0forest" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" uid="uid://bfsenemy0forest" path="res://scenes/enemies/enemy.tscn" id="4_enemy"]
 [ext_resource type="Script" path="res://scripts/systems/spawn_manager.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://scripts/effects/lightning_caster.gd" id="6_caster"]
+[ext_resource type="PackedScene" uid="uid://bfsraio0forest" path="res://scenes/effects/lightning_strike.tscn" id="7_strike"]
+[ext_resource type="Texture2D" path="res://assets/ui/gameover.png" id="8_gameover"]
 
 [node name="Game" type="Node2D"]
 y_sort_enabled = true
@@ -35,4 +38,33 @@ editor_description = "Cria os inimigos da partida. Ligado ao Player, ao EnemyCon
 script = ExtResource("5_spawn")
 enemy_scene = ExtResource("4_enemy")
 
+[node name="RaioTeste" type="Node" parent="."]
+editor_description = "Andaime de teste: dispara o raio sozinho para dar para ver a habilidade em jogo. Some quando o WeaponManager existir, na FASE 4 (DEC-009)."
+script = ExtResource("6_caster")
+strike_scene = ExtResource("7_strike")
+
+[node name="GameOver" type="Sprite2D" parent="."]
+editor_description = "Aparece no lugar onde o druida morreu, depois que a animacao de morte termina. z_index alto para ficar acima de tudo, fora da ordenacao por Y. Tela de game over de verdade, com botoes e restart, e da FASE 9."
+visible = false
+z_index = 100
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("8_gameover")
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="RestartButton" type="Button" parent="CanvasLayer"]
+editor_description = "Aparece junto com o game over. Recarrega a cena da partida. A tela de resultado completa - tempo, level, voltar ao menu - e da FASE 9."
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -150.0
+offset_right = 120.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 30
+text = "REINICIAR"
+
