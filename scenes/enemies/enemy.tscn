@@ -1,0 +1,68 @@
+[gd_scene load_steps=8 format=3 uid="uid://bfsenemy0forest"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_visual.gd" id="2_visual"]
+[ext_resource type="SpriteFrames" uid="uid://bfsdiabreteframes" path="res://assets/characters/inimigos/diabrete_sprite_frames.tres" id="3_diabrete"]
+[ext_resource type="Script" path="res://scripts/components/health_component.gd" id="4_health"]
+[ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="5_hitbox"]
+[ext_resource type="Script" path="res://scripts/components/hurtbox_component.gd" id="6_hurtbox"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_combat"]
+radius = 12.0
+
+[node name="Enemy" type="CharacterBody2D" groups=["enemy"]]
+collision_layer = 2
+collision_mask = 130
+script = ExtResource("1_enemy")
+
+[node name="Visual" type="Node2D" parent="."]
+scale = Vector2(0.5, 0.5)
+editor_description = "Escala 0.5 e provisoria: o diabrete deve medir cerca de metade da altura do druida e a arte veio no mesmo quadro de 64x96. O certo e reexportar as sprites em 32x48 e voltar a escala para 1. Unico ponto de troca de arte do Enemy. Asset atual em estado CANDIDATE: entra para avaliacao, nao e arte aprovada. Ver docs/ASSET_WORKFLOW.md e DEC-013. Nao adicionar logica de gameplay aqui."
+script = ExtResource("2_visual")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Visual"]
+texture_filter = 1
+position = Vector2(0, -48)
+sprite_frames = ExtResource("3_diabrete")
+animation = &"walk_south"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+editor_description = "Colisao de gameplay, centrada nos pes. So separa inimigo de inimigo e barra parede: o Player atravessa (mask sem PlayerBody), levando dano pela Hitbox. Ver DEC-018. Raio 8 porque o diabrete e uma criatura pequena, cerca de metade do druida (raio 14) - criterio de gameplay, nao consequencia do tamanho do sheet. Nao redimensionar so porque a sprite mudou. Ver DEC-013."
+shape = SubResource("CircleShape2D_body")
+
+[node name="Health" type="Node" parent="."]
+editor_description = "Vida do inimigo. 30 de HP com um contato de 10 do jogador seria 3 golpes; o valor definitivo vem com o sistema de Stats na FASE 6."
+script = ExtResource("4_health")
+max_health = 30.0
+
+[node name="Hitbox" type="Area2D" parent="."]
+editor_description = "Dano por contato. Layer 6 EnemyAttack, mask 3 PlayerHurtbox. Detecta, mas nao e detectavel."
+collision_layer = 32
+collision_mask = 4
+monitorable = false
+script = ExtResource("5_hitbox")
+damage = 10.0
+hit_interval = 1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(0, -14)
+shape = SubResource("CircleShape2D_combat")
+
+[node name="Hurtbox" type="Area2D" parent="." node_paths=PackedStringArray("health")]
+editor_description = "Recebe dano. Layer 4 EnemyHurtbox, mask 0: e detectavel, mas nao detecta ninguem. Quem procura e a hitbox do atacante."
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("6_hurtbox")
+health = NodePath("../Health")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+position = Vector2(0, -14)
+shape = SubResource("CircleShape2D_combat")
+
+[connection signal="facing_changed" from="." to="Visual" method="set_facing"]
+[connection signal="movement_state_changed" from="." to="Visual" method="set_moving"]
+[connection signal="died" from="Health" to="." method="_on_health_died"]

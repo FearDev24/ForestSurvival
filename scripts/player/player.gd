@@ -2,9 +2,11 @@ class_name Player
 extends CharacterBody2D
 ## Druida Guardião — jogador.
 ##
-## FASE 1: apenas movimento e câmera.
-## Sem HP, dano, hurtbox, armas ou coleta — esses sistemas entram nas fases
-## seguintes do `docs/ROADMAP.md`.
+## Movimento, câmera e morte. A vida está no componente irmão `Health` e o dano
+## chega pela `Hurtbox`; este script só reage à morte.
+##
+## Armas e coleta ainda não existem — entram nas FASES 4 e 5 do
+## `docs/ROADMAP.md`.
 ##
 ## Desacoplamento de arte (DEC-013 / `docs/ASSET_WORKFLOW.md`):
 ## este script nunca lê textura, sprite, tamanho de imagem ou animação.
@@ -22,6 +24,11 @@ enum Facing { SOUTH, NORTH, WEST, EAST }
 
 ## Emitido somente quando a direção muda, não a cada frame.
 signal facing_changed(facing: Facing)
+
+## Emitido uma única vez, quando o jogador morre. O nó **não** é removido da
+## árvore: game over, tela de resultado e restart são da FASE 9. Aqui o Player
+## apenas para de responder e deixa de ser alvo.
+signal died
 
 ## Emitido somente quando o jogador começa ou para de se mover.
 ## A camada visual usa isto para alternar entre parado e caminhando; a lógica
@@ -55,8 +62,10 @@ signal movement_state_changed(is_moving: bool)
 var facing: Facing = Facing.SOUTH
 
 var _is_moving := false
+var _is_dead := false
 
 @onready var _camera: Camera2D = $Camera2D
+@onready var _hurtbox: HurtboxComponent = $Hurtbox
 
 
 func _ready() -> void:
@@ -67,6 +76,9 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if _is_dead:
+		return
+
 	# `Input.get_vector` já limita o comprimento a 1, então a diagonal não é
 	# mais rápida que os eixos. Não multiplicar por delta: em CharacterBody2D
 	# `velocity` é px/s e `move_and_slide()` aplica o passo de física.
@@ -76,6 +88,27 @@ func _physics_process(_delta: float) -> void:
 	_update_facing(direction)
 	_update_movement_state(direction)
 	move_and_slide()
+
+
+## Reage à morte vinda do `HealthComponent`, ligado na própria cena.
+##
+## O Player continua na árvore, com a câmera funcionando: quem decide o que
+## acontece depois é a FASE 9. Aqui ele apenas para de andar e sai do radar das
+## hitboxes, para não continuar levando golpes de quem já o matou.
+func _on_health_died() -> void:
+	if _is_dead:
+		return
+	_is_dead = true
+
+	velocity = Vector2.ZERO
+	_hurtbox.set_vulnerable(false)
+	_update_movement_state(Vector2.ZERO)
+
+	died.emit()
+
+
+func is_dead() -> bool:
+	return _is_dead
 
 
 ## Aplica os limites do mundo à câmera.

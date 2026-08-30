@@ -22,6 +22,8 @@ const EXPECTED_ACTIONS := [
 ## Layer 1 (PlayerBody) — DEC-014.
 const EXPECTED_PLAYER_LAYER := 1
 ## Mask apenas na layer 8 (WorldStatic) — DEC-016.
+## O Player **não** colide com o corpo do inimigo: atravessa a horda e leva
+## dano por contato, não empurrão (DEC-018).
 const EXPECTED_PLAYER_MASK := 1 << 7
 
 ## Duração de cada medição de deslocamento, em segundos simulados.
