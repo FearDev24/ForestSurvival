@@ -44,6 +44,8 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/effects/lightning_caster.gd` — disparo automático **provisório**, fora do Player (DEC-009), até o `WeaponManager` da FASE 4;
   - `HitboxComponent` ganha **golpe único** (`hit_interval = 0`): cada alvo leva dano uma vez só. É o modo que projéteis e explosões vão usar;
   - botão `REINICIAR` na `CanvasLayer`, que aparece com o game over e recarrega a partida;
+  - correção de escala da morte: a arte veio com 63 px de altura contra 87 da caminhada e com os pés 16 px acima da base do quadro; `player_visual.gd` compensa com `death_scale`, sem reamostrar a arte;
+  - game over reduzido de 0,45 para 0,28 de escala;
   - `tests/test_raio.gd`, e checagens de morte, game over e botão de reiniciar em `tests/test_phase2.gd`.
 - **FASE 3 — Spawn e horda:**
   - `scripts/systems/spawn_manager.gd` — ponto de spawn fora da câmera, teto de população e rampa de densidade, sem `Timer` e sem busca por grupo;

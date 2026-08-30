@@ -475,6 +475,27 @@ Health.died -> Player.died -> Visual.play_death()
 quanto dura. Ele avisa que morreu e é avisado de que a apresentação acabou. Se
 um dia a morte virar um shader, uma partícula ou nada, nada muda na lógica.
 
+### A arte de morte veio fora de escala
+
+Medida contra a caminhada, no mesmo quadro de 64 x 96:
+
+| | caminhada | morte |
+|---|---|---|
+| altura da silhueta | 87 px | **63 px** |
+| linha dos pés | 95 (a base do quadro) | **79** |
+
+Ou seja: ao morrer, o druida encolhia para 72% do tamanho e ainda flutuava 16 px
+acima do chão.
+
+Corrigido na **camada visual**, não na arte: `player_visual.gd` aplica
+`death_scale = 1.38` e recoloca a sprite para que os pés continuem na origem do
+nó. Reamostrar pixel art para 1,38x estragaria o desenho de forma permanente;
+uma transformação em runtime é reversível.
+
+Os dois valores são `@export`. Se a morte for reexportada na mesma escala e
+alinhamento das outras animações, voltam a `1.0` e `95.5` e nenhuma outra linha
+muda. Está em `docs/TODO.md`.
+
 Só existe arte de morte virada para o **sul**. Morrer virado para outro lado cai
 nela pela mesma cadeia de fallback das outras animações — pose certa na direção
 errada é melhor que pose nenhuma. Sem nenhuma arte de morte, o sinal de fim é
@@ -483,8 +504,12 @@ emitido na hora e a partida segue.
 ## Game over
 
 `Sprite2D` em `game.tscn`, invisível até a hora, com `z_index = 100` para ficar
-acima de tudo e fora da ordenação por Y. Escala 0,45 — a arte tem 1448 x 1086 e
-ocuparia mais que a tela inteira em tamanho original.
+acima de tudo e fora da ordenação por Y.
+
+Escala **0,28**: a arte tem 1448 x 1086 e em tamanho original ocuparia mais que a
+tela inteira. Assim ela fica com 405 x 304 unidades de mundo, cerca de um terço
+da largura visível — grande o bastante para ser o assunto da tela, pequena o
+bastante para ainda dar para ver onde o druida caiu.
 
 Aparece **em coordenada de mundo**, centrada onde o druida caiu (com 48 px de
 sobe para ficar sobre o corpo, não sobre os pés), não numa `CanvasLayer`: a

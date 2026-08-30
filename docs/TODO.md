@@ -32,6 +32,7 @@ Detalhes em `docs/HANDOFF.md`.
 - [ ] aprovar ou recusar o conjunto do druida: hoje está CANDIDATE, não APPROVED
 - [ ] aprovar ou recusar o conjunto do diabrete: hoje está CANDIDATE, não APPROVED
 - [ ] aprovar ou recusar a morte do druida, o `gameover` e o raio: hoje estão CANDIDATE
+- [ ] reexportar a morte do druida **na mesma escala e alinhamento** da caminhada (hoje ela vem 72% do tamanho e com os pés 16 px acima da base; corrigido por `death_scale` na camada visual, que volta a 1.0 quando a arte chegar certa)
 - [ ] tela de game over de verdade — tempo, level, reiniciar, voltar ao menu (FASE 9); hoje só a imagem aparece
 - [ ] animação de morte do **inimigo**: hoje ele simplesmente some
 - [ ] revisar a velocidade da caminhada do diabrete: 12 fps, valor inicial

@@ -47,7 +47,7 @@ strike_scene = ExtResource("7_strike")
 editor_description = "Aparece no lugar onde o druida morreu, depois que a animacao de morte termina. z_index alto para ficar acima de tudo, fora da ordenacao por Y. Tela de game over de verdade, com botoes e restart, e da FASE 9."
 visible = false
 z_index = 100
-scale = Vector2(0.45, 0.45)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("8_gameover")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
