@@ -35,6 +35,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **FASE 3 — Spawn e horda:**
+  - `scripts/systems/spawn_manager.gd` — ponto de spawn fora da câmera, teto de população e rampa de densidade, sem `Timer` e sem busca por grupo;
+  - `SpawnManager` em `game.tscn`, ligado ao Player, ao `EnemyContainer` e aos limites do mundo por `game.gd`;
+  - os quatro diabretes fixos saíram de `game.tscn`: quem cria inimigos agora é o manager;
+  - `tests/test_phase3.gd` — estrutura, spawn fora da tela, teto de população, rampa de densidade e carga com 50/100/250/500 inimigos;
+  - correção: `monitorable`/`monitoring` passam a ser desligados com `set_deferred` na morte. Sem isso, morrer dentro do `area_entered` da hitbox que matou gerava "Function blocked during in/out signal" — apareceu no teste de carga, com 300 inimigos.
 - **FASE 2 — Primeiro inimigo:**
   - `scripts/components/health_component.gd` — `max_health`, `current_health`, `damage()`, `heal()`, sinais `health_changed`, `damaged` e `died`, com morte emitida uma única vez;
   - `scripts/components/hitbox_component.gd` — dano por contato com `hit_interval`, sem `Timer` por entidade e com `_physics_process` desligado quando não há alvo sobreposto;

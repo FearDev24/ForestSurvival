@@ -5,18 +5,19 @@
 FASE 0 — Fundação.
 FASE 1 — Movimento e mundo.
 FASE 2 — Primeiro inimigo.
+FASE 3 — Spawn e horda.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 3 (spawn e horda)
+# Agora — FASE 4 (primeira arma)
 
-- [ ] criar `SpawnManager` em `scripts/systems/`
-- [ ] **nunca criar dois inimigos na mesma coordenada** — sobreposição exata não se resolve sozinha (ver "Espaçamento da horda" no HANDOFF)
-- [ ] spawn fora da câmera, sem nascer visivelmente sobre o Player
-- [ ] limite inicial de população
-- [ ] aumento gradual de densidade
-- [ ] teste com 100+ inimigos, registrando FPS, frametime, nodes e memória
-- [ ] criar `tests/test_phase3.gd`
+- [ ] criar `WeaponManager` no Player, sem comportamento de arma específica (DEC-009)
+- [ ] Cajado da Floresta: primeira arma
+- [ ] targeting do inimigo mais próximo, sem busca global por frame
+- [ ] projétil sob `ProjectileContainer`, layer 5 PlayerAttack com mask 8 EnemyHurtbox (o espelho da DEC-017)
+- [ ] dano usando o `HitboxComponent` que já existe
+- [ ] cooldown
+- [ ] criar `tests/test_phase4.gd`
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

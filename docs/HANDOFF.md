@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-08-29
+Última atualização: 2026-08-30
 
 # Projeto
 
@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 — Fundação, FASE 1 — Movimento e mundo e FASE 2 — Primeiro inimigo.**
+**FASE 0 — Fundação, FASE 1 — Movimento e mundo, FASE 2 — Primeiro inimigo e FASE 3 — Spawn e horda.**
 
 Ao rodar o jogo existe uma área de protótipo com grid e um Player controlável em oito direções, com câmera acompanhando e paredes de borda.
 
@@ -40,7 +40,9 @@ Em 2026-08-29 entrou o **diabrete**, primeiro inimigo, com sprites nas quatro di
 
 **FASE 2 — Primeiro inimigo. Concluída.** O diabrete persegue, causa dano por contato, recebe dano e morre uma única vez; o Player tem vida e morre. Componentes de vida, hitbox e hurtbox existem em `scripts/components/` e são reutilizáveis pelas armas da FASE 4.
 
-Não existe arma, XP nem HUD — correto para esta fase. A vida do Player só é visível por script: a barra de HP é da FASE 9.
+Desde 2026-08-30 os inimigos aparecem sozinhos: o `SpawnManager` cria diabretes fora da tela, em ritmo que aumenta com o tempo e com teto de população. Os quatro diabretes fixos saíram de `game.tscn`.
+
+Não existe arma, XP nem HUD — correto para esta fase. A vida do Player só é visível por script: a barra de HP é da FASE 9. Sem arma, a partida ainda não é vencível: a horda cresce até matar o druida.
 
 ## Assets
 
@@ -435,6 +437,95 @@ ficaria com 0 de vida. O comportamento em cena não muda.
 Todos provisórios até o sistema de Stats, na FASE 6. Na prática: quatro
 diabretes encostados matam o druida parado em cerca de 2 s.
 
+# Spawn e horda (FASE 3)
+
+## Caminhos
+
+| O quê | Caminho |
+|---|---|
+| Script | `res://scripts/systems/spawn_manager.gd` (`class_name SpawnManager`) |
+| Nó | `SpawnManager`, filho de `Game` em `game.tscn` |
+
+## Como é ligado
+
+`game.gd` entrega ao manager o alvo, o container e os limites do mundo:
+
+```gdscript
+_spawn_manager.configure(_player, _enemy_container, bounds)
+```
+
+O manager **não** procura o Player por grupo, não procura o container por
+caminho e não conhece o mapa. Mesmo padrão já usado para os limites da câmera:
+quem conhece a composição é a raiz da partida.
+
+## Onde o inimigo nasce
+
+Sorteia um ângulo em volta do Player e coloca o inimigo à distância de
+`get_spawn_distance()`, que é **meia diagonal da tela visível mais a margem** —
+não uma constante.
+
+Sai do viewport e do zoom da câmera ativa de propósito: com
+`stretch/aspect = expand` (DEC-015), uma tela mais larga mostra mais mundo, e um
+raio fixo faria o inimigo nascer visível em parte dos aparelhos Android.
+
+O ponto é limitado ao mapa com folga de 64 px das paredes. Se a limitação puxar
+o ponto para dentro do campo de visão — Player encurralado num canto —, o
+manager tenta outros ângulos (8 por padrão) e fica com o mais distante. Cada
+inimigo recebe um ponto próprio, então nunca nascem na mesma coordenada, que é
+o caso degenerado descrito em "Espaçamento da horda".
+
+## Ritmo
+
+Rampa linear de `ramp_seconds` (5 minutos):
+
+| | início | fim |
+|---|---|---|
+| intervalo entre spawns | 1,2 s | 0,2 s |
+| teto de população | 40 | 200 |
+
+Tudo exportado, tudo provisório: a tabela de waves de verdade é do
+`WaveManager`, na FASE 8. O `enabled` existe para o game over da FASE 9
+interromper o spawn — e é o que os testes usam para medir sem interferência.
+
+## Custo por frame
+
+Uma soma de delta e uma comparação. Sem `Timer`, sem busca por grupo, e a
+população lida em `get_child_count()` do container, que é O(1).
+
+# Carga: quantos diabretes cabem
+
+Medido em execução real **com renderização**, 1280 x 720, vsync desligado, numa
+RTX 2060 SUPER. Cada patamar foi criado e deixado convergir sobre o Player
+parado por 5,5 s antes de medir — ou seja, com a horda **empilhada**, que é o
+pior caso.
+
+| inimigos | FPS | process | física | draw calls | nodes | memória |
+|---|---|---|---|---|---|---|
+| 50 | 1845 | 3,19 ms | 1,42 ms | 25 | 476 | 41,1 MB |
+| 100 | 1664 | 2,96 ms | 3,58 ms | 51 | 926 | 43,0 MB |
+| 200 | 1021 | 2,25 ms | **8,20 ms** | 94 | 1826 | 46,7 MB |
+| 250 | 454 | 2,42 ms | 14,03 ms | 123 | 2276 | 48,7 MB |
+| 300 | 66 | 2,29 ms | **19,05 ms** | 151 | 2726 | 50,5 MB |
+
+Leitura:
+
+1. **O gargalo é a física, não o desenho nem o script.** `process` fica em ~2 ms
+   em todos os patamares; a física vai de 1,42 ms a 19 ms.
+2. **O crescimento é pior que linear.** Dobrar de 100 para 200 mais que dobra o
+   custo. A causa é a colisão corpo-a-corpo entre inimigos (DEC-018): empilhados
+   em volta do Player, cada um resolve contato com vários vizinhos.
+3. **O limite prático é ~250.** Um frame a 60 FPS tem 16,6 ms no total; com 300
+   inimigos só a física já custa 19 ms e a partida entra em espiral (a Godot
+   passa a rodar vários passos de física por frame, e o FPS despenca para 66).
+4. **O teto de 200 do `SpawnManager` foi escolhido a partir desta medição**, não
+   chutado: gasta metade do orçamento de física e deixa a outra metade para
+   armas, projéteis e HUD, que ainda não existem.
+
+Isto é PC. Android é bem mais fraco e terá de ser medido de novo na FASE 12; o
+`final_population_cap` é exportado justamente para virar um número por
+plataforma. Otimizar (pooling, física mais barata, separação sem corpo rígido) é
+FASE 10 — e agora existe um número contra o qual comparar.
+
 # Mundo de teste
 
 | O quê | Caminho |
@@ -503,6 +594,11 @@ Na FASE 2:
 - `scripts/components/health_component.gd`, `hitbox_component.gd`, `hurtbox_component.gd` (+ `.uid`)
 - `tests/test_phase2.gd` (+ `.uid`)
 
+Na FASE 3:
+
+- `scripts/systems/spawn_manager.gd` (+ `.uid`)
+- `tests/test_phase3.gd` (+ `.uid`)
+
 # Arquivos modificados
 
 - `scenes/game/game.tscn` (script de composição, instâncias de TestWorld e Player)
@@ -542,6 +638,9 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 18 | Oito diabretes cercando o Player parado, com render | menor distância entre eles 26,3 px; nenhuma sprite empilhada |
 | 19 | Y-sort com render: um diabrete acima e outro abaixo do druida, Player em y = -600 | o de baixo desenha na frente, o de cima some atrás, e o chão continua embaixo |
 | 20 | Dois erros injetados nas propriedades de ordenação | `z_index` do World em 0 e `EnemyContainer` sem `y_sort_enabled`; os dois foram pegos |
+| 21 | `--headless --script res://tests/test_phase3.gd` | `FASE 3 OK`, exit 0 |
+| 22 | Suíte completa depois da FASE 3 | `FASE 0/1/2/3 OK`, exit 0 nas quatro |
+| 23 | Carga com renderização, 50 a 300 inimigos empilhados | ver "Carga: quantos diabretes cabem" |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -652,6 +751,37 @@ Os diabretes levam ~3,3 s para cruzar o mapa, e a partir daí tiram 20 por golpe
 (dois deles encostam no mesmo frame). O Player morre no frame 321 e a partida
 continua rodando sem erro: os quatro inimigos seguem na árvore e nada estoura.
 
+## O que `tests/test_phase3.gd` cobre
+
+Estrutura: `SpawnManager` presente em `game.tscn` com `enemy_scene` definida,
+intervalos e tetos coerentes (a partida tem de ficar **mais** densa, não menos),
+e `EnemyContainer` começando vazio — um inimigo fixo na cena voltaria a
+atrapalhar o manager.
+
+Comportamento, em execução real: inimigos são criados; **nenhum nasce dentro do
+campo de visão** (o mais próximo fica exatamente no raio mínimo, 1001 px na
+resolução do teste); o teto de população segura a horda no valor configurado; e
+a rampa deixa a partida mais densa de forma gradual, não em degrau.
+
+Carga: 50, 100, 250 e 500 inimigos, conferindo que o número existe de verdade,
+que a maioria continua se movendo (a simulação não parou) e que o motor
+**acompanha o tempo real**. Este último ponto é o que dá para medir sem
+renderização: a Godot dorme o resto de cada frame enquanto dá conta, então o
+tempo de relógio por frame fica colado em 16,6 ms; passar disso é sinal de que
+não deu. Quanta folga existe é outra pergunta, e essa exigiu render (tabela
+acima).
+
+## Um bug encontrado pelo teste de carga
+
+Com 300 inimigos apareceu `Function blocked during in/out signal`. Causa: a
+morte quase sempre chega **de dentro** do `area_entered` da hitbox que matou, e
+a Godot proíbe mexer em `monitorable`/`monitoring` durante o processamento do
+sinal. Com poucos inimigos a coincidência é rara; com 300, acontece.
+
+Corrigido em `HurtboxComponent.set_vulnerable()` e em `Enemy._on_health_died()`,
+que agora usam `set_deferred`. Nenhuma mudança de comportamento: o golpe
+seguinte só viria no frame seguinte de qualquer forma.
+
 # Limitações e pendências
 
 - **Inimigo não tem nem terá `idle`** (DEC-019). Parado, congela no frame 0 da caminhada. É o alvo, não pendência.
@@ -670,32 +800,37 @@ continua rodando sem erro: os quatro inimigos seguem na árvore e nada estoura.
 
 # Próxima tarefa
 
-**FASE 3 — Spawn e horda.** Não iniciada.
+**FASE 4 — Primeira arma.** Não iniciada.
+
+Hoje a partida não é vencível: o druida não tem como matar nada. É o buraco mais
+óbvio do vertical slice.
 
 Itens, na ordem do `docs/ROADMAP.md`:
 
-1. criar `SpawnManager` em `scripts/systems/`, pendurado em `game.tscn` — não no Player e não no Enemy;
-2. escolher ponto de spawn **fora da câmera**, nunca visivelmente em cima do Player (`docs/TEST_PLAN.md`, seção "Spawn");
-3. limite inicial de população, para o teste não virar travamento;
-4. aumento gradual de densidade ao longo do tempo;
-5. teste com 100+ inimigos, registrando FPS, frametime, quantidade de nodes e memória;
-6. criar `tests/test_phase3.gd`; manter as três suítes anteriores passando;
+1. criar `WeaponManager` no Player, sem comportamento de arma específica dentro dele (DEC-009);
+2. Cajado da Floresta como primeira arma, com os dados em `Resource` (DEC-010);
+3. targeting do inimigo mais próximo — **sem** busca global por frame por projétil (`docs/02_ARCHITECTURE.md`);
+4. projétil sob `ProjectileContainer`, reaproveitando o `HitboxComponent` que já existe;
+5. dano e cooldown;
+6. criar `tests/test_phase4.gd`; manter as três suítes anteriores passando;
 7. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
-O **Y-sort** já está resolvido (ver a seção "Y-sort: resolvido"), então nada
-impede espalhar inimigos pelo mapa. Vale conferir a ordenação de novo com
-dezenas deles em tela, e não só com oito.
+As layers do ataque do jogador já estão decididas e são o espelho exato do que o
+inimigo faz hoje (DEC-017): **layer 5 PlayerAttack (16), mask 8 EnemyHurtbox**.
+Nenhuma camada nova precisa ser inventada.
 
-Os quatro diabretes fixos em `game.tscn` são de teste manual: quando o
-`SpawnManager` existir, eles saem.
+O `HitboxComponent` foi escrito pensando nisso, mas nasceu para dano por
+contato: um projétil quer acertar **uma vez** e sumir, não a cada `hit_interval`.
+Provavelmente vai precisar de um modo de golpe único — vale conferir antes de
+duplicar código.
 
-## Critério de aceite da FASE 3
+## Critério de aceite da FASE 4
 
-- inimigos nascem fora da câmera;
-- nenhum inimigo nasce visivelmente sobre o Player;
-- densidade aumenta como esperado;
-- o jogo se mantém utilizável com 100+ inimigos, com números medidos e registrados;
-- nenhum inimigo faz busca global por frame.
+- a arma dispara sozinha, em cooldown;
+- o projétil viaja com velocidade independente do FPS;
+- o inimigo atingido perde vida e morre;
+- nenhum projétil fica eterno na cena;
+- nenhum projétil faz busca global de alvo por frame.
 
 # Não alterar sem registrar decisão
 

@@ -332,6 +332,11 @@ func _build_running_scene() -> bool:
 		_fail("game.tscn sem Player ou EnemyContainer")
 		return false
 
+	# O SpawnManager encheria a cena de inimigos no meio das medições.
+	var spawner := _game.get_node_or_null("SpawnManager") as SpawnManager
+	if spawner != null:
+		spawner.enabled = false
+
 	for child in container.get_children():
 		child.free()
 

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=6 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
 [ext_resource type="PackedScene" uid="uid://bfsplayer0forest" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" uid="uid://bfsenemy0forest" path="res://scenes/enemies/enemy.tscn" id="4_enemy"]
+[ext_resource type="Script" path="res://scripts/systems/spawn_manager.gd" id="5_spawn"]
 
 [node name="Game" type="Node2D"]
 y_sort_enabled = true
@@ -23,22 +24,15 @@ position = Vector2(0, 0)
 y_sort_enabled = true
 editor_description = "y_sort_enabled aqui faz os inimigos entrarem na mesma ordenacao do Player, em vez de serem desenhados como um bloco so."
 
-[node name="Diabrete1" parent="EnemyContainer" instance=ExtResource("4_enemy")]
-position = Vector2(-320, -240)
-
-[node name="Diabrete2" parent="EnemyContainer" instance=ExtResource("4_enemy")]
-position = Vector2(320, -240)
-
-[node name="Diabrete3" parent="EnemyContainer" instance=ExtResource("4_enemy")]
-position = Vector2(-320, 240)
-
-[node name="Diabrete4" parent="EnemyContainer" instance=ExtResource("4_enemy")]
-position = Vector2(320, 240)
-
 [node name="ProjectileContainer" type="Node2D" parent="."]
 
 [node name="PickupContainer" type="Node2D" parent="."]
 
 [node name="EffectContainer" type="Node2D" parent="."]
+
+[node name="SpawnManager" type="Node" parent="."]
+editor_description = "Cria os inimigos da partida. Ligado ao Player, ao EnemyContainer e aos limites do mundo por scripts/systems/game.gd: o manager nao procura ninguem sozinho."
+script = ExtResource("5_spawn")
+enemy_scene = ExtResource("4_enemy")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]

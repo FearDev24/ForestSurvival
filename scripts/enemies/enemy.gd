@@ -80,7 +80,9 @@ func _on_health_died() -> void:
 	set_physics_process(false)
 	velocity = Vector2.ZERO
 	_hurtbox.set_vulnerable(false)
-	_hitbox.monitoring = false
+	# Adiado pelo mesmo motivo do `set_vulnerable`: a morte costuma chegar de
+	# dentro do sinal de uma área, e a Godot bloqueia a troca durante ele.
+	_hitbox.set_deferred(&"monitoring", false)
 
 	died.emit()
 	queue_free()

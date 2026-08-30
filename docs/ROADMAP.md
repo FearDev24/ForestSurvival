@@ -64,11 +64,21 @@ Observações:
 
 # FASE 3 — Spawn e horda
 
-- [ ] SpawnManager
-- [ ] spawn fora da câmera
-- [ ] limite inicial
-- [ ] aumento de densidade
-- [ ] teste com 100+ inimigos
+- [x] SpawnManager
+- [x] spawn fora da câmera
+- [x] limite inicial
+- [x] aumento de densidade
+- [x] teste com 100+ inimigos
+
+Critério:
+inimigos aparecem sozinhos, em ritmo crescente, sem quebrar a partida. **Atingido.**
+
+Observações:
+- `SpawnManager` recebe alvo, container e limites do mundo de `game.gd`; não procura nada sozinho;
+- o raio de spawn sai do viewport e do zoom da câmera, não de constante, por causa da variedade de telas Android (DEC-015);
+- rampa linear de 5 minutos: intervalo de 1,2 s a 0,2 s, população de 40 a 200;
+- teto de 200 medido, não chutado: ver "Carga" no HANDOFF;
+- validação automatizada: `tests/test_phase3.gd`.
 
 # FASE 4 — Primeira arma
 

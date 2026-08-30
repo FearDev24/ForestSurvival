@@ -35,5 +35,12 @@ func take_damage(amount: float, source: Node = null) -> void:
 
 ## Uma entidade morta não deve continuar levando golpes nem disparando efeitos.
 ## Desligar `monitorable` a tira do radar das hitboxes sem removê-la da cena.
+##
+## `set_deferred` é obrigatório: a morte quase sempre acontece **dentro** do
+## `area_entered` da hitbox que matou, e a Godot proíbe mexer no estado de
+## monitoramento de uma área durante o processamento do sinal
+## ("Function blocked during in/out signal"). Adiar para o fim do frame de
+## física resolve, e não muda nada na prática: o golpe seguinte só viria no
+## frame seguinte.
 func set_vulnerable(vulnerable: bool) -> void:
-	monitorable = vulnerable
+	set_deferred(&"monitorable", vulnerable)
