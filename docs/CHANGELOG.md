@@ -35,6 +35,27 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **Mapa em tiles, bordas e objetos de cenário (arte nova, estado CANDIDATE):**
+  - `assets/environment/tileset-{terra,agua}.png` — 16 peças de 64 px cada, conjuntos de **cantos** completos, recortados das folhas originais (que vinham com células de tamanhos diferentes e uma moldura clara por dentro);
+  - `assets/environment/forest_tileset.tres` — `TileSet` com terrenos declarados (Terra, Mata, Água, modo cantos), então o pincel do editor autotila;
+  - `Ground` (`TileMapLayer`) em `test_world.tscn`, com preenchimento procedural provisório por ruído amostrado **nos cantos** das células;
+  - 8 peças de vegetação fechando as quatro bordas do mapa, com sobreposição e tom escurecido para conviver com o chão;
+  - `get_camera_bounds()` separado de `get_bounds()`: a câmera enquadra a borda, o spawn não;
+  - 8 objetos de cenário com escala variável, agrupamento, reserva de espaço e colisão de pegada nos sólidos;
+  - ordem de desenho reorganizada: `y_sort` até os props, `z_index` negativo só no chão;
+  - `DEC-020 — Mapa: tileset de cantos, borda fora da área jogável, props sólidos`.
+- **Vinha — segunda habilidade (andaime até a FASE 4):**
+  - `assets/effects/vinha.png` — 8 quadros de 240 x 88, extraídos de folha em grade irregular e ancorados no botão da rosa;
+  - `scenes/effects/vine_lash.tscn`, com hitbox sobre o eixo do golpe;
+  - `scripts/effects/ability_effect.gd` (`AbilityEffect`) substitui `lightning_strike.gd`: mesmo comportamento, sem nome de habilidade específica;
+  - `LightningCaster` ganha `spawn_on_target` e `aim_at_target`, e passa a servir as duas habilidades;
+  - `DEC-021 — Um único efeito de habilidade, com dois modos de disparo`;
+  - correção: os testes desligam as habilidades **por tipo**, não por nome — a vinha nova travou `test_phase2` em silêncio.
+- **Morte do druida refeita a partir de vídeo:**
+  - `assets/characters/morte-druida-south.png` — 36 quadros de 96 x 160, gerados de um vídeo de 10 s em chroma verde;
+  - quadro maior que o da caminhada para caber o cajado, com os pés na linha 136;
+  - `death_scale` volta para 1.0: a folha nasce na escala certa, e a meia-altura passa a sair do próprio quadro;
+  - a folha anterior e o vídeo ficam em `assets/_raw/`.
 - **Morte do druida, game over e raio (arte nova, estado CANDIDATE):**
   - `assets/characters/morte-druid-morte-south.png` — 27 frames de morte, animação `death_south` sem loop no `SpriteFrames` do druida;
   - `assets/ui/gameover.png` e `assets/effects/raio.png`, limpos da franja de chroma e movidos para as pastas da estrutura de `02_ARCHITECTURE`;

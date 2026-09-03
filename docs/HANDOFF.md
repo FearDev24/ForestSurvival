@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-08-30 (segunda leva)
+Última atualização: 2026-09-01
 
 # Projeto
 
@@ -40,7 +40,12 @@ Em 2026-08-29 entrou o **diabrete**, primeiro inimigo, com sprites nas quatro di
 
 **FASE 2 — Primeiro inimigo. Concluída.** O diabrete persegue, causa dano por contato, recebe dano e morre uma única vez; o Player tem vida e morre. Componentes de vida, hitbox e hurtbox existem em `scripts/components/` e são reutilizáveis pelas armas da FASE 4.
 
-O druida agora **morre em cena**: animação de morte, imagem de game over no
+O mapa deixou de ser um retângulo liso: tem chão em tiles, vegetação fechando
+as bordas e objetos de cenário com colisão. A morte do druida foi refeita a
+partir de um vídeo e entrou na escala certa. E entrou uma segunda habilidade, a
+**vinha**, que estreou o disparo direcional.
+
+O druida **morre em cena**: animação de morte, imagem de game over no
 lugar onde ele caiu, e uma primeira habilidade — o **raio** — caindo sozinha
 sobre o inimigo mais próximo. O raio é andaime até a FASE 4.
 
@@ -65,6 +70,13 @@ Inventário (`docs/ASSET_WORKFLOW.md`):
 | `morte-druid-morte-south.png` | **CANDIDATE** | 27 | 1728 x 96 |
 | `ui/gameover.png` | **CANDIDATE** | — | 1448 x 1086 |
 | `effects/raio.png` | **CANDIDATE** | 8 | 2048 x 264 |
+| `characters/morte-druida-south.png` | **CANDIDATE** | 36 | 3456 x 160 |
+| `effects/vinha.png` | **CANDIDATE** | 8 | 1920 x 88 |
+| `environment/tileset-terra.png` | **CANDIDATE** | 16 | 256 x 256 |
+| `environment/tileset-agua.png` | **CANDIDATE** | 16 | 256 x 256 |
+| `environment/parede-vert-0..3.png` | **CANDIDATE** | — | ~88 x 192 cada |
+| `environment/parede-horiz-0..3.png` | **CANDIDATE** | — | ~123 x 182 cada |
+| `environment/prop-*.png` (8 objetos) | **CANDIDATE** | — | 79 a 132 px |
 | mundo de teste (chão + grid) | **PLACEHOLDER** | — | geometria nativa, sem arquivo |
 
 Todos em `assets/characters/`, quadro de 64 x 96, pivot bottom-center, layout horizontal de linha única, com `.json` de metadados ao lado. Reunidos em `assets/characters/druida_sprite_frames.tres` (4 animações, 57 frames).
@@ -475,7 +487,25 @@ Health.died -> Player.died -> Visual.play_death()
 quanto dura. Ele avisa que morreu e é avisado de que a apresentação acabou. Se
 um dia a morte virar um shader, uma partícula ou nada, nada muda na lógica.
 
-### A arte de morte veio fora de escala
+### Refeita a partir de vídeo
+
+A primeira arte de morte foi substituída: a atual saiu de um vídeo de 10 s em
+chroma verde, virou **36 quadros de 96 x 160** e toca em 2,4 s a 15 fps.
+
+O quadro é maior que o da caminhada (64 x 96) porque o cajado sobe bem acima da
+cabeça e, no fim, cai deitado no chão — em 64 x 96 ele sairia cortado. Os pés
+ficam na linha **136**, com 24 px sobrando embaixo para o cajado caído.
+
+`death_scale` voltou para **1.0**: a folha foi gerada já com o corpo em 70 px,
+igual ao da caminhada. O `_apply_death_transform` passou a tirar a meia-altura do
+próprio quadro em vez de assumir 48, senão a morte pularia para cima ao começar.
+
+O processo completo está em `docs/ASSET_WORKFLOW.md`, seção "De vídeo para
+sprite sheet". A folha anterior e o vídeo estão em `assets/_raw/`.
+
+### Escala: o erro que a caixa esconde
+
+
 
 Medida contra a caminhada, no mesmo quadro de 64 x 96:
 
@@ -487,14 +517,16 @@ Medida contra a caminhada, no mesmo quadro de 64 x 96:
 Ou seja: ao morrer, o druida encolhia para 72% do tamanho e ainda flutuava 16 px
 acima do chão.
 
-Corrigido na **camada visual**, não na arte: `player_visual.gd` aplica
-`death_scale = 1.38` e recoloca a sprite para que os pés continuem na origem do
-nó. Reamostrar pixel art para 1,38x estragaria o desenho de forma permanente;
-uma transformação em runtime é reversível.
+Isso valeu para a **arte anterior**, e a lição continua valendo para a próxima
+que chegar: **calibrar escala pela caixa do sprite engana**. O bbox da caminhada
+inclui o cajado subindo acima da cabeça, e usá-lo dava fator 1,38 quando o certo
+era 1,56. Três medidas independentes concordavam no valor certo — altura do corpo
+(70 contra 45), largura máxima (52 contra 35) e raiz da área opaca (3515 contra
+1433); só a caixa discordava.
 
-Os dois valores são `@export`. Se a morte for reexportada na mesma escala e
-alinhamento das outras animações, voltam a `1.0` e `95.5` e nenhuma outra linha
-muda. Está em `docs/TODO.md`.
+A correção mora na camada visual (`death_scale`, `death_feet_row`), nunca na
+arte: reamostrar pixel art estraga o desenho de forma permanente, e uma
+transformação em runtime é reversível.
 
 Só existe arte de morte virada para o **sul**. Morrer virado para outro lado cai
 nela pela mesma cadeia de fallback das outras animações — pose certa na direção
@@ -577,6 +609,124 @@ muda o tempo todo, e ele pode ter morrido.
 
 Números provisórios: 30 de dano (mata um diabrete de uma vez), raio de 40 px de
 área, 1,5 s de intervalo, 640 px de alcance.
+
+# Mapa (arte, não fase do ROADMAP)
+
+O `TestWorld` continua sendo **protótipo** — não é o mapa definitivo e não avança
+o ROADMAP. O que mudou é que ele deixou de ser um retângulo liso desenhado em
+código. Detalhes da arquitetura em **DEC-020**.
+
+## Chão
+
+| O quê | Onde |
+|---|---|
+| TileSet | `assets/environment/forest_tileset.tres` |
+| Atlas | `tileset-terra.png` e `tileset-agua.png`, 4x4 de 64 px |
+| Camada | `Ground`, `TileMapLayer` dentro de `test_world.tscn` |
+
+As duas folhas que chegaram são **conjuntos de cantos completos**: as 16
+combinações de terreno nos quatro cantos da célula, uma peça para cada, sem
+faltar nem repetir. Isso foi descoberto medindo canto a canto, não presumido —
+e é o que permite transição sem emenda.
+
+O `TileSet` declara os terrenos (0 Terra, 1 Mata, 2 Água, modo cantos), então
+**o pincel de terreno do editor autotila sozinho**. O preenchimento automático
+só roda se o `Ground` estiver vazio: a primeira célula pintada à mão desliga ele.
+
+Mapa de 48 x 48 células, com moldura de mata fechada de 2 células nas bordas.
+As peças uniformes — terra limpa e mata fechada, que cobrem a maior área — são
+espelhadas por célula, senão o padrãozinho de pedras aparece em xadrez.
+
+**O que este conjunto não faz:** não há transição direta de terra para água. Cada
+folha cobre um par de terrenos (terra↔mata numa, mata↔água na outra). Pintar água
+encostando em terra não acha peça; ponha uma faixa de mata entre as duas.
+
+## Bordas
+
+Oito peças de vegetação — 4 verticais de ~88 x 192 e 4 horizontais de ~123 x 182 —
+distribuídas em ~100 `Sprite2D` ao longo das quatro bordas, alternando variações
+e espelhando metade delas.
+
+São sprites, não tiles: os tamanhos não cabem na grade de 64 e recortá-las
+quebraria a continuação das trepadeiras.
+
+Duas coisas que custaram medição:
+
+- **cada peça avança pela própria largura**, menos 12 px de sobreposição. As
+  peças têm tamanhos diferentes (123, 123, 123 e 120; 192, 191, 190 e 192), e
+  avançar por um valor fixo abria fresta que ia acumulando ao longo da borda;
+- **tom escurecido** por `modulate` (0.48, 0.51, 0.57). A arte veio bem mais
+  clara que o chão — média (63, 61, 7) contra (27, 32, 20) da mata fechada — e
+  sem isso brilhava como se estivesse colada por cima do mapa.
+
+O contorno verde que o protótipo desenhava em volta do mundo só aparece agora
+**quando não há tiles**, junto com o chão liso. Com o mapa em tiles ele virava um
+risco atravessando a mata.
+
+## Objetos de cenário
+
+Oito peças em `assets/environment/prop-*.png`, espalhadas em ~63 instâncias.
+
+| Sólidos (colisão) | Atravessáveis |
+|---|---|
+| toco, tronco caído, pedra rúnica, rocha, espinheiro | samambaia, capim, cogumelos |
+
+Escala variável **por tipo**: mato de 0,55 a 1,20, pedra e toco de 0,80 a 1,25 —
+pedra pequena demais deixa de parecer pedra. Metade nasce espelhada, menos a
+pedra rúnica, cuja runa ficaria ao contrário.
+
+35% dos sorteios viram agrupamento de 2 a 4 peças, que é o que cria obstáculo em
+vez de enfeite espalhado.
+
+**Reserva de espaço:** cada peça registra posição e raio, e nada nasce dentro do
+espaço de ninguém — duas árvores não crescem no mesmo lugar. Medido no mapa
+gerado: zero pares sólido-com-sólido invadindo espaço.
+
+## Ordem de desenho
+
+Reorganizada para os props funcionarem:
+
+| Nó | Configuração | Por quê |
+|---|---|---|
+| `Game`, `World`, `TestWorld`, `Props`, `Borda` | `y_sort_enabled` | o druida passa **atrás** do toco, e o toco cobre quem está atrás dele |
+| `Ground` (`TileMapLayer`) | `z_index = -1` | tira o chão da ordenação: ele tem origem em y=0 e engoliria quem andasse para cima |
+
+Antes o `World` inteiro tinha `z_index = -1`, o que jogava tudo dele para baixo
+das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem ela,
+ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
+de cima.
+
+# Vinha (segunda habilidade, andaime)
+
+| O quê | Caminho |
+|---|---|
+| Efeito | `res://scenes/effects/vine_lash.tscn` |
+| Script comum | `res://scripts/effects/ability_effect.gd` (`AbilityEffect`) |
+| Disparo | nó `VinhaTeste`, mesmo script do `RaioTeste` |
+
+Uma rosa brota no chão e uma vinha espinhosa chicoteia na direção do inimigo mais
+próximo. 8 quadros de 240 x 88, 20 de dano, alcance 260 px, a cada 1,1 s.
+
+`lightning_strike.gd` virou **`ability_effect.gd`**: era comportamento genérico
+com nome de uma habilidade só, e com duas o nome já mentia. O disparador também é
+o mesmo, com dois exports separando os casos — tudo registrado em **DEC-021**.
+
+## A arte exigiu três correções
+
+A folha veio em **grade irregular** (larguras e espaçamentos diferentes, porque a
+vinha cresce a cada frame), e cada uma das três tentativas ensinou algo:
+
+1. **Dois botões de rosa por quadro.** A janela de recorte alcançava a rosa do
+   quadro vizinho. Cada quadro passou a ser **isolado antes do recorte**.
+2. **A rosa andava entre os quadros.** A âncora estava na borda esquerda da
+   terra, que muda conforme o montinho cresce. Passou a ser o **botão da rosa**,
+   detectado por cor.
+3. **O efeito nascia longe do druida.** `AnimatedSprite2D` é **centrada por
+   padrão**, e eu calculei o deslocamento como se a origem fosse o canto. O
+   offset tem de sair do centro do quadro até a âncora.
+
+Conferido depois: um botão por quadro nos oito, e dano de exatamente 20 nas seis
+direções testadas com o inimigo a 130 px.
 
 # Spawn e horda (FASE 3)
 
@@ -740,6 +890,15 @@ Na FASE 3:
 - `scripts/systems/spawn_manager.gd` (+ `.uid`)
 - `tests/test_phase3.gd` (+ `.uid`)
 
+No mapa e nas habilidades (2026-09-01):
+
+- `assets/environment/` — tilesets, TileSet com terrenos, 8 peças de borda, 8 props
+- `assets/characters/morte-druida-south.png` + `.json`
+- `assets/effects/vinha.png` + `vinha_sprite_frames.tres`
+- `scenes/effects/vine_lash.tscn`
+- `scripts/effects/ability_effect.gd` (substitui `lightning_strike.gd`)
+- `assets/_raw/` — folhas originais, vídeo da morte e artes antes da limpeza
+
 # Arquivos modificados
 
 - `scenes/game/game.tscn` (script de composição, instâncias de TestWorld e Player)
@@ -785,6 +944,12 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 24 | `--headless --script res://tests/test_raio.gd` | `RAIO OK`, exit 0 |
 | 25 | Dois erros injetados no raio | `hit_interval` deixando de ser 0, e hitbox ligada desde o frame 0; os dois foram pegos |
 | 26 | Execução com render: morte, game over e raio | ver abaixo |
+| 27 | Mapa em tiles, com render | 2.304 células preenchidas, mata em manchas contínuas, sem emenda |
+| 28 | Props: contagem de sobreposição no mapa gerado | 63 peças, **zero** pares sólido-com-sólido invadindo espaço |
+| 29 | Player empurrado contra um prop sólido | barrado a 32 px do centro dele |
+| 30 | Vinha nas seis direções, inimigo a 130 px | 20 de dano em todas — um golpe por alvo |
+| 31 | Um botão de rosa por quadro, nos 8 quadros da vinha | conferido por contagem de manchas |
+| 32 | Suíte completa depois de tudo | `FASE 0/1/2/3 OK` e `RAIO OK` |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -947,8 +1112,24 @@ Capturas frame a frame confirmam o raio caindo sobre a linha dos inimigos, com o
 impacto no chão, e o druida se desfazendo em partículas azuis até sobrar só o
 cajado.
 
+## Um teste que sumiu em silêncio
+
+Ao entrar a vinha, `test_phase2` **parou de reportar** — nem OK, nem falha. A
+habilidade nova matava o inimigo que o teste estava medindo, e ele ficava
+esperando para sempre.
+
+Causa: os testes desligavam a habilidade **pelo nome** (`RaioTeste`), e a vinha
+passou batido. Agora desligam **por tipo**, varrendo os filhos da cena. A
+próxima habilidade que entrar não quebra os testes em silêncio.
+
+Vale como aviso geral: teste que depende de nome de nó quebra quando alguém
+acrescenta um irmão.
+
 # Limitações e pendências
 
+- **Os inimigos raspam nos props sólidos.** Eles colidem com a layer 8 e perseguem em linha reta, sem pathfinding (DEC-008). Com peças pequenas o `move_and_slide` contorna; com a horda cheia isso precisa ser observado (DEC-020).
+- **Não há transição de terra para água** no tileset: cada folha cobre um par de terrenos. Pintar água encostando em terra não acha peça.
+- **O mapa procedural é placeholder**, não design: existe para o jogo não rodar sobre um retângulo liso. A primeira célula pintada à mão desliga ele.
 - **O inimigo não tem animação de morte**: some na hora. A do druida existe; a dele não.
 - **A imagem de game over não é tela de game over**: tem o botão de reiniciar, mas não tem tempo de partida, level alcançado nem voltar ao menu. É da FASE 9.
 - **O raio é andaime.** Dispara sozinho, não tem nível, não tem upgrade e não passa por `WeaponManager`. Vira arma de verdade na FASE 4.
@@ -987,15 +1168,18 @@ As layers do ataque do jogador já estão decididas e são o espelho exato do qu
 inimigo faz hoje (DEC-017): **layer 5 PlayerAttack (16), mask 8 EnemyHurtbox**.
 Nenhuma camada nova precisa ser inventada.
 
-O modo de **golpe único** do `HitboxComponent` já existe: `hit_interval = 0` faz
-cada alvo levar dano uma vez só. Foi o raio que estreou, e é o que projétil,
-explosão e área precisam. Não é preciso inventar nada novo para o dano.
+A fase ficou **menor** do que era quando foi planejada. Já existem, testados:
 
-Boa parte do caminho da arma também já está andada pelo raio: efeito que nasce,
-acerta e some; alvo escolhido no instante do disparo; layers corretas. O que
-falta é a **arquitetura**: `WeaponManager`, dados em `Resource`, nível e
-cooldown por arma. Ao terminar, apagar o `RaioTeste`, o
-`scripts/effects/lightning_caster.gd` e o `tests/test_raio.gd`.
+- **golpe único** no `HitboxComponent` (`hit_interval = 0`);
+- **`AbilityEffect`**, com ciclo de vida e dano a partir do frame de impacto;
+- **mira**, com o cuidado de manter a hitbox sobre o eixo do golpe (DEC-021);
+- as **layers** do ataque do jogador, em uso por duas habilidades.
+
+O que falta é só a **arquitetura**: `WeaponManager`, dados em `Resource`, nível e
+cooldown por arma. O raio e a vinha viram as duas primeiras armas.
+
+Ao terminar, apagar o andaime: nós `RaioTeste` e `VinhaTeste`,
+`scripts/effects/lightning_caster.gd` e `tests/test_raio.gd`.
 
 ## Critério de aceite da FASE 4
 

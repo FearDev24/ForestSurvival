@@ -117,6 +117,40 @@ verde), no `gameover` (folhas) e no raio, **só o passo 1 foi aplicado**: a fran
 some e o interior não é tocado. Vale a regra: se a peça tem verde de verdade,
 remove-se a franja e não se faz despill.
 
+# Chroma magenta e contorno roxo
+
+Os props de cenário vieram sobre magenta (`#FF00FF`), como o prompt pedia. A
+remoção é a mesma ideia do verde, mas apareceu um problema a mais: o **contorno
+escuro do desenho foi antisserrilhado contra o magenta e virou roxo**, inclusive
+em pixels totalmente opacos — 3.603 deles nos oito objetos.
+
+Regra usada: onde vermelho **e** azul estão acima do verde, os dois são
+puxados para o nível do verde. Isso devolve o contorno quase preto original.
+
+Só vale em arte sem roxo legítimo — madeira, pedra, folha e cogumelo verde
+passam; um objeto roxo de verdade exigiria outra abordagem.
+
+# De vídeo para sprite sheet
+
+A morte do druida veio como vídeo (720 x 1280, 24 fps, 10 s, fundo verde). O
+caminho até a folha de sprites, na ordem:
+
+1. **chroma por distância da cor de fundo**, não por "verde dominante": o manto
+   do druida é verde e seria comido por uma regra de dominância;
+2. **remoção da decoração fixa do fundo** — havia estrelinhas desenhadas no
+   verde. Detectadas por persistência: presentes em ≥90% dos frames **e** em
+   manchas pequenas. O filtro de tamanho é essencial, porque o torso também
+   persiste;
+3. **despill só na franja**, pelos mesmos motivos de sempre;
+4. **medição do quadro necessário** em todos os frames, não só no primeiro: o
+   cajado sobe acima da cabeça e, no fim, cai deitado no chão;
+5. **escala calibrada pelo corpo**, não pela caixa — a caixa inclui o cajado e
+   engana (ver "Escala da morte" no HANDOFF);
+6. **amostragem uniforme** para caber na folha: 216 frames de origem viraram 36,
+   e 9 s de vídeo viraram 2,4 s de animação a 15 fps.
+
+O vídeo original fica em `assets/_raw/`, versionado, como fonte.
+
 # Como registrar o estado dos assets
 
 Enquanto não houver um inventário dedicado, o estado de cada asset relevante deve ser mencionado em `docs/HANDOFF.md` na seção de estado atual, e a promoção para `INTEGRATED` registrada em `docs/CHANGELOG.md`.

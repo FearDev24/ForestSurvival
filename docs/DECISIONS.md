@@ -283,3 +283,85 @@ Consequências:
    ganhe pose parada.
 3. **Nenhum script de gameplay muda.** A lógica informa "estou parado"; o que a
    camada visual faz com isso é problema dela (DEC-013).
+
+---
+
+## DEC-020 — Mapa: tileset de cantos, borda fora da área jogável, props sólidos
+
+**Decisão:** o mapa é montado a partir de três coisas separadas, com papéis que
+não se misturam.
+
+### 1. Chão: tileset de **cantos**
+
+As folhas de tiles são conjuntos completos de 16 peças, uma para cada combinação
+de terreno nos quatro cantos da célula. O `TileSet` declara isso como terrain set
+em modo `MATCH_CORNERS`, com três terrenos: 0 Terra, 1 Mata, 2 Água.
+
+O preenchimento automático amostra ruído **nos cantos** das células, nunca no
+centro: é o canto que as peças casam, então dois vizinhos sempre concordam sobre
+o canto que dividem e a transição nunca quebra.
+
+Escolher peça por densidade, ignorando os cantos, produz um labirinto de cercas.
+Isso foi testado e descartado — não é questão de gosto.
+
+### 2. Borda: vegetação **fora** da área jogável
+
+`get_bounds()` é a área jogável: paredes físicas e spawn de inimigos usam ela.
+`get_camera_bounds()` é ela mais a faixa de vegetação que fecha o mapa, e é o que
+a câmera enquadra.
+
+Separar os dois é obrigatório. Com um retângulo só, ou o inimigo nasce dentro da
+parede, ou a mata da borda fica cortada fora da tela.
+
+### 3. Props: obstáculo é **pegada**, não silhueta
+
+Objetos sólidos (toco, tronco, pedra, rocha, espinheiro) têm colisão na layer 8
+WorldStatic, a mesma das paredes (DEC-016). A forma é uma cápsula na **base** do
+desenho: um toco alto não pode barrar quem passa atrás dele.
+
+Mato baixo — samambaia, capim, cogumelo — não tem colisão. Barrar o caminho com
+vegetação rasteira irrita mais do que ajuda.
+
+Cada peça reserva espaço no chão e nada nasce dentro do espaço de ninguém: duas
+árvores não crescem no mesmo lugar. Mato pode encostar em mato; qualquer coisa
+envolvendo tronco ou pedra exige o espaço inteiro.
+
+**Consequência que precisa de atenção:** os inimigos também colidem com a
+layer 8, e a perseguição deles é direta, sem pathfinding (DEC-008). Eles raspam e
+podem prender nos obstáculos. Se isso virar problema com a horda cheia, a saída é
+os props só barrarem o Player — mas aí deixam de ser obstáculo de verdade.
+
+---
+
+## DEC-021 — Um único efeito de habilidade, com dois modos de disparo
+
+**Decisão:** raio e vinha — e o que vier — usam o **mesmo** script de efeito
+(`AbilityEffect`) e o **mesmo** disparador, configurado por export.
+
+O efeito faz três coisas: toca a animação uma vez, liga a hitbox no frame em que
+o golpe encosta, e se libera no fim. O disparador escolhe alvo e posição.
+
+Dois exports cobrem a diferença entre as habilidades existentes:
+
+| | raio | vinha |
+|---|---|---|
+| `spawn_on_target` | `true` — cai em cima do inimigo | `false` — nasce no druida |
+| `aim_at_target` | `false` — não tem direção | `true` — gira para o alvo |
+
+**Motivo:** o primeiro script chamava-se `lightning_strike.gd` e descrevia um
+comportamento genérico com nome de uma habilidade só. Duas habilidades depois, o
+nome mentia. Um segundo script de disparo seria duplicação de andaime.
+
+**Sobre girar o efeito:** a arte é desenhada apontando para a direita. Girar o nó
+resolve direção e hitbox de uma vez. Passando de 90°, o desenho ficaria de cabeça
+para baixo, e aí o espelho vertical entra **na sprite**, não no nó — espelhar o
+nó inverteria a colisão junto e a Godot reclama de escala negativa em forma de
+colisão.
+
+**A hitbox de habilidade direcional fica sobre o eixo do golpe.** Deslocá-la para
+acompanhar a arte faz o ataque errar quando o efeito gira: o deslocamento vertical
+vira deslocamento lateral. Isso custou um bug medido — dano zero para cima e para
+a esquerda.
+
+Tudo isto é andaime até a FASE 4. Quando o `WeaponManager` existir (DEC-009), o
+efeito vira o "ataque" de uma arma e os disparadores somem.

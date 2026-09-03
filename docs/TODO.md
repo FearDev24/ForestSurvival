@@ -32,7 +32,11 @@ Detalhes em `docs/HANDOFF.md`.
 - [ ] aprovar ou recusar o conjunto do druida: hoje está CANDIDATE, não APPROVED
 - [ ] aprovar ou recusar o conjunto do diabrete: hoje está CANDIDATE, não APPROVED
 - [ ] aprovar ou recusar a morte do druida, o `gameover` e o raio: hoje estão CANDIDATE
-- [ ] reexportar a morte do druida **na mesma escala e alinhamento** da caminhada (hoje ela vem 72% do tamanho e com os pés 16 px acima da base; corrigido por `death_scale` na camada visual, que volta a 1.0 quando a arte chegar certa)
+- [ ] aprovar ou recusar o mapa (tiles, bordas, props) e a vinha: hoje estão CANDIDATE
+- [ ] gerar folha de obstáculos: toco cortado, tronco partido, troncos cruzados, cairn — fundo magenta, base encostando embaixo, 60 a 120 px
+- [ ] gerar variações de cogumelo e arbusto (solitário, trio, touceira) para o mapa não repetir peça
+- [ ] gerar peças de transição terra↔água, que o tileset atual não cobre
+- [x] reexportar a morte do druida na escala da caminhada — resolvido pela versão feita do vídeo, que já nasce com o corpo em 70 px (`death_scale` voltou a 1.0)
 - [ ] tela de game over de verdade — tempo, level, reiniciar, voltar ao menu (FASE 9); hoje só a imagem aparece
 - [ ] animação de morte do **inimigo**: hoje ele simplesmente some
 - [ ] revisar a velocidade da caminhada do diabrete: 12 fps, valor inicial
