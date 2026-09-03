@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ljj71qefur1g"
-path="res://.godot/imported/morte-druid-morte-south.png-8b8202135461895ac69b3c58b8bdbf4c.ctex"
+uid="uid://br8boec5k7x7u"
+path="res://.godot/imported/morte-druida-south.png-e6a6070bf587f69d900ece4faf458b50.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/morte-druid-morte-south.png"
-dest_files=["res://.godot/imported/morte-druid-morte-south.png-8b8202135461895ac69b3c58b8bdbf4c.ctex"]
+source_file="res://assets/characters/morte-druida-south.png"
+dest_files=["res://.godot/imported/morte-druida-south.png-e6a6070bf587f69d900ece4faf458b50.ctex"]
 
 [params]
 

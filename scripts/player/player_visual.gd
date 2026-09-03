@@ -26,27 +26,20 @@ const _DIRECTION_SUFFIX := {
 ## `ASSET_WORKFLOW`: falta de direção permite fallback temporário).
 const _FALLBACK_SUFFIX := "south"
 
-## Metade da altura do quadro (96 px). Como a sprite é `centered`, é a distância
-## entre o centro do quadro e a base dele.
-const _FRAME_HALF := 48.0
-
-## Linha dos pés dentro do quadro, nas animações de caminhada: a última.
-const _WALK_FEET_ROW := 95.5
-
-## Correção de escala da arte de morte.
+## Escala da arte de morte.
 ##
-## A morte veio desenhada **menor** que a caminhada — 63 px de altura contra 87 —
-## e com os pés 16 px acima da base do quadro. Sem corrigir, o druida encolhe e
-## flutua no instante em que morre.
-##
-## A correção fica aqui, na camada visual, e não na arte: reamostrar pixel art
-## para 1,38x estraga o desenho de forma permanente. Se um dia a morte for
-## reexportada na mesma escala e alinhamento das outras, estes dois valores
-## voltam a `1.0` e `95.5` e nada mais muda.
-@export var death_scale: float = 1.38
+## Vale 1.0 porque a folha de morte foi gerada já na escala certa: o corpo mede
+## 70 px, igual ao da caminhada. Existe como `@export` porque a arte pode ser
+## trocada por outra fora de escala — foi o que aconteceu com a versão anterior,
+## que vinha a 64% do tamanho e precisava de 1,56 aqui.
+@export var death_scale: float = 1.0
 
-## Linha dos pés dentro do quadro, na arte de morte.
-@export var death_feet_row: float = 79.5
+## Linha dos pés dentro do quadro de morte.
+##
+## O quadro da morte é maior que o da caminhada — 96 x 160 contra 64 x 96 —
+## porque o cajado sobe bem acima da cabeça e, no fim, cai deitado no chão. Os
+## pés não ficam na última linha: sobram 24 px embaixo para o cajado caído.
+@export var death_feet_row: float = 136.0
 
 ## Emitido quando a animação de morte termina — ou imediatamente, se não houver
 ## arte de morte. É o gancho para a tela de game over, sem que ninguém de fora
@@ -81,7 +74,7 @@ func play_death() -> void:
 		death_animation_finished.emit()
 		return
 
-	_apply_death_transform()
+	_apply_death_transform(animation)
 	_sprite.animation = animation
 	_sprite.frame = 0
 	_sprite.play()
@@ -105,9 +98,20 @@ func set_moving(moving: bool) -> void:
 
 ## Alinha a arte de morte com a de caminhada: mesma altura aparente e pés no
 ## mesmo lugar, que é a origem do nó `Player`.
-func _apply_death_transform() -> void:
+## A meia-altura sai do próprio quadro, não de constante: morte e caminhada têm
+## tamanhos de quadro diferentes, e fixar 48 aqui faria a morte pular para cima
+## no instante em que começasse.
+func _apply_death_transform(animation: StringName) -> void:
 	_sprite.scale = Vector2(death_scale, death_scale)
-	_sprite.position.y = -(death_feet_row - _FRAME_HALF) * death_scale
+
+	var meia := 48.0
+	var frames := _sprite.sprite_frames
+	if frames != null and frames.get_frame_count(animation) > 0:
+		var textura := frames.get_frame_texture(animation, 0)
+		if textura != null:
+			meia = textura.get_height() * 0.5
+
+	_sprite.position.y = -(death_feet_row - meia) * death_scale
 
 
 func _on_sprite_animation_finished() -> void:
