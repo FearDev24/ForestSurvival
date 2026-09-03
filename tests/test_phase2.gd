@@ -325,8 +325,16 @@ func _check_render_order() -> void:
 	var world := game.get_node_or_null("World") as Node2D
 	if world == null:
 		_fail("game.tscn sem World")
-	elif world.z_index >= 0:
-		_fail("World precisa de z_index negativo para ficar abaixo das entidades, está em %d" % world.z_index)
+	elif not world.y_sort_enabled:
+		_fail("World precisa de y_sort_enabled para props e borda ordenarem junto com o Player")
+
+	# Quem fica fora da ordenação é o chão, pelo z_index do próprio TileMapLayer:
+	# ele tem origem em y=0 e engoliria o Player que andasse para cima.
+	var chao := game.get_node_or_null("World/TestWorld/Ground") as CanvasItem
+	if chao == null:
+		_fail("game.tscn sem o chão em World/TestWorld/Ground")
+	elif chao.z_index >= 0:
+		_fail("O chão precisa de z_index negativo para ficar abaixo das entidades, está em %d" % chao.z_index)
 
 	game.free()
 
@@ -392,14 +400,12 @@ func _build_running_scene() -> bool:
 		_fail("game.tscn sem Player ou EnemyContainer")
 		return false
 
-	# O SpawnManager encheria a cena de inimigos no meio das medições, e o raio
-	# de teste mataria justamente o inimigo que está sendo medido.
+	# O SpawnManager encheria a cena de inimigos no meio das medições, e as
+	# habilidades de teste matariam justamente o inimigo que está sendo medido.
 	var spawner := _game.get_node_or_null("SpawnManager") as SpawnManager
 	if spawner != null:
 		spawner.enabled = false
-	var caster := _game.get_node_or_null("RaioTeste") as LightningCaster
-	if caster != null:
-		caster.enabled = false
+	_silenciar_habilidades(_game)
 
 	for child in container.get_children():
 		child.free()
@@ -407,6 +413,17 @@ func _build_running_scene() -> bool:
 	_player.global_position = Vector2.ZERO
 	_enemy = _spawn_enemy(Vector2(CHASE_DISTANCE, 0.0))
 	return _enemy != null
+
+
+## Desliga todas as habilidades automáticas da cena.
+##
+## Por tipo, não por nome: desligar "RaioTeste" à mão fez o teste quebrar em
+## silêncio no dia em que a vinha entrou.
+func _silenciar_habilidades(raiz: Node) -> void:
+	for filho in raiz.get_children():
+		var caster := filho as LightningCaster
+		if caster != null:
+			caster.enabled = false
 
 
 func _spawn_enemy(position: Vector2) -> CharacterBody2D:

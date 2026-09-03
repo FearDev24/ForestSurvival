@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=10 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/systems/spawn_manager.gd" id="5_spawn"]
 [ext_resource type="Script" path="res://scripts/effects/lightning_caster.gd" id="6_caster"]
 [ext_resource type="PackedScene" uid="uid://bfsraio0forest" path="res://scenes/effects/lightning_strike.tscn" id="7_strike"]
+[ext_resource type="PackedScene" uid="uid://bfsvinha0forest" path="res://scenes/effects/vine_lash.tscn" id="9_vinha"]
 [ext_resource type="Texture2D" path="res://assets/ui/gameover.png" id="8_gameover"]
 
 [node name="Game" type="Node2D"]
@@ -15,8 +16,8 @@ editor_description = "y_sort_enabled ordena as entidades pela coordenada Y: quem
 script = ExtResource("1_game")
 
 [node name="World" type="Node2D" parent="."]
-z_index = -1
-editor_description = "z_index -1 poe o cenario numa camada abaixo das entidades. Sem isso, o chao (origem em y=0) entraria na ordenacao por Y e o Player sumiria atras dele ao andar para cima."
+y_sort_enabled = true
+editor_description = "y_sort_enabled propaga a ordenacao por Y ate os props e a borda, para o Player poder passar atras deles. Quem fica fora da ordenacao e o chao, pelo z_index negativo do proprio TileMapLayer."
 
 [node name="TestWorld" parent="World" instance=ExtResource("2_world")]
 
@@ -42,6 +43,15 @@ enemy_scene = ExtResource("4_enemy")
 editor_description = "Andaime de teste: dispara o raio sozinho para dar para ver a habilidade em jogo. Some quando o WeaponManager existir, na FASE 4 (DEC-009)."
 script = ExtResource("6_caster")
 strike_scene = ExtResource("7_strike")
+
+[node name="VinhaTeste" type="Node" parent="."]
+editor_description = "Andaime de teste, igual ao RaioTeste: a vinha nasce no druida e chicoteia na direcao do inimigo mais proximo. Some quando o WeaponManager existir (DEC-009)."
+script = ExtResource("6_caster")
+strike_scene = ExtResource("9_vinha")
+cast_interval = 1.1
+cast_range = 260.0
+spawn_on_target = false
+aim_at_target = true
 
 [node name="GameOver" type="Sprite2D" parent="."]
 editor_description = "Aparece no lugar onde o druida morreu, depois que a animacao de morte termina. z_index alto para ficar acima de tudo, fora da ordenacao por Y. Tela de game over de verdade, com botoes e restart, e da FASE 9."

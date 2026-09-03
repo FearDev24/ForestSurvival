@@ -154,6 +154,12 @@ func _build_running_scene() -> bool:
 
 	if spawner != null:
 		spawner.enabled = false
+	# A vinha atrapalharia a medição do raio: são duas habilidades no mesmo
+	# alvo. Aqui só o raio interessa.
+	for filho in _game.get_children():
+		var outro := filho as LightningCaster
+		if outro != null:
+			outro.enabled = false
 
 	player.global_position = Vector2.ZERO
 	_enemy = (load(ENEMY_SCENE) as PackedScene).instantiate() as CharacterBody2D

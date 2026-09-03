@@ -1,6 +1,10 @@
 class_name LightningCaster
 extends Node
-## Disparo automático do raio — **andaime de teste**, não arquitetura.
+## Disparo automático de uma habilidade — **andaime de teste**, não arquitetura.
+##
+## Serve o raio e a vinha, que caem de formas diferentes: o raio **em cima** do
+## inimigo, a vinha **a partir do druida, apontada** para ele. Dois exports
+## resolvem a diferença; um segundo script seria duplicação de andaime.
 ##
 ## Existe para ver a habilidade em jogo antes da FASE 4. Quando o
 ## `WeaponManager` existir (DEC-009), isto some: arma vira dado em `Resource`
@@ -18,6 +22,13 @@ signal cast(strike: Node2D)
 @export var cast_interval: float = 1.5
 ## Alcance máximo, em pixels. Fora disso o druida não acerta nada.
 @export var cast_range: float = 640.0
+
+## Onde o efeito nasce: em cima do alvo (raio) ou no próprio druida (vinha).
+@export var spawn_on_target: bool = true
+
+## Se o efeito é girado na direção do alvo. Só faz sentido em habilidade com
+## direção — a vinha tem, o raio não.
+@export var aim_at_target: bool = false
 
 var enabled: bool = true
 
@@ -55,6 +66,23 @@ func _physics_process(delta: float) -> void:
 	_strike_at(victim.global_position)
 
 
+## Cria o efeito e o posiciona conforme a habilidade.
+func _spawn_effect(alvo: Vector2) -> Node2D:
+	var efeito := strike_scene.instantiate() as Node2D
+	if efeito == null:
+		return null
+
+	var origem := alvo if spawn_on_target else _target.global_position
+	efeito.global_position = origem
+	_effects.add_child(efeito)
+
+	if aim_at_target and efeito.has_method("aim"):
+		efeito.call("aim", (alvo - origem).normalized())
+
+	cast.emit(efeito)
+	return efeito
+
+
 ## Inimigo mais próximo dentro do alcance.
 ##
 ## Percorre a lista **só no instante do disparo**, não a cada frame: com o
@@ -79,9 +107,4 @@ func _find_nearest_enemy() -> Node2D:
 
 
 func _strike_at(position: Vector2) -> void:
-	var strike := strike_scene.instantiate() as Node2D
-	if strike == null:
-		return
-	strike.global_position = position
-	_effects.add_child(strike)
-	cast.emit(strike)
+	_spawn_effect(position)

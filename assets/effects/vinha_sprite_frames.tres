@@ -1,0 +1,67 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3 uid="uid://bfsvinhaframes"]
+
+[ext_resource type="Texture2D" path="res://assets/effects/vinha.png" id="1_vinha"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_00"]
+atlas = ExtResource("1_vinha")
+region = Rect2(0, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_01"]
+atlas = ExtResource("1_vinha")
+region = Rect2(240, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_02"]
+atlas = ExtResource("1_vinha")
+region = Rect2(480, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_03"]
+atlas = ExtResource("1_vinha")
+region = Rect2(720, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_04"]
+atlas = ExtResource("1_vinha")
+region = Rect2(960, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_05"]
+atlas = ExtResource("1_vinha")
+region = Rect2(1200, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_06"]
+atlas = ExtResource("1_vinha")
+region = Rect2(1440, 0, 240, 88)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vinha_07"]
+atlas = ExtResource("1_vinha")
+region = Rect2(1680, 0, 240, 88)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_00")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_01")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_02")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_03")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_04")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_05")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_06")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vinha_07")
+}],
+"loop": false,
+"name": &"strike",
+"speed": 14.0
+}]

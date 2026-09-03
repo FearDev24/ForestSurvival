@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://bfsvinha0forest"]
+
+[ext_resource type="Script" path="res://scripts/effects/ability_effect.gd" id="1_efeito"]
+[ext_resource type="SpriteFrames" uid="uid://bfsvinhaframes" path="res://assets/effects/vinha_sprite_frames.tres" id="2_frames"]
+[ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="3_hitbox"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_vinha"]
+radius = 26.0
+height = 150.0
+
+[node name="VineLash" type="Node2D"]
+editor_description = "A origem do no e o botao da rosa, no chao, e a vinha chicoteia para a direita. Girar o no aponta o golpe; ver aim() em scripts/effects/ability_effect.gd."
+z_index = 40
+script = ExtResource("1_efeito")
+impact_frame = 3
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+position = Vector2(72, -36)
+sprite_frames = ExtResource("2_frames")
+animation = &"strike"
+
+[node name="Hitbox" type="Area2D" parent="."]
+editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox. hit_interval 0 = golpe unico por alvo. A capsula fica sobre o eixo do golpe, na altura do corpo do inimigo: deslocada para cima como a arte, girar o efeito jogaria a hitbox para o lado e o ataque erraria alvos acima e a esquerda."
+collision_layer = 16
+collision_mask = 8
+monitorable = false
+script = ExtResource("3_hitbox")
+damage = 20.0
+hit_interval = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(100, -18)
+rotation = 1.5707963
+shape = SubResource("CapsuleShape2D_vinha")

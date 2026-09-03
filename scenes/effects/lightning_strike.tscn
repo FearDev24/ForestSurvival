@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://bfsraio0forest"]
 
-[ext_resource type="Script" path="res://scripts/effects/lightning_strike.gd" id="1_strike"]
+[ext_resource type="Script" path="res://scripts/effects/ability_effect.gd" id="1_strike"]
 [ext_resource type="SpriteFrames" uid="uid://bfsraioframes" path="res://assets/effects/raio_sprite_frames.tres" id="2_frames"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="3_hitbox"]
 
@@ -8,7 +8,7 @@
 radius = 40.0
 
 [node name="LightningStrike" type="Node2D"]
-editor_description = "A origem do no e o ponto de impacto, no chao. Ver scripts/effects/lightning_strike.gd."
+editor_description = "A origem do no e o ponto de impacto, no chao. Ver scripts/effects/ability_effect.gd."
 z_index = 50
 script = ExtResource("1_strike")
 

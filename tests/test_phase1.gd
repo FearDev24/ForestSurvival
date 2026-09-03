@@ -138,7 +138,9 @@ func _check_camera_limits() -> void:
 		_fail("Não foi possível checar os limites da câmera")
 		return
 
-	var bounds: Rect2 = world.get_bounds()
+	# A câmera usa o retângulo com a borda de vegetação, não o jogável: senão a
+	# mata que fecha o mapa ficaria cortada fora da tela.
+	var bounds: Rect2 = world.get_camera_bounds()
 	var expected := [roundi(bounds.position.x), roundi(bounds.position.y), roundi(bounds.end.x), roundi(bounds.end.y)]
 	var actual := [camera.limit_left, camera.limit_top, camera.limit_right, camera.limit_bottom]
 	if actual != expected:
