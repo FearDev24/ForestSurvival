@@ -1,7 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://bfstestworld0fs"]
+[gd_scene load_steps=3 format=3 uid="uid://bfstestworld0fs"]
 
 [ext_resource type="Script" path="res://scripts/systems/test_world.gd" id="1_world"]
+[ext_resource type="TileSet" uid="uid://bfsforesttileset" path="res://assets/environment/forest_tileset.tres" id="2_tileset"]
 
 [node name="TestWorld" type="Node2D"]
-editor_description = "PLACEHOLDER. Area de prototipo da FASE 1, nao e o mapa do jogo. Chao, grid e paredes sao gerados a partir de world_size. Ver docs/ASSET_WORKFLOW.md e DEC-013."
+y_sort_enabled = true
+editor_description = "PLACEHOLDER. Area de prototipo, nao e o mapa do jogo. Paredes e limites sao gerados a partir de world_size. Ver docs/ASSET_WORKFLOW.md e DEC-013."
 script = ExtResource("1_world")
+
+[node name="Ground" type="TileMapLayer" parent="."]
+z_index = -1
+editor_description = "Chao em tiles de 64. z_index -1 tira o chao da ordenacao por Y: sem isso o Player sumiria atras dele ao andar para cima. Se estiver vazio ao rodar, o script preenche com um mapa procedural provisorio. Qualquer celula pintada a mao aqui desliga o preenchimento automatico: o desenho manual sempre vence."
+texture_filter = 1
+tile_set = ExtResource("2_tileset")

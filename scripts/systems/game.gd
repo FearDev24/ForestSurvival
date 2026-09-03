@@ -16,6 +16,7 @@ extends Node2D
 @onready var _effect_container: Node2D = $EffectContainer
 @onready var _spawn_manager: SpawnManager = $SpawnManager
 @onready var _lightning_caster: LightningCaster = $RaioTeste
+@onready var _vine_caster: LightningCaster = $VinhaTeste
 @onready var _game_over: Sprite2D = $GameOver
 @onready var _restart_button: Button = $CanvasLayer/RestartButton
 
@@ -24,9 +25,12 @@ func _ready() -> void:
 	# `_ready` dos filhos roda antes do `_ready` do pai, então a câmera do
 	# Player já existe aqui.
 	var bounds := _test_world.get_bounds()
-	_player.apply_camera_limits(bounds)
+	# A câmera enxerga além da área jogável, até onde vai a vegetação que fecha o
+	# mapa; o spawn fica restrito ao jogável, para não nascer inimigo na parede.
+	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
 	_lightning_caster.configure(_player, _enemy_container, _effect_container)
+	_vine_caster.configure(_player, _enemy_container, _effect_container)
 	_player.death_finished.connect(_on_player_death_finished)
 	_restart_button.pressed.connect(_on_restart_pressed)
 
@@ -43,6 +47,7 @@ func _ready() -> void:
 func _on_player_death_finished() -> void:
 	_spawn_manager.enabled = false
 	_lightning_caster.enabled = false
+	_vine_caster.enabled = false
 
 	# O sprite do druida tem 96 px e a origem fica nos pés: subir meia altura
 	# centraliza a arte sobre o corpo, em vez de sobre o chão.
