@@ -35,6 +35,16 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **FASE 4 — Primeira arma:**
+  - `scripts/weapons/weapon_data.gd` — `WeaponData`, `Resource` com os números e a cena do ataque; arma nova é um `.tres`, não código (DEC-010);
+  - `scripts/weapons/weapon.gd` — uma arma em funcionamento: cooldown, mira e criação do ataque, sem conhecer arma específica;
+  - `scripts/weapons/weapon_manager.gd` — slots, acrescentar, melhorar e consultar nível; arma repetida **melhora** em vez de duplicar;
+  - `resources/weapons/cajado_raio.tres` e `vinha_espinhosa.tres` — as duas primeiras armas, com progressão de dano e cooldown por nível;
+  - `WeaponManager` no Player, ligado ao mundo por `game.gd`;
+  - `AbilityEffect.set_damage()`: o nível da arma chega ao golpe sem a cena saber que existe arma;
+  - o dano nas cenas de ataque virou `1.0`, marcador — quem manda no número é o `WeaponData`;
+  - `tests/test_phase4.gd`, que absorveu o antigo `test_raio.gd`;
+  - **andaime removido:** nós `RaioTeste` e `VinhaTeste`, `scripts/effects/lightning_caster.gd` e `tests/test_raio.gd`.
 - **Mapa em tiles, bordas e objetos de cenário (arte nova, estado CANDIDATE):**
   - `assets/environment/tileset-{terra,agua}.png` — 16 peças de 64 px cada, conjuntos de **cantos** completos, recortados das folhas originais (que vinham com células de tamanhos diferentes e uma moldura clara por dentro);
   - `assets/environment/forest_tileset.tres` — `TileSet` com terrenos declarados (Terra, Mata, Água, modo cantos), então o pincel do editor autotila;

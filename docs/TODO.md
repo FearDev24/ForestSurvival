@@ -6,21 +6,19 @@ FASE 0 — Fundação.
 FASE 1 — Movimento e mundo.
 FASE 2 — Primeiro inimigo.
 FASE 3 — Spawn e horda.
+FASE 4 — Primeira arma.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 4 (primeira arma)
+# Agora — FASE 5 (XP e level up)
 
-- [ ] transformar o `RaioTeste` em arma de verdade e apagar o andaime
-
-
-- [ ] criar `WeaponManager` no Player, sem comportamento de arma específica (DEC-009)
-- [ ] Cajado da Floresta: primeira arma
-- [ ] targeting do inimigo mais próximo, sem busca global por frame
-- [ ] projétil sob `ProjectileContainer`, layer 5 PlayerAttack com mask 8 EnemyHurtbox (o espelho da DEC-017)
-- [ ] dano usando o `HitboxComponent` que já existe
-- [ ] cooldown
-- [ ] criar `tests/test_phase4.gd`
+- [ ] drop de XP quando o inimigo morre — o sinal `died` do `Enemy` já é o gancho
+- [ ] pickup sob `PickupContainer`, com `PickupArea` no Player
+- [ ] curva de XP e sinal de level up
+- [ ] menu de level up com 3 escolhas, pausando o jogo
+- [ ] usar `has_upgradable_weapon()` para não oferecer melhoria impossível
+- [ ] XP excedente e múltiplos níveis de uma vez, sem perder nada
+- [ ] criar `tests/test_phase5.gd`
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

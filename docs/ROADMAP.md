@@ -82,12 +82,25 @@ Observações:
 
 # FASE 4 — Primeira arma
 
-- [ ] WeaponManager
-- [ ] Cajado da Floresta
-- [ ] targeting
-- [ ] projétil
-- [ ] dano
-- [ ] cooldown
+- [x] WeaponManager
+- [x] Cajado da Floresta — entrou como **Cajado Tempestade**, o raio
+- [x] targeting
+- [x] projétil — os ataques são efeitos de vida curta, não projéteis com trajetória
+- [x] dano
+- [x] cooldown
+
+Critério:
+o druida ataca sozinho e mata inimigos. **Atingido.**
+
+Observações:
+- duas armas, não uma: o raio e a **Vinha Espinhosa**, porque a arte das duas já existia e ambas cabiam no mesmo `WeaponData` (DEC-021);
+- arma é dado, não código: `resources/weapons/*.tres` (DEC-010). Arma nova é um `.tres`;
+- o `WeaponManager` mora no Player, mas não conhece arma alguma (DEC-009);
+- a mira varre a lista de inimigos **só no instante do disparo**, nunca por frame;
+- o andaime da fase anterior — `RaioTeste`, `VinhaTeste`, `lightning_caster.gd` e `tests/test_raio.gd` — foi apagado;
+- validação automatizada: `tests/test_phase4.gd`.
+
+Falta para o loop completo: XP e level up (FASE 5) decidem **quando** uma arma sobe de nível. O `WeaponManager` já expõe `upgrade_weapon()` e `has_upgradable_weapon()` para isso.
 
 # FASE 5 — XP e Level Up
 
