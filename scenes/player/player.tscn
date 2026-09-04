@@ -1,10 +1,13 @@
-[gd_scene load_steps=7 format=3 uid="uid://bfsplayer0forest"]
+[gd_scene load_steps=10 format=3 uid="uid://bfsplayer0forest"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/player_visual.gd" id="2_visual"]
 [ext_resource type="SpriteFrames" uid="uid://bfsdruidaframes" path="res://assets/characters/druida_sprite_frames.tres" id="3_druida"]
 [ext_resource type="Script" path="res://scripts/components/health_component.gd" id="4_health"]
 [ext_resource type="Script" path="res://scripts/components/hurtbox_component.gd" id="5_hurtbox"]
+[ext_resource type="Script" path="res://scripts/weapons/weapon_manager.gd" id="6_armas"]
+[ext_resource type="Resource" uid="uid://bfsarmaraio" path="res://resources/weapons/cajado_raio.tres" id="7_raio"]
+[ext_resource type="Resource" uid="uid://bfsarmavinha" path="res://resources/weapons/vinha_espinhosa.tres" id="8_vinha"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 14.0
@@ -47,6 +50,11 @@ health = NodePath("../Health")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
 position = Vector2(0, -24)
 shape = SubResource("CircleShape2D_hurt")
+
+[node name="WeaponManager" type="Node" parent="."]
+editor_description = "Armas do druida. Nao implementa comportamento de arma nenhuma: cada arma e um WeaponData em resources/weapons. Acrescentar arma ao jogo e criar um .tres, nao escrever codigo (DEC-009, DEC-010)."
+script = ExtResource("6_armas")
+starting_weapons = Array[Resource]([ExtResource("7_raio"), ExtResource("8_vinha")])
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(0, -40)

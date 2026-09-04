@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://bfsarmavinha"]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://bfsvinha0forest" path="res://scenes/effects/vine_lash.tscn" id="2_efeito"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"vinha_espinhosa"
+display_name = "Vinha Espinhosa"
+base_damage = 20.0
+cooldown = 1.1
+attack_range = 260.0
+amount = 1
+spawn_on_target = false
+aim_at_target = true
+max_level = 5
+damage_per_level = 6.0
+cooldown_multiplier_per_level = 0.9
+effect_scene = ExtResource("2_efeito")
+metadata/_custom_type_script = "uid://bfsweapondata"

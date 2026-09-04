@@ -405,7 +405,9 @@ func _build_running_scene() -> bool:
 	var spawner := _game.get_node_or_null("SpawnManager") as SpawnManager
 	if spawner != null:
 		spawner.enabled = false
-	_silenciar_habilidades(_game)
+	var armas := _game.get_node_or_null("Player/WeaponManager") as WeaponManager
+	if armas != null:
+		armas.set_weapons_enabled(false)
 
 	for child in container.get_children():
 		child.free()
@@ -415,15 +417,11 @@ func _build_running_scene() -> bool:
 	return _enemy != null
 
 
-## Desliga todas as habilidades automáticas da cena.
+## Desliga as armas do druida.
 ##
-## Por tipo, não por nome: desligar "RaioTeste" à mão fez o teste quebrar em
-## silêncio no dia em que a vinha entrou.
-func _silenciar_habilidades(raiz: Node) -> void:
-	for filho in raiz.get_children():
-		var caster := filho as LightningCaster
-		if caster != null:
-			caster.enabled = false
+## Elas matariam o inimigo que está sendo medido. Feito pelo tipo do nó, não
+## pelo nome: uma arma nova não pode quebrar este teste em silêncio — foi o que
+## aconteceu quando a vinha entrou como andaime.
 
 
 func _spawn_enemy(position: Vector2) -> CharacterBody2D:

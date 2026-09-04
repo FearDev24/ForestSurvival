@@ -48,6 +48,18 @@ func aim(direction: Vector2) -> void:
 	_sprite.flip_v = absf(angulo) > PI * 0.5
 
 
+## Define o dano deste ataque.
+##
+## Chamado logo depois de instanciar, **antes** do nó entrar na árvore, então
+## não dá para usar o `@onready`: `get_node` direto é o que funciona nos dois
+## momentos. É por aqui que o nível da arma chega ao golpe, sem que a cena
+## precise saber que existe arma ou nível.
+func set_damage(value: float) -> void:
+	var hitbox := get_node_or_null("Hitbox") as HitboxComponent
+	if hitbox != null:
+		hitbox.damage = value
+
+
 func _on_frame_changed() -> void:
 	if _hitbox.monitoring or _sprite.frame < impact_frame:
 		return

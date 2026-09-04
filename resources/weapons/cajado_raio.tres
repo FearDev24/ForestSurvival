@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://bfsarmaraio"]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://bfsraio0forest" path="res://scenes/effects/lightning_strike.tscn" id="2_efeito"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"cajado_raio"
+display_name = "Cajado Tempestade"
+base_damage = 30.0
+cooldown = 1.5
+attack_range = 640.0
+amount = 1
+spawn_on_target = true
+aim_at_target = false
+max_level = 5
+damage_per_level = 10.0
+cooldown_multiplier_per_level = 0.88
+effect_scene = ExtResource("2_efeito")
+metadata/_custom_type_script = "uid://bfsweapondata"

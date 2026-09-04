@@ -15,8 +15,10 @@ extends Node2D
 @onready var _enemy_container: Node2D = $EnemyContainer
 @onready var _effect_container: Node2D = $EffectContainer
 @onready var _spawn_manager: SpawnManager = $SpawnManager
-@onready var _lightning_caster: LightningCaster = $RaioTeste
-@onready var _vine_caster: LightningCaster = $VinhaTeste
+## As armas moram dentro do Player (`docs/02_ARCHITECTURE.md`), mas quem as liga
+## ao mundo é esta cena: o Player não conhece o container de inimigos nem o de
+## efeitos, e não deve conhecer.
+@onready var _weapons: WeaponManager = $Player/WeaponManager
 @onready var _game_over: Sprite2D = $GameOver
 @onready var _restart_button: Button = $CanvasLayer/RestartButton
 
@@ -29,8 +31,7 @@ func _ready() -> void:
 	# mapa; o spawn fica restrito ao jogável, para não nascer inimigo na parede.
 	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
-	_lightning_caster.configure(_player, _enemy_container, _effect_container)
-	_vine_caster.configure(_player, _enemy_container, _effect_container)
+	_weapons.configure(_player, _enemy_container, _effect_container)
 	_player.death_finished.connect(_on_player_death_finished)
 	_restart_button.pressed.connect(_on_restart_pressed)
 
@@ -46,8 +47,7 @@ func _ready() -> void:
 ## (`docs/03_SYSTEMS.md` §16).
 func _on_player_death_finished() -> void:
 	_spawn_manager.enabled = false
-	_lightning_caster.enabled = false
-	_vine_caster.enabled = false
+	_weapons.set_weapons_enabled(false)
 
 	# O sprite do druida tem 96 px e a origem fica nos pés: subir meia altura
 	# centraliza a arte sobre o corpo, em vez de sobre o chão.
