@@ -396,3 +396,31 @@ Os dois viraram campos de `WeaponData`, não regras no código do ataque:
 
 `PARA_O_ALVO` continua existindo, mas nenhuma arma usa. Fica para o dia em que
 houver arte desenhada para girar — um projétil radial, por exemplo.
+
+---
+
+## DEC-023 — Arte do HUD sai pronta no tamanho de tela, e com filtro Linear
+
+**Decisão:** as texturas das barras de vida e de XP são geradas por
+`tools/preparar_barras_hud.py` **já na largura em que aparecem na tela**
+(1040 px a de XP, 620 px a de vida), e os nós `TextureProgressBar` usam
+`texture_filter = LINEAR`, não o Nearest padrão do projeto.
+
+**Motivo, o tamanho:** `TextureProgressBar` usa o tamanho da textura como
+**tamanho mínimo do controle**. Uma textura maior que o tamanho desejado não tem
+como ser encolhida pelo `size` — o controle simplesmente cresce até caber nela.
+A arte bruta tem cerca de 1700 a 2000 px de largura, ou seja, não caberia. Ou se
+reduz antes, ou se recorre a `scale` no nó, que quebra o alinhamento por âncoras.
+Reduzir antes, com Lanczos, ainda dá o melhor resultado dos dois.
+
+**Motivo, o filtro:** essa arte não é pixel art. É ilustração com gradiente,
+musgo e pedra. Reduzida ou ampliada com Nearest, serrilha. É uma exceção
+consciente à DEC-015, **limitada ao HUD**: as sprites do jogo continuam Nearest.
+
+**Consequência:** mudar o tamanho do HUD é mudar `LARGURA_EM_TELA` no script e
+rodar de novo, não arrastar o nó no editor. Está escrito no cabeçalho do script e
+na descrição dos nós.
+
+**Consequência:** a arte bruta fica em `assets/_raw/`, fora do que a Godot
+importa, e é a única cópia com a resolução original. O que está em `assets/ui/` é
+derivado e pode ser regerado.

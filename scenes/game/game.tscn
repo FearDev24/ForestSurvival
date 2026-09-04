@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=12 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/systems/pickup_spawner.gd" id="6_drop"]
 [ext_resource type="PackedScene" uid="uid://bfsxporb0forest" path="res://scenes/pickups/xp_orb.tscn" id="7_orb"]
 [ext_resource type="PackedScene" uid="uid://bfslevelup0fs" path="res://scenes/ui/level_up_menu.tscn" id="9_levelup"]
+[ext_resource type="PackedScene" uid="uid://bfshud0forest" path="res://scenes/ui/hud.tscn" id="10_hud"]
 [ext_resource type="Texture2D" path="res://assets/ui/gameover.png" id="8_gameover"]
 
 [node name="Game" type="Node2D"]
@@ -43,6 +44,8 @@ enemy_scene = ExtResource("4_enemy")
 editor_description = "Larga XP onde o inimigo morre. Separado do SpawnManager: criar inimigo e largar tesouro sao trabalhos diferentes, e a FASE 8 vai querer que o elite largue mais."
 script = ExtResource("6_drop")
 orb_scene = ExtResource("7_orb")
+
+[node name="Hud" parent="." instance=ExtResource("10_hud")]
 
 [node name="LevelUpMenu" parent="." instance=ExtResource("9_levelup")]
 

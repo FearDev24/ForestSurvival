@@ -8,6 +8,7 @@ FASE 2 — Primeiro inimigo.
 FASE 3 — Spawn e horda.
 FASE 4 — Primeira arma.
 FASE 5 — XP e Level Up.
+HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
 
@@ -19,6 +20,9 @@ Detalhes em `docs/HANDOFF.md`.
 - [ ] validar opções: nada impossível, nada repetido na mesma tela
 - [ ] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14)
 - [ ] criar `tests/test_phase6.gd`
+
+Com o HUD no lugar, dá para julgar cada passiva olhando a tela em vez de ler
+número em log — que era o motivo de adiantá-lo.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

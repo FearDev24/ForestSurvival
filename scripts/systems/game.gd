@@ -22,10 +22,25 @@ extends Node2D
 @onready var _pickup_container: Node2D = $PickupContainer
 @onready var _pickup_spawner: PickupSpawner = $PickupSpawner
 @onready var _level: LevelComponent = $Player/Level
+@onready var _player_health: HealthComponent = $Player/Health
 @onready var _pickup_area: PickupArea = $Player/PickupArea
+@onready var _hud: Hud = $Hud
 @onready var _level_up_menu: CanvasLayer = $LevelUpMenu
 @onready var _game_over: Sprite2D = $GameOver
 @onready var _restart_button: Button = $CanvasLayer/RestartButton
+
+## Tempo decorrido de partida, em segundos.
+##
+## Mora aqui, e não no HUD, porque é estado de partida: quando a FASE 9 trouxer
+## o `GameManager`, o tempo vem junto e o HUD continua só exibindo. O relógio
+## para sozinho na tela de level up — o passo de física desta cena é pausável, o
+## da tela de escolha não.
+##
+## Conta em `_physics_process`, e não em `_process`, porque o passo de física é
+## fixo: o relógio não depende de quantos quadros a máquina consegue desenhar, e
+## um teste sabe exatamente quanto tempo passou depois de N passos.
+var _elapsed := 0.0
+var _running := true
 
 
 func _ready() -> void:
@@ -40,6 +55,7 @@ func _ready() -> void:
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
 	_level_up_menu.configure(_weapons, _level)
+	_hud.configure(_player_health, _level)
 	_player.death_finished.connect(_on_player_death_finished)
 	_restart_button.pressed.connect(_on_restart_pressed)
 
@@ -53,7 +69,15 @@ func _ready() -> void:
 ## de verdade — tempo de partida, level alcançado, reiniciar, voltar ao menu —
 ## é da FASE 9, com o `GameManager` e o estado `GAME_OVER`
 ## (`docs/03_SYSTEMS.md` §16).
+func _physics_process(delta: float) -> void:
+	if not _running:
+		return
+	_elapsed += delta
+	_hud.set_time(_elapsed)
+
+
 func _on_player_death_finished() -> void:
+	_running = false
 	_spawn_manager.enabled = false
 	_weapons.set_weapons_enabled(false)
 

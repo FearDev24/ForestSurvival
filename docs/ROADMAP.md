@@ -148,17 +148,28 @@ Observações:
 
 # FASE 9 — Loop completo
 
-- [ ] HP HUD
-- [ ] XP HUD
-- [ ] timer
-- [ ] level
+- [x] HP HUD
+- [x] XP HUD
+- [x] timer
+- [x] level
 - [ ] pause
 - [ ] game over
 - [ ] restart
 - [ ] victory
 
 Critério:
-vertical slice completo.
+vertical slice completo. **Parcial.**
+
+O painel foi adiantado, fora da ordem do roadmap, porque a FASE 6 é toda sobre
+balanceamento: sem ver vida, XP e tempo na tela não há como julgar se uma
+passiva compensa. O resto da fase — pausa, tela de game over de verdade e
+condição de vitória — continua pendente e depende do `GameManager`
+(`docs/03_SYSTEMS.md` §16).
+
+Observações:
+- as barras são `TextureProgressBar` com moldura e preenchimento separados: clipar a imagem cheia inteira cortaria a gema da ponta junto (DEC-023);
+- o cronômetro é da partida, não do HUD: quem conta é `scripts/systems/game.gd`, em passo de física, e por isso ele congela sozinho quando a tela de level up pausa o jogo;
+- validação automatizada: `tests/test_hud.gd`.
 
 # FASE 10 — Performance
 

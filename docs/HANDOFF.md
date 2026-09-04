@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-03
+Última atualização: 2026-09-04
 
 # Projeto
 
@@ -31,6 +31,8 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 ## Fases concluídas
 
 **FASE 0 a FASE 5.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP e level up.
+
+Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
 Ao rodar o jogo existe uma área de protótipo com grid e um Player controlável em oito direções, com câmera acompanhando e paredes de borda.
 
@@ -700,6 +702,53 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# HUD da partida (FASE 9, adiantado)
+
+| O quê | Caminho |
+|---|---|
+| Painel | `res://scenes/ui/hud.tscn`, nó `Hud` em `game.tscn` |
+| Lógica | `res://scripts/ui/hud.gd` |
+| Arte | `assets/ui/barra_{vida,xp}_{fundo,preenchimento}.png` |
+| Preparo da arte | `tools/preparar_barras_hud.py`, a partir de `assets/_raw/` |
+| Cronômetro | `_elapsed` em `res://scripts/systems/game.gd` |
+
+## Quem sabe o quê
+
+O HUD é apresentação e nada mais. Não lê estado a cada frame, não guarda regra e
+não conhece Player, armas nem spawn: recebe `HealthComponent` e `LevelComponent`
+em `configure()` e depois só reage aos sinais que os dois já emitiam desde a
+FASE 0 e a FASE 5. Nenhum componente precisou mudar para o painel existir.
+
+O cronômetro é a exceção, e de propósito: tempo decorrido é estado **de
+partida**, não de HUD. Quem conta é `game.gd`, que empurra o valor por
+`set_time()`. O efeito prático é que o relógio congela sozinho quando a tela de
+level up pausa o jogo, sem o HUD saber o que é pausa — e quando o `GameManager`
+da FASE 9 chegar, o tempo vai junto com ele e o painel continua igual.
+
+A contagem é em `_physics_process`, não em `_process`: o passo de física é fixo,
+então o relógio não depende de quantos quadros a máquina desenha e um teste sabe
+exatamente quanto tempo passou depois de N passos.
+
+## Por que a moldura e o líquido são dois arquivos
+
+A arte chegou em dois estados por barra: vazia e cheia. Clipar a imagem cheia
+inteira pela metade cortaria a **gema da ponta direita** junto com o líquido.
+Então o script separa os dois: `texture_under` é a moldura completa,
+`texture_progress` é só o líquido que vive dentro do vão. A moldura fica firme e
+só o conteúdo recua.
+
+## O que o preparo da arte resolveu
+
+Os dois pares vieram em canvas diferentes e construídos de formas diferentes:
+
+- **tamanho:** 1752x897 contra 1717x916 no XP, 1983x793 contra 2172x724 no HP. O `TextureProgressBar` desenha as duas texturas no mesmo retângulo, então tamanhos diferentes deslocariam o líquido para fora do vão;
+- **o vão:** no XP ele é um buraco transparente; no HP já vem pintado de escuro. Por isso a detecção não pode ser "onde é transparente" — é pela **cor do líquido**;
+- **o encaixe:** no HP a borda superior da moldura serve de referência e o erro deu 0,00 px. No XP não serve, porque o musgo da borda difere entre as duas peças e alinhar por ela deixava o verde 6 px acima do vão; ali o alinhamento é pelo próprio vão, com erro de 0,50 px. O script escolhe o critério conforme a moldura tenha ou não vão vazado;
+- **franja de chroma:** 250 px ao todo, removidos com um teste estrito (verde claro, saturado, sem vermelho nem azul) para não comer o musgo, que é mais escuro e amarelado.
+
+O tamanho de tela está baked na textura por necessidade, não por gosto — o
+porquê está em **DEC-023**.
+
 # XP e level up (FASE 5)
 
 | O quê | Caminho |
@@ -1103,6 +1152,10 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 39 | Partida real: 12 inimigos, coleta e level up | subiu ao nível 2, tela abriu com duas opções válidas, jogo pausado |
 | 40 | Vinha depois do DEC-022, com render | rotação 0°, nascendo a 145 px do druida |
 | 41 | Suíte completa depois da FASE 5 | `FASE 0/1/2/3/4/5 OK` |
+| 42 | `--headless --script res://tests/test_hud.gd` | `HUD OK`, exit 0 |
+| 43 | Quatro erros injetados no HUD | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
+| 44 | Render de verdade a 1280x720, vida em 62% e XP em 63% | as quatro peças na tela, moldura inteira e líquido no vão |
+| 45 | Suíte completa depois do HUD | sete suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1328,6 +1381,54 @@ o caso; hoje o teste enche as armas até o teto de propósito.
 2. opção impossível oferecida → "a tela abriu com todas as armas no teto";
 3. fila de níveis ignorada → "a tela fechou com nível ainda na fila".
 
+## O que `tests/test_hud.gd` cobre
+
+Arte: as duas peças de cada barra têm o mesmo tamanho, cabem na viewport,
+esvaziam da direita para a esquerda e usam filtro Linear.
+
+Relógio: `00:00`, `00:09`, `01:05`, `09:59` e — passando de uma hora —
+`1:02:05`.
+
+`configure()`: com componentes soltos em estado que não é o inicial de ninguém —
+vida em 25%, XP em 40% do nível 2 —, as barras e o rótulo precisam refletir isso
+no instante em que o painel é ligado.
+
+Em execução: dano e XP movem as barras na proporção certa, o rótulo de nível
+acompanha, e o relógio **congela** enquanto a tela de level up mantém o jogo
+pausado.
+
+## Verificação de que o teste do HUD não passa vazio
+
+Quatro erros injetados e revertidos. **Dois passaram na primeira tentativa**, e
+os dois motivos valem registro:
+
+1. **`configure()` esvaziado ainda passava.** O teste conferia os valores
+   iniciais na cena de verdade, e `hud.tscn` trazia `value = 100` na barra de
+   vida — o padrão da cena satisfazia a checagem sozinho. Corrigido em dois
+   lugares: a barra nasce vazia na cena, e existe agora um teste de `configure()`
+   com componentes soltos em estado arbitrário, que não tem como ser satisfeito
+   por padrão nenhum;
+2. **cronômetro correndo durante a pausa ainda passava.** A janela de pausa do
+   teste era de 30 passos, meio segundo: um relógio que continuasse correndo
+   ainda mostraria o mesmo número inteiro de segundos. A janela passou para 75
+   passos, mais de um segundo, que é o mínimo para a diferença aparecer.
+
+Os outros dois foram pegos de primeira: rótulo de nível parado e preenchimento
+com tamanho diferente da moldura.
+
+A lição é a mesma das fases anteriores, num formato novo: **um teste que
+verifica o estado inicial não pode aceitar como resposta o valor que a cena já
+traz de fábrica.**
+
+## Uma armadilha já conhecida, num nó novo
+
+`@onready` não resolve em nó acrescentado à árvore de dentro de
+`SceneTree._initialize()` — `_ready()` não dispara ali. É a mesma razão da
+inicialização preguiçosa do `HealthComponent` e do `get_node_or_null` na
+`PickupArea`. O `Hud` resolve os filhos na primeira vez que é usado, pelo mesmo
+motivo. No jogo real `_ready()` roda normalmente; quem tropeça é o teste, e ele
+tropeçou.
+
 # Limitações e pendências
 
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
@@ -1344,7 +1445,8 @@ o caso; hoje o teste enche as armas até o teto de propósito.
 - **Inimigo não tem nem terá `idle`** (DEC-019). Parado, congela no frame 0 da caminhada. É o alvo, não pendência.
 - **Sprites de mesma linha ainda se misturam.** O Y-sort resolve a profundidade, mas dois inimigos praticamente na mesma coordenada Y têm ordem indefinida entre si, e a sprite de 96 px de altura sobre uma pegada de 28 px faz a horda se sobrepor verticalmente de qualquer jeito. É característica de top-down com personagem alto, não defeito de ordenação.
 - **Não há feedback visual de dano**: nem no Player nem no inimigo. A `Hurtbox` já emite `hit`, que é o gancho para piscar ou mostrar número — falta a arte e é assunto da FASE 11.
-- **A vida não aparece na tela.** A barra de HP é da FASE 9; hoje só dá para ver a vida por script.
+- **O HUD não tem ícones nem números.** Mostra vida, XP, nível e tempo; não mostra quantas armas há, nem o valor exato de vida. Suficiente para balancear a FASE 6.
+- **O tamanho do HUD está baked na textura** (DEC-023): mudá-lo é editar `LARGURA_EM_TELA` em `tools/preparar_barras_hud.py` e rodar de novo, não arrastar o nó no editor.
 - **Nada acontece quando o Player morre.** Ele para e sai do radar, e o jogo continua rodando. Game over, tela de resultado e restart são da FASE 9.
 - **Os `.json` do diabrete têm `sheet` e `id` de frame inconsistentes** (dizem `idle`/`andar`, apontam para nomes inexistentes). Não afeta o jogo; vale corrigir na origem.
 - **O druida não tem `idle` em nenhuma direção**, e é o único personagem que deveria ter (DEC-019). Parado, congela no frame 0 da caminhada correspondente.
@@ -1361,6 +1463,9 @@ o caso; hoje o teste enche as armas até o teto de propósito.
 
 Hoje a tela de level up monta as opções à mão e só sabe oferecer uma coisa:
 melhorar arma equipada. A fase troca isso por dados.
+
+O HUD já está no lugar, o que era o pré-requisito prático: cada passiva pode ser
+julgada olhando a tela, e não lendo número em log.
 
 Itens, na ordem do `docs/ROADMAP.md`:
 

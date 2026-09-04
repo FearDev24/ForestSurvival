@@ -35,6 +35,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **HUD da partida (FASE 9, adiantado):**
+  - `scripts/ui/hud.gd` + `scenes/ui/hud.tscn` — barras de vida e de XP, nível e cronômetro; só apresentação, ligado por `configure()` aos componentes que já existiam;
+  - `tools/preparar_barras_hud.py` — prepara a arte bruta das barras: encaixa o par, escurece o vão, separa o líquido da moldura e limpa restos de chroma;
+  - `assets/ui/barra_{vida,xp}_{fundo,preenchimento}.png`, gerados pelo script; originais em `assets/_raw/`;
+  - o tempo decorrido passa a viver em `scripts/systems/game.gd`, contado em passo de física;
+  - `tests/test_hud.gd`.
 - **FASE 5 — XP e Level Up:**
   - `scripts/components/level_component.gd` — XP, curva e nível, com XP excedente preservado e vários níveis por ganho;
   - `scripts/pickups/xp_orb.gd` + `scenes/pickups/xp_orb.tscn` — fragmento de XP, visual PLACEHOLDER desenhado em código;
