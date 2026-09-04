@@ -84,7 +84,7 @@ func _attack(alvo: Node2D) -> void:
 		push_warning("effect_scene de '%s' não é uma cena 2D." % data.id)
 		return
 
-	var origem: Vector2 = alvo.global_position if data.spawn_on_target else _target.global_position
+	var origem := _spawn_position(alvo)
 	efeito.global_position = origem
 	_effects.add_child(efeito)
 
@@ -93,7 +93,36 @@ func _attack(alvo: Node2D) -> void:
 	if efeito.has_method("set_damage"):
 		efeito.call("set_damage", data.damage_at(level))
 
-	if data.aim_at_target and efeito.has_method("aim"):
-		efeito.call("aim", (alvo.global_position - origem).normalized())
+	var direcao := _aim_direction(alvo, origem)
+	if direcao != Vector2.ZERO and efeito.has_method("aim"):
+		efeito.call("aim", direcao)
 
 	attacked.emit(efeito, alvo)
+
+
+## Onde o ataque nasce, conforme o modo da arma.
+func _spawn_position(alvo: Node2D) -> Vector2:
+	match data.spawn_mode:
+		WeaponData.Spawn.NO_ALVO:
+			return alvo.global_position
+		WeaponData.Spawn.EM_VOLTA:
+			# Ponto sorteado no anel em volta do druida. O sorteio é o que faz
+			# a vinha brotar do chão em lugares diferentes a cada golpe, em vez
+			# de sair sempre do mesmo ponto do corpo dele.
+			var angulo := randf() * TAU
+			var distancia := data.spawn_radius * randf_range(0.45, 1.0)
+			return _target.global_position + Vector2(distancia, 0.0).rotated(angulo)
+		_:
+			return _target.global_position
+
+
+## Para onde o ataque aponta. `Vector2.ZERO` significa "não aponta".
+func _aim_direction(alvo: Node2D, origem: Vector2) -> Vector2:
+	match data.aim_mode:
+		WeaponData.Aim.PARA_O_ALVO:
+			return (alvo.global_position - origem).normalized()
+		WeaponData.Aim.HORIZONTAL:
+			# Nunca na diagonal: o alvo só decide o lado.
+			return Vector2.LEFT if alvo.global_position.x < origem.x else Vector2.RIGHT
+		_:
+			return Vector2.ZERO

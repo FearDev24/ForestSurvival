@@ -104,13 +104,24 @@ Falta para o loop completo: XP e level up (FASE 5) decidem **quando** uma arma s
 
 # FASE 5 — XP e Level Up
 
-- [ ] drop
-- [ ] pickup
-- [ ] XP
-- [ ] curva
-- [ ] menu de level up
-- [ ] 3 escolhas
-- [ ] XP excedente/múltiplos levels
+- [x] drop
+- [x] pickup
+- [x] XP
+- [x] curva
+- [x] menu de level up
+- [x] 3 escolhas
+- [x] XP excedente/múltiplos levels
+
+Critério:
+matar rende XP, XP rende escolha, escolha muda a partida. **Atingido.**
+
+Observações:
+- o `PickupSpawner` escuta o `SpawnManager` e liga o `died` de cada inimigo uma vez: custo de uma conexão por inimigo, sem varrer nada;
+- quem procura o fragmento é a `PickupArea` do Player, não cada fragmento — o Player é um só e os orbes são muitos (mesmo princípio da DEC-017);
+- XP excedente nunca se perde, e vários níveis de uma vez abrem uma escolha por nível — o ponto marcado como IMPORTANTE no `docs/03_SYSTEMS.md` §12;
+- a tela só abre com opção **aplicável**: arma no nível máximo não é oferecida (§13);
+- o visual do orbe é PLACEHOLDER desenhado em código (DEC-013);
+- validação automatizada: `tests/test_phase5.gd`.
 
 # FASE 6 — Sistema de upgrades
 

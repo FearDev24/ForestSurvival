@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-02
+Última atualização: 2026-09-03
 
 # Projeto
 
@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 — Fundação, FASE 1 — Movimento e mundo, FASE 2 — Primeiro inimigo, FASE 3 — Spawn e horda e FASE 4 — Primeira arma.**
+**FASE 0 a FASE 5.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP e level up.
 
 Ao rodar o jogo existe uma área de protótipo com grid e um Player controlável em oito direções, com câmera acompanhando e paredes de borda.
 
@@ -40,8 +40,9 @@ Em 2026-08-29 entrou o **diabrete**, primeiro inimigo, com sprites nas quatro di
 
 **FASE 2 — Primeiro inimigo. Concluída.** O diabrete persegue, causa dano por contato, recebe dano e morre uma única vez; o Player tem vida e morre. Componentes de vida, hitbox e hurtbox existem em `scripts/components/` e são reutilizáveis pelas armas da FASE 4.
 
-**A partida virou jogo.** O druida ataca sozinho, mata inimigos e pode perder —
-o laço mínimo fechou. O que falta para o vertical slice é XP, level up e HUD.
+**O laço do gênero fechou.** Matar rende XP, XP rende escolha, escolha muda a
+partida — e o druida ainda pode perder. Falta o sistema de upgrades completo
+(FASE 6), mais armas (FASE 7), waves (FASE 8) e HUD (FASE 9).
 
 O mapa deixou de ser um retângulo liso: tem chão em tiles, vegetação fechando
 as bordas e objetos de cenário com colisão. A morte do druida foi refeita a
@@ -699,6 +700,67 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# XP e level up (FASE 5)
+
+| O quê | Caminho |
+|---|---|
+| Nível e curva | `res://scripts/components/level_component.gd`, nó `Level` no Player |
+| Fragmento | `res://scenes/pickups/xp_orb.tscn` |
+| Coleta | `res://scripts/player/pickup_area.gd`, nó `PickupArea` no Player |
+| Drop | `res://scripts/systems/pickup_spawner.gd`, nó em `game.tscn` |
+| Escolha | `res://scenes/ui/level_up_menu.tscn` |
+
+## O caminho do XP
+
+```text
+Enemy.died -> PickupSpawner -> XpOrb no chão
+                                   |
+                        PickupArea do Player coleta
+                                   |
+                   LevelComponent.add_xp -> leveled_up
+                                   |
+                            LevelUpMenu pausa e oferece
+```
+
+Ninguém varre nada. O `PickupSpawner` liga o `died` de cada inimigo **uma vez**,
+quando ele nasce; e quem procura o fragmento é a área do Player, que é uma só,
+não cada orbe — mesmo princípio da DEC-017.
+
+## XP excedente e níveis acumulados
+
+É o ponto que o `docs/03_SYSTEMS.md` §12 marca como IMPORTANTE, e está resolvido
+em dois lugares:
+
+- **no `LevelComponent`:** um ganho grande sobe quantos níveis couberem e guarda
+  o resto. Ganhar 65 quando faltam 20 e depois 40 sobe dois níveis e deixa 5;
+- **no menu:** cada nível vira uma escolha na fila. Subir três de uma vez abre a
+  tela três vezes, uma escolha por vez. Sem isso, dois níveis no mesmo instante
+  dariam uma escolha só e o jogador perderia o que ganhou.
+
+Há um teto de 50 níveis por ganho, contra curva mal configurada: `xp_growth`
+zerado faria o laço rodar para sempre no primeiro fragmento coletado.
+
+## A tela só abre se tiver o que oferecer
+
+A §13 pede "evitar opções impossíveis". Arma no nível máximo não entra na lista,
+e se **nenhuma** opção sobra a tela não abre — pausar o jogo para não oferecer
+nada seria pior que não pausar. Com todas as armas no teto isso é um beco sem
+saída legítimo, até a FASE 6 trazer passivas.
+
+## Um erro de física que apareceu só em execução
+
+`Can't change this state while flushing queries`, cinco vezes por partida. O
+orbe é uma `Area2D`, e ele era acrescentado à cena **dentro** da detecção de
+colisão que matou o inimigo — registrar a forma de uma área durante a consulta
+de física é proibido.
+
+Resolvido com `add_child.call_deferred()`. A posição já está definida antes,
+então um frame de atraso não muda nada visível.
+
+Vale como padrão do projeto: **tudo que nasce a partir de um sinal de física
+entra na cena adiado.** Já valia para `monitorable`/`monitoring` desde a FASE 3;
+agora vale para o nó inteiro.
+
 # Armas (FASE 4)
 
 ## Estrutura
@@ -726,9 +788,14 @@ código muda.
 | dano (nível 1) | 30 | 20 |
 | cooldown | 1,5 s | 1,1 s |
 | alcance | 640 px | 260 px |
-| posição | cai **em cima** do inimigo | nasce **no druida**, apontada |
+| posição | cai **em cima** do inimigo | **brota do chão**, num anel de 150 px em volta do druida |
+| direção | não tem | **horizontal**, para o lado do alvo |
 | por nível | +10 de dano, cooldown x0,88 | +6 de dano, cooldown x0,9 |
 | teto | nível 5 | nível 5 |
+
+Posição e direção são campos de `WeaponData` — `spawn_mode`, `spawn_radius` e
+`aim_mode` —, não regras no código do ataque. O porquê da vinha brotar do chão e
+de a mira ser só horizontal está em **DEC-022**.
 
 São o raio e a vinha que já existiam como andaime, agora com dados e nível. O
 `RaioTeste`, o `VinhaTeste`, o `lightning_caster.gd` e o `tests/test_raio.gd`
@@ -1031,6 +1098,11 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 34 | Três erros injetados nas armas | cooldown ignorado, dano do nível não chegando ao ataque, e arma repetida duplicando; os três foram pegos |
 | 35 | Partida real com as duas armas e 10 inimigos | 10 mortos em 6,7 s, zero efeitos deixados na cena |
 | 36 | Suíte completa depois da FASE 4 | `FASE 0/1/2/3/4 OK` |
+| 37 | `--headless --script res://tests/test_phase5.gd` | `FASE 5 OK`, exit 0 |
+| 38 | Três erros injetados na FASE 5 | XP excedente descartado, opção impossível oferecida e fila de níveis ignorada; os três foram pegos |
+| 39 | Partida real: 12 inimigos, coleta e level up | subiu ao nível 2, tela abriu com duas opções válidas, jogo pausado |
+| 40 | Vinha depois do DEC-022, com render | rotação 0°, nascendo a 145 px do druida |
+| 41 | Suíte completa depois da FASE 5 | `FASE 0/1/2/3/4/5 OK` |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1231,9 +1303,36 @@ Três erros injetados e revertidos:
 2. `set_damage()` não chamado → "2.0 de dano tirado em 2 disparos de 30.0";
 3. arma repetida deixando de melhorar → "deveria subir para o nível 2, está no 1".
 
+## O que `tests/test_phase5.gd` cobre
+
+Curva isolada, sem cena: ganho pequeno não sobe nível, fechar o nível exato deixa
+sobra zero, e **65 de XP sobe dois níveis guardando 5** — o ponto da §12. Uma
+curva degenerada (`xp_growth` zerado) não pode travar o jogo.
+
+Estrutura: o orbe é `Area2D` na layer Pickup com mask 0, responde a `collect()`,
+e o Player tem `Level` e `PickupArea` com raio válido.
+
+Em execução: inimigo morto larga **um** orbe **onde morreu**, sem coletar
+sozinho; encostar coleta e soma XP; dois níveis de uma vez pausam o jogo, abrem
+opções com ação ligada, aplicam **uma** escolha por nível e só fecham quando a
+fila esvazia; e com todas as armas no teto a tela **não abre**.
+
+## Verificação de que a FASE 5 não passa vazia
+
+Três erros injetados e revertidos. O segundo é o interessante: na primeira
+tentativa ele **passou**, porque o teste nunca chegava a ter arma no nível
+máximo — a regra existia no código, mas nada a protegia. Foi preciso acrescentar
+o caso; hoje o teste enche as armas até o teto de propósito.
+
+1. XP excedente descartado → "65 de XP deveria subir dois níveis, subiu 1";
+2. opção impossível oferecida → "a tela abriu com todas as armas no teto";
+3. fila de níveis ignorada → "a tela fechou com nível ainda na fila".
+
 # Limitações e pendências
 
-- **Não existe XP nem level up.** As armas sobem de nível por `upgrade_weapon()`, mas ninguém chama isso ainda: é a FASE 5.
+- **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
+- **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
+- **O orbe de XP é PLACEHOLDER** desenhado em código, e não tem atração: coleta só por encostar, no raio de 48 px.
 - **Nenhuma arma é escolhida pelo jogador.** As duas vêm equipadas desde o começo, por `starting_weapons`. Escolher personagem e armas iniciais é FASE 13.
 - **Os ataques não são projéteis.** São efeitos de vida curta no lugar do alvo. O `ProjectileContainer` continua vazio; arma com trajetória entra quando existir uma que precise.
 - **Os inimigos raspam nos props sólidos.** Eles colidem com a layer 8 e perseguem em linha reta, sem pathfinding (DEC-008). Com peças pequenas o `move_and_slide` contorna; com a horda cheia isso precisa ser observado (DEC-020).
@@ -1258,37 +1357,36 @@ Três erros injetados e revertidos:
 
 # Próxima tarefa
 
-**FASE 5 — XP e Level Up.** Não iniciada.
+**FASE 6 — Sistema de upgrades.** Não iniciada.
 
-É o que falta para o laço do gênero fechar: hoje o druida mata e morre, mas nada
-acontece entre uma coisa e outra.
+Hoje a tela de level up monta as opções à mão e só sabe oferecer uma coisa:
+melhorar arma equipada. A fase troca isso por dados.
 
 Itens, na ordem do `docs/ROADMAP.md`:
 
-1. drop de XP quando o inimigo morre — o sinal `died` do `Enemy` já existe e é o gancho, exatamente para isto;
-2. pickup sob `PickupContainer`, com a `PickupArea` que falta no Player (`docs/02_ARCHITECTURE.md`);
-3. XP e curva de nível (`docs/03_SYSTEMS.md` §12);
-4. menu de level up com 3 escolhas, pausando o jogo (§13);
-5. **XP excedente e múltiplos níveis de uma vez, sem perder nada** — está marcado como IMPORTANTE no §12;
-6. criar `tests/test_phase5.gd`; manter as quatro suítes anteriores passando;
+1. `UpgradeData` em `Resource` — cada opção vira um `.tres`, como as armas (DEC-010);
+2. passivas da primeira lista do `docs/04_CONTENT_PLAN.md`: vida máxima, velocidade, regeneração, área, cooldown e alcance de coleta;
+3. `StatComponent` para as passivas terem onde somar (`docs/03_SYSTEMS.md` §14) — hoje os números vivem espalhados em `move_speed`, `max_health` e no raio da `PickupArea`;
+4. oferecer **arma nova** além de melhorar equipada, respeitando `max_slots`;
+5. validação das opções: nada impossível, nada repetido na mesma tela;
+6. criar `tests/test_phase6.gd`; manter as cinco suítes anteriores passando;
 7. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
-O `WeaponManager` já expõe o que a tela de level up precisa: `upgrade_weapon()`
-para aplicar a escolha, e `has_upgradable_weapon()` para não oferecer melhoria
-impossível.
+O `LevelUpMenu` já tem a forma certa — fila de níveis, opções filtradas, uma
+escolha por vez. O que muda é de onde vem a lista: hoje sai de um laço sobre as
+armas equipadas, e passa a sair de um catálogo de `UpgradeData`.
 
-Cuidado conhecido: com centenas de inimigos morrendo, o pickup de XP é o próximo
-candidato a pesar. O teste de carga da FASE 3 mostrou que o gargalo é a física, e
-cada pickup é mais um corpo na cena.
+Dois ganchos já existem: `WeaponManager.has_upgradable_weapon()` e
+`PickupArea.set_radius()` — este último foi feito exatamente para a passiva de
+alcance de coleta.
 
-## Critério de aceite da FASE 5
+## Critério de aceite da FASE 6
 
-- inimigo morto gera XP;
-- coleta soma XP;
-- level up abre o menu e pausa;
-- três opções válidas, nenhuma impossível;
-- XP excedente é preservado e múltiplos níveis de uma vez funcionam;
-- nenhum pickup fica eterno na cena.
+- upgrades são dados, não código;
+- passivas mudam o jogo de verdade, com efeito observável;
+- nenhuma opção impossível ou repetida é oferecida;
+- arma nova pode ser oferecida enquanto houver slot;
+- as cinco suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

@@ -365,3 +365,34 @@ a esquerda.
 
 Tudo isto é andaime até a FASE 4. Quando o `WeaponManager` existir (DEC-009), o
 efeito vira o "ataque" de uma arma e os disparadores somem.
+
+---
+
+## DEC-022 — Habilidade aponta só na horizontal, e a vinha brota do chão
+
+**Decisão:** habilidade com direção aponta para a **esquerda ou para a direita**,
+nunca na diagonal nem na vertical. O alvo decide apenas o lado.
+
+**Motivo:** a arte é desenhada de lado. Girada num ângulo qualquer, ela denuncia
+que é um desenho girado — a rosa fica tombada, a sombra aponta para o lugar
+errado, a leitura de "coisa apoiada no chão" se perde. Restringir ao horizontal
+custa precisão de mira e devolve coerência visual, que é a troca certa num jogo
+onde o combate é automático e o jogador não mira.
+
+**Decisão:** a vinha **não sai do corpo do druida**. Ela brota da terra num
+ponto sorteado dentro de um anel em volta dele.
+
+**Motivo:** o druida é um invocador, não um lutador corpo a corpo. Vinha saindo
+do corpo dele lê como golpe físico; brotando do chão em volta, lê como magia de
+natureza — que é a identidade do personagem (DEC-004).
+
+Os dois viraram campos de `WeaponData`, não regras no código do ataque:
+
+| Campo | Valores |
+|---|---|
+| `spawn_mode` | `NO_ALVO`, `NO_DRUIDA`, `EM_VOLTA` |
+| `spawn_radius` | raio do anel, usado por `EM_VOLTA` |
+| `aim_mode` | `NENHUMA`, `PARA_O_ALVO`, `HORIZONTAL` |
+
+`PARA_O_ALVO` continua existindo, mas nenhuma arma usa. Fica para o dia em que
+houver arte desenhada para girar — um projétil radial, por exemplo.

@@ -19,6 +19,11 @@ extends Node2D
 ## ao mundo é esta cena: o Player não conhece o container de inimigos nem o de
 ## efeitos, e não deve conhecer.
 @onready var _weapons: WeaponManager = $Player/WeaponManager
+@onready var _pickup_container: Node2D = $PickupContainer
+@onready var _pickup_spawner: PickupSpawner = $PickupSpawner
+@onready var _level: LevelComponent = $Player/Level
+@onready var _pickup_area: PickupArea = $Player/PickupArea
+@onready var _level_up_menu: CanvasLayer = $LevelUpMenu
 @onready var _game_over: Sprite2D = $GameOver
 @onready var _restart_button: Button = $CanvasLayer/RestartButton
 
@@ -32,6 +37,9 @@ func _ready() -> void:
 	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
 	_weapons.configure(_player, _enemy_container, _effect_container)
+	_pickup_spawner.configure(_spawn_manager, _pickup_container)
+	_pickup_area.collected.connect(_level.add_xp)
+	_level_up_menu.configure(_weapons, _level)
 	_player.death_finished.connect(_on_player_death_finished)
 	_restart_button.pressed.connect(_on_restart_pressed)
 

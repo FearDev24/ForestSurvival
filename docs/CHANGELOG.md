@@ -35,6 +35,19 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **FASE 5 — XP e Level Up:**
+  - `scripts/components/level_component.gd` — XP, curva e nível, com XP excedente preservado e vários níveis por ganho;
+  - `scripts/pickups/xp_orb.gd` + `scenes/pickups/xp_orb.tscn` — fragmento de XP, visual PLACEHOLDER desenhado em código;
+  - `scripts/player/pickup_area.gd` — área de coleta no Player, com raio ajustável (a passiva de alcance da FASE 6 chama `set_radius()`);
+  - `scripts/systems/pickup_spawner.gd` — larga XP onde o inimigo morre, escutando o `SpawnManager`;
+  - `scripts/ui/level_up_menu.gd` + `scenes/ui/level_up_menu.tscn` — pausa, oferece até 3 opções **aplicáveis** e atende um nível por escolha;
+  - `Level` e `PickupArea` no Player, `PickupSpawner` e `LevelUpMenu` em `game.tscn`;
+  - correção: o orbe entra na cena com `call_deferred` — largá-lo dentro da detecção de área que matou o inimigo fazia a Godot recusar o registro da forma;
+  - `tests/test_phase5.gd`.
+- **Ajuste nas habilidades (DEC-022):**
+  - habilidade com direção aponta só na **horizontal**; o alvo decide o lado;
+  - a vinha **brota do chão** num ponto sorteado em volta do druida, em vez de sair do corpo dele;
+  - `WeaponData` ganha `spawn_mode`, `spawn_radius` e `aim_mode` no lugar dos dois booleanos.
 - **FASE 4 — Primeira arma:**
   - `scripts/weapons/weapon_data.gd` — `WeaponData`, `Resource` com os números e a cena do ataque; arma nova é um `.tres`, não código (DEC-010);
   - `scripts/weapons/weapon.gd` — uma arma em funcionamento: cooldown, mira e criação do ataque, sem conhecer arma específica;

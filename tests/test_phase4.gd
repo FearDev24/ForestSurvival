@@ -120,8 +120,10 @@ func _check_scenes() -> void:
 		var efeito: Node = data.effect_scene.instantiate()
 		if not efeito.has_method("set_damage"):
 			_fail("O ataque de '%s' não aceita set_damage(): o nível da arma não chegaria nele" % data.id)
-		if data.aim_at_target and not efeito.has_method("aim"):
-			_fail("'%s' mira, mas o ataque dela não tem aim()" % data.id)
+		if data.aim_mode != WeaponData.Aim.NENHUMA and not efeito.has_method("aim"):
+			_fail("'%s' aponta, mas o ataque dela não tem aim()" % data.id)
+		if data.spawn_mode == WeaponData.Spawn.EM_VOLTA and data.spawn_radius <= 0.0:
+			_fail("'%s' nasce em volta do druida, mas com raio %.1f" % [data.id, data.spawn_radius])
 
 		var hitbox := efeito.get_node_or_null("Hitbox") as HitboxComponent
 		if hitbox == null:

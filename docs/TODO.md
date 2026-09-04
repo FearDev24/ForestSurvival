@@ -7,18 +7,18 @@ FASE 1 — Movimento e mundo.
 FASE 2 — Primeiro inimigo.
 FASE 3 — Spawn e horda.
 FASE 4 — Primeira arma.
+FASE 5 — XP e Level Up.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 5 (XP e level up)
+# Agora — FASE 6 (sistema de upgrades)
 
-- [ ] drop de XP quando o inimigo morre — o sinal `died` do `Enemy` já é o gancho
-- [ ] pickup sob `PickupContainer`, com `PickupArea` no Player
-- [ ] curva de XP e sinal de level up
-- [ ] menu de level up com 3 escolhas, pausando o jogo
-- [ ] usar `has_upgradable_weapon()` para não oferecer melhoria impossível
-- [ ] XP excedente e múltiplos níveis de uma vez, sem perder nada
-- [ ] criar `tests/test_phase5.gd`
+- [ ] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
+- [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` (vida, velocidade, área, cooldown, alcance de coleta)
+- [ ] oferecer arma nova além de melhorar equipada, respeitando os slots
+- [ ] validar opções: nada impossível, nada repetido na mesma tela
+- [ ] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14)
+- [ ] criar `tests/test_phase6.gd`
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

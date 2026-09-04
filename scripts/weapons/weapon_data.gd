@@ -36,11 +36,25 @@ extends Resource
 @export var amount: int = 1
 
 @export_group("Posicionamento")
-## O efeito nasce em cima do alvo (raio) ou no próprio druida (vinha).
-@export var spawn_on_target: bool = true
 
-## O efeito é girado na direção do alvo. Só faz sentido em ataque com direção.
-@export var aim_at_target: bool = false
+## Onde o ataque nasce.
+##
+## `EM_VOLTA` sorteia um ponto no chão dentro de um anel em torno do druida: a
+## vinha brota da terra em volta dele, não sai do corpo dele.
+enum Spawn { NO_ALVO, NO_DRUIDA, EM_VOLTA }
+@export var spawn_mode: Spawn = Spawn.NO_ALVO
+
+## Raio do anel usado por `EM_VOLTA`. O ponto sai entre 45% e 100% dele, para os
+## ataques não nascerem todos colados no druida nem todos na borda.
+@export var spawn_radius: float = 140.0
+
+## Para onde o ataque aponta.
+##
+## `HORIZONTAL` é a regra do jogo: habilidade com direção aponta para a esquerda
+## ou para a direita, nunca na diagonal. A arte é desenhada de lado, e girá-la
+## em ângulo qualquer denuncia que é um desenho girado.
+enum Aim { NENHUMA, PARA_O_ALVO, HORIZONTAL }
+@export var aim_mode: Aim = Aim.NENHUMA
 
 @export_group("Progressão")
 ## Teto de nível. A FASE 6 decide como os níveis são oferecidos; aqui só existe
