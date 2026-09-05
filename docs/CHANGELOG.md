@@ -35,6 +35,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **FASE 6 — Sistema de upgrades (em andamento):**
+  - `scripts/components/stat_component.gd` — onde os bônus se somam (`03_SYSTEMS.md` §14). Guarda bônus, não bases: `efetivo = (base + plano) * (1 + percentual)`, com piso no fator para redução exagerada não zerar nem inverter um valor;
+  - nó `Stats` no Player; `Player` recalcula velocidade, vida máxima e alcance de coleta quando o componente avisa;
+  - `Player.get_move_speed()` — a velocidade depois das passivas, que é a que o movimento usa;
+  - ganhar vida máxima também cura o mesmo tanto, para a passiva ter efeito na hora da escolha;
+  - `tests/test_phase6.gd`.
 - **HUD da partida (FASE 9, adiantado):**
   - `scripts/ui/hud.gd` + `scenes/ui/hud.tscn` — barras de vida e de XP, nível e cronômetro; só apresentação, ligado por `configure()` aos componentes que já existiam;
   - `tools/preparar_barras_hud.py` — prepara a arte bruta das barras: encaixa o par, escurece o vão, separa o líquido da moldura e limpa restos de chroma;

@@ -18,8 +18,8 @@ Detalhes em `docs/HANDOFF.md`.
 - [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` (vida, velocidade, área, cooldown, alcance de coleta)
 - [ ] oferecer arma nova além de melhorar equipada, respeitando os slots
 - [ ] validar opções: nada impossível, nada repetido na mesma tela
-- [ ] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14)
-- [ ] criar `tests/test_phase6.gd`
+- [x] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14) — velocidade, vida máxima e alcance de coleta já passam por ele
+- [x] criar `tests/test_phase6.gd` (cobre o `StatComponent`; cresce com o resto da fase)
 
 Com o HUD no lugar, dá para julgar cada passiva olhando a tela em vez de ler
 número em log — que era o motivo de adiantá-lo.

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-04
+Última atualização: 2026-09-05
 
 # Projeto
 
@@ -702,6 +702,76 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# Stats (FASE 6, primeiro item)
+
+| O quê | Caminho |
+|---|---|
+| Componente | `res://scripts/components/stat_component.gd`, nó `Stats` no Player |
+| Quem aplica | `res://scripts/player/player.gd`, `_aplicar_stats()` |
+
+## A conta
+
+```text
+efetivo = (base + plano) * (1 + percentual)
+```
+
+O plano soma antes, o percentual multiplica depois. É a ordem que faz "+20 de
+vida" e "+10% de vida" se comportarem como o jogador espera com as duas
+equipadas. Percentuais **somam entre si**: +10% e +10% dão +20%, não +21% — é a
+regra do gênero e a única que o jogador consegue prever de cabeça olhando a tela
+de escolha.
+
+Um stat multiplicador — dano, cooldown, área — é só um stat cuja base é 1.0.
+Não precisou de tratamento próprio.
+
+## O componente não guarda as bases
+
+A velocidade base continua em `Player.move_speed`, a vida base em
+`HealthComponent.max_health`, o alcance no raio da forma da `PickupArea`. Cada
+um desses valores já estava documentado e ajustado onde vive; copiá-los para o
+`StatComponent` criaria duas fontes de verdade, e "qual das duas vale?" não tem
+resposta boa.
+
+Quem guarda base é o **Player**, e só as que ele precisa reescrever: aplicar um
+stat **escreve por cima** do valor do componente, então se
+`HealthComponent.max_health` virasse a base da conta seguinte, cada recálculo
+somaria em composto. Duas passivas de +50 dariam +150.
+
+## Piso no fator percentual
+
+`_FATOR_MINIMO := 0.05`. Sem ele, redução de cooldown somando -100% zeraria o
+intervalo entre ataques e a arma dispararia todo frame; -120% deixaria o
+cooldown negativo. O piso troca um bug de travar o jogo por um teto de poder.
+
+## Vida máxima ganha também cura
+
+Decisão de conteúdo, não de arquitetura, e mora no aplicador do Player: sem ela
+a passiva de vida só levantaria o teto e o jogador não sentiria nada no momento
+em que escolheu — o efeito apareceria minutos depois.
+
+## O que `tests/test_phase6.gd` cobre
+
+A conta isolada, sem cena: base pura, plano, ordem entre plano e percentual,
+percentuais somando entre si, bônus zerado não sendo bônus, um stat não sujando
+o outro, e o piso segurando uma redução de -300%.
+
+O sinal: `stat_changed` sai uma vez por mudança real, com o stat certo.
+
+No Player montado: sem passiva nada muda de valor; com passiva, velocidade, vida
+máxima e raio de coleta obedecem; ganhar vida máxima cura o mesmo tanto; e dois
+bônus de +50 dão base+100, não base+150.
+
+A velocidade é lida por `Player.get_move_speed()`, não recalculada dentro do
+teste — refazer a conta ali provaria só que o `StatComponent` sabe multiplicar,
+não que o Player chegou a perguntar.
+
+## Verificação de que a FASE 6 não passa vazia
+
+Seis erros injetados e revertidos, **todos pegos de primeira**: percentual
+multiplicando antes do plano somar, percentuais compondo em vez de somando,
+piso removido, base relida a cada recálculo, Player sem escutar `stat_changed`,
+e ganho de vida máxima sem curar.
+
 # HUD da partida (FASE 9, adiantado)
 
 | O quê | Caminho |
@@ -1156,6 +1226,9 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 43 | Quatro erros injetados no HUD | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
 | 44 | Render de verdade a 1280x720, vida em 62% e XP em 63% | as quatro peças na tela, moldura inteira e líquido no vão |
 | 45 | Suíte completa depois do HUD | sete suítes, exit 0 em todas |
+| 46 | `--headless --script res://tests/test_phase6.gd` | `FASE 6 (parcial) OK`, exit 0 |
+| 47 | Seis erros injetados no `StatComponent` e no aplicador do Player | os seis foram pegos de primeira |
+| 48 | Suíte completa depois do `StatComponent` | oito suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1432,6 +1505,8 @@ tropeçou.
 # Limitações e pendências
 
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
+- **O `StatComponent` existe mas ninguém o alimenta ainda.** Nenhuma passiva chega até ele pelo jogo: hoje só um teste soma bônus. O caminho `escolha -> stat` é o `UpgradeData`, ainda por fazer.
+- **Seis dos nove stats da §14 não têm leitor.** `MAX_HEALTH`, `MOVE_SPEED` e `PICKUP_RADIUS` são aplicados pelo Player; dano, cooldown, área, duração, velocidade de projétil e quantidade estão declarados e ninguém pergunta por eles. Quem vai perguntar é `Weapon`.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
 - **O orbe de XP é PLACEHOLDER** desenhado em código, e não tem atração: coleta só por encostar, no raio de 48 px.
 - **Nenhuma arma é escolhida pelo jogador.** As duas vêm equipadas desde o começo, por `starting_weapons`. Escolher personagem e armas iniciais é FASE 13.
@@ -1459,7 +1534,8 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 6 — Sistema de upgrades.** Não iniciada.
+**FASE 6 — Sistema de upgrades.** Em andamento: o `StatComponent` está feito e
+três valores já passam por ele. Falta o resto.
 
 Hoje a tela de level up monta as opções à mão e só sabe oferecer uma coisa:
 melhorar arma equipada. A fase troca isso por dados.
@@ -1467,11 +1543,10 @@ melhorar arma equipada. A fase troca isso por dados.
 O HUD já está no lugar, o que era o pré-requisito prático: cada passiva pode ser
 julgada olhando a tela, e não lendo número em log.
 
-Itens, na ordem do `docs/ROADMAP.md`:
+Itens restantes:
 
-1. `UpgradeData` em `Resource` — cada opção vira um `.tres`, como as armas (DEC-010);
-2. passivas da primeira lista do `docs/04_CONTENT_PLAN.md`: vida máxima, velocidade, regeneração, área, cooldown e alcance de coleta;
-3. `StatComponent` para as passivas terem onde somar (`docs/03_SYSTEMS.md` §14) — hoje os números vivem espalhados em `move_speed`, `max_health` e no raio da `PickupArea`;
+1. `UpgradeData` em `Resource` — cada opção vira um `.tres`, como as armas (DEC-010). Uma passiva é `stat` + `plano` + `percentual`, e nada além disso;
+2. passivas da primeira lista do `docs/04_CONTENT_PLAN.md`: vida máxima, velocidade, regeneração, área, cooldown e alcance de coleta. Três já têm onde bater; **regeneração, área e cooldown ainda não têm quem leia o stat** — área e cooldown pedem que `Weapon` pergunte ao `StatComponent`, e regeneração pede um tique no `HealthComponent`;
 4. oferecer **arma nova** além de melhorar equipada, respeitando `max_slots`;
 5. validação das opções: nada impossível, nada repetido na mesma tela;
 6. criar `tests/test_phase6.gd`; manter as cinco suítes anteriores passando;

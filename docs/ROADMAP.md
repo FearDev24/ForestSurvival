@@ -125,11 +125,20 @@ Observações:
 
 # FASE 6 — Sistema de upgrades
 
-- [ ] WeaponData
+- [x] WeaponData — feito na FASE 4
 - [ ] UpgradeData
-- [ ] levels
+- [x] levels — feito na FASE 4, com teto por arma
 - [ ] passivas
 - [ ] validação das opções
+
+Fora da lista original, feito primeiro:
+
+- [x] `StatComponent` (`docs/03_SYSTEMS.md` §14), com velocidade, vida máxima e alcance de coleta migrados
+
+A ordem foi invertida de propósito. Sem um lugar onde os bônus se somem, toda
+passiva viraria um caso especial escrito à mão e o `UpgradeData` nasceria tendo
+que conhecer cada um deles. Com o `StatComponent` no lugar, uma passiva é um
+bônus somado a um stat e mais nada.
 
 # FASE 7 — Três famílias de arma
 
