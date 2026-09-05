@@ -170,13 +170,10 @@ func _build_running_scene() -> bool:
 		_fail("game.tscn sem Player, SpawnManager ou EnemyContainer")
 		return false
 
-	# As habilidades de teste matariam os inimigos no meio da contagem de
-	# população. Desligadas por tipo, não por nome: uma habilidade nova não
-	# pode quebrar este teste em silêncio.
-	for filho in _game.get_children():
-		var caster := filho as LightningCaster
-		if caster != null:
-			caster.enabled = false
+	# As armas matariam os inimigos no meio da contagem de população.
+	var armas := _game.get_node_or_null("Player/WeaponManager") as WeaponManager
+	if armas != null:
+		armas.set_weapons_enabled(false)
 
 	_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	return true

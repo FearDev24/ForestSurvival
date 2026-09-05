@@ -21,12 +21,12 @@ sprite_frames = ExtResource("2_frames")
 animation = &"strike"
 
 [node name="Hitbox" type="Area2D" parent="."]
-editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox. hit_interval 0 = golpe unico por alvo. A capsula fica sobre o eixo do golpe, na altura do corpo do inimigo: deslocada para cima como a arte, girar o efeito jogaria a hitbox para o lado e o ataque erraria alvos acima e a esquerda."
+editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox. hit_interval 0 = golpe unico por alvo. O dano 1.0 e marcador: quem manda no numero e o WeaponData da arma, por set_damage(). Se sair 1 de dano em jogo, alguem esqueceu de configurar. A capsula fica sobre o eixo do golpe, na altura do corpo do inimigo: deslocada para cima como a arte, girar o efeito jogaria a hitbox para o lado e o ataque erraria alvos acima e a esquerda."
 collision_layer = 16
 collision_mask = 8
 monitorable = false
 script = ExtResource("3_hitbox")
-damage = 20.0
+damage = 1.0
 hit_interval = 0.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]

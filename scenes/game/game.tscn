@@ -1,13 +1,14 @@
-[gd_scene load_steps=10 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=12 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
 [ext_resource type="PackedScene" uid="uid://bfsplayer0forest" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" uid="uid://bfsenemy0forest" path="res://scenes/enemies/enemy.tscn" id="4_enemy"]
 [ext_resource type="Script" path="res://scripts/systems/spawn_manager.gd" id="5_spawn"]
-[ext_resource type="Script" path="res://scripts/effects/lightning_caster.gd" id="6_caster"]
-[ext_resource type="PackedScene" uid="uid://bfsraio0forest" path="res://scenes/effects/lightning_strike.tscn" id="7_strike"]
-[ext_resource type="PackedScene" uid="uid://bfsvinha0forest" path="res://scenes/effects/vine_lash.tscn" id="9_vinha"]
+[ext_resource type="Script" path="res://scripts/systems/pickup_spawner.gd" id="6_drop"]
+[ext_resource type="PackedScene" uid="uid://bfsxporb0forest" path="res://scenes/pickups/xp_orb.tscn" id="7_orb"]
+[ext_resource type="PackedScene" uid="uid://bfslevelup0fs" path="res://scenes/ui/level_up_menu.tscn" id="9_levelup"]
+[ext_resource type="PackedScene" uid="uid://bfshud0forest" path="res://scenes/ui/hud.tscn" id="10_hud"]
 [ext_resource type="Texture2D" path="res://assets/ui/gameover.png" id="8_gameover"]
 
 [node name="Game" type="Node2D"]
@@ -39,19 +40,14 @@ editor_description = "Cria os inimigos da partida. Ligado ao Player, ao EnemyCon
 script = ExtResource("5_spawn")
 enemy_scene = ExtResource("4_enemy")
 
-[node name="RaioTeste" type="Node" parent="."]
-editor_description = "Andaime de teste: dispara o raio sozinho para dar para ver a habilidade em jogo. Some quando o WeaponManager existir, na FASE 4 (DEC-009)."
-script = ExtResource("6_caster")
-strike_scene = ExtResource("7_strike")
+[node name="PickupSpawner" type="Node" parent="."]
+editor_description = "Larga XP onde o inimigo morre. Separado do SpawnManager: criar inimigo e largar tesouro sao trabalhos diferentes, e a FASE 8 vai querer que o elite largue mais."
+script = ExtResource("6_drop")
+orb_scene = ExtResource("7_orb")
 
-[node name="VinhaTeste" type="Node" parent="."]
-editor_description = "Andaime de teste, igual ao RaioTeste: a vinha nasce no druida e chicoteia na direcao do inimigo mais proximo. Some quando o WeaponManager existir (DEC-009)."
-script = ExtResource("6_caster")
-strike_scene = ExtResource("9_vinha")
-cast_interval = 1.1
-cast_range = 260.0
-spawn_on_target = false
-aim_at_target = true
+[node name="Hud" parent="." instance=ExtResource("10_hud")]
+
+[node name="LevelUpMenu" parent="." instance=ExtResource("9_levelup")]
 
 [node name="GameOver" type="Sprite2D" parent="."]
 editor_description = "Aparece no lugar onde o druida morreu, depois que a animacao de morte termina. z_index alto para ficar acima de tudo, fora da ordenacao por Y. Tela de game over de verdade, com botoes e restart, e da FASE 9."

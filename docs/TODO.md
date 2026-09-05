@@ -6,21 +6,23 @@ FASE 0 — Fundação.
 FASE 1 — Movimento e mundo.
 FASE 2 — Primeiro inimigo.
 FASE 3 — Spawn e horda.
+FASE 4 — Primeira arma.
+FASE 5 — XP e Level Up.
+HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 4 (primeira arma)
+# Agora — FASE 6 (sistema de upgrades)
 
-- [ ] transformar o `RaioTeste` em arma de verdade e apagar o andaime
+- [ ] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
+- [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` (vida, velocidade, área, cooldown, alcance de coleta)
+- [ ] oferecer arma nova além de melhorar equipada, respeitando os slots
+- [ ] validar opções: nada impossível, nada repetido na mesma tela
+- [ ] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14)
+- [ ] criar `tests/test_phase6.gd`
 
-
-- [ ] criar `WeaponManager` no Player, sem comportamento de arma específica (DEC-009)
-- [ ] Cajado da Floresta: primeira arma
-- [ ] targeting do inimigo mais próximo, sem busca global por frame
-- [ ] projétil sob `ProjectileContainer`, layer 5 PlayerAttack com mask 8 EnemyHurtbox (o espelho da DEC-017)
-- [ ] dano usando o `HitboxComponent` que já existe
-- [ ] cooldown
-- [ ] criar `tests/test_phase4.gd`
+Com o HUD no lugar, dá para julgar cada passiva olhando a tela em vez de ler
+número em log — que era o motivo de adiantá-lo.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

@@ -82,22 +82,46 @@ Observações:
 
 # FASE 4 — Primeira arma
 
-- [ ] WeaponManager
-- [ ] Cajado da Floresta
-- [ ] targeting
-- [ ] projétil
-- [ ] dano
-- [ ] cooldown
+- [x] WeaponManager
+- [x] Cajado da Floresta — entrou como **Cajado Tempestade**, o raio
+- [x] targeting
+- [x] projétil — os ataques são efeitos de vida curta, não projéteis com trajetória
+- [x] dano
+- [x] cooldown
+
+Critério:
+o druida ataca sozinho e mata inimigos. **Atingido.**
+
+Observações:
+- duas armas, não uma: o raio e a **Vinha Espinhosa**, porque a arte das duas já existia e ambas cabiam no mesmo `WeaponData` (DEC-021);
+- arma é dado, não código: `resources/weapons/*.tres` (DEC-010). Arma nova é um `.tres`;
+- o `WeaponManager` mora no Player, mas não conhece arma alguma (DEC-009);
+- a mira varre a lista de inimigos **só no instante do disparo**, nunca por frame;
+- o andaime da fase anterior — `RaioTeste`, `VinhaTeste`, `lightning_caster.gd` e `tests/test_raio.gd` — foi apagado;
+- validação automatizada: `tests/test_phase4.gd`.
+
+Falta para o loop completo: XP e level up (FASE 5) decidem **quando** uma arma sobe de nível. O `WeaponManager` já expõe `upgrade_weapon()` e `has_upgradable_weapon()` para isso.
 
 # FASE 5 — XP e Level Up
 
-- [ ] drop
-- [ ] pickup
-- [ ] XP
-- [ ] curva
-- [ ] menu de level up
-- [ ] 3 escolhas
-- [ ] XP excedente/múltiplos levels
+- [x] drop
+- [x] pickup
+- [x] XP
+- [x] curva
+- [x] menu de level up
+- [x] 3 escolhas
+- [x] XP excedente/múltiplos levels
+
+Critério:
+matar rende XP, XP rende escolha, escolha muda a partida. **Atingido.**
+
+Observações:
+- o `PickupSpawner` escuta o `SpawnManager` e liga o `died` de cada inimigo uma vez: custo de uma conexão por inimigo, sem varrer nada;
+- quem procura o fragmento é a `PickupArea` do Player, não cada fragmento — o Player é um só e os orbes são muitos (mesmo princípio da DEC-017);
+- XP excedente nunca se perde, e vários níveis de uma vez abrem uma escolha por nível — o ponto marcado como IMPORTANTE no `docs/03_SYSTEMS.md` §12;
+- a tela só abre com opção **aplicável**: arma no nível máximo não é oferecida (§13);
+- o visual do orbe é PLACEHOLDER desenhado em código (DEC-013);
+- validação automatizada: `tests/test_phase5.gd`.
 
 # FASE 6 — Sistema de upgrades
 
@@ -124,17 +148,28 @@ Observações:
 
 # FASE 9 — Loop completo
 
-- [ ] HP HUD
-- [ ] XP HUD
-- [ ] timer
-- [ ] level
+- [x] HP HUD
+- [x] XP HUD
+- [x] timer
+- [x] level
 - [ ] pause
 - [ ] game over
 - [ ] restart
 - [ ] victory
 
 Critério:
-vertical slice completo.
+vertical slice completo. **Parcial.**
+
+O painel foi adiantado, fora da ordem do roadmap, porque a FASE 6 é toda sobre
+balanceamento: sem ver vida, XP e tempo na tela não há como julgar se uma
+passiva compensa. O resto da fase — pausa, tela de game over de verdade e
+condição de vitória — continua pendente e depende do `GameManager`
+(`docs/03_SYSTEMS.md` §16).
+
+Observações:
+- as barras são `TextureProgressBar` com moldura e preenchimento separados: clipar a imagem cheia inteira cortaria a gema da ponta junto (DEC-023);
+- o cronômetro é da partida, não do HUD: quem conta é `scripts/systems/game.gd`, em passo de física, e por isso ele congela sozinho quando a tela de level up pausa o jogo;
+- validação automatizada: `tests/test_hud.gd`.
 
 # FASE 10 — Performance
 

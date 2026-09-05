@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://bfsxporb0forest"]
+
+[ext_resource type="Script" path="res://scripts/pickups/xp_orb.gd" id="1_orb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orb"]
+radius = 8.0
+
+[node name="XpOrb" type="Area2D" groups=["pickup"]]
+editor_description = "Fragmento de XP. Layer 7 Pickup, mask 0: e detectavel, mas nao detecta - quem procura e a PickupArea do Player. Visual e PLACEHOLDER desenhado em codigo (DEC-013)."
+collision_layer = 64
+collision_mask = 0
+monitoring = false
+script = ExtResource("1_orb")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_orb")

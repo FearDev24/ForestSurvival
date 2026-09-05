@@ -35,6 +35,35 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **HUD da partida (FASE 9, adiantado):**
+  - `scripts/ui/hud.gd` + `scenes/ui/hud.tscn` — barras de vida e de XP, nível e cronômetro; só apresentação, ligado por `configure()` aos componentes que já existiam;
+  - `tools/preparar_barras_hud.py` — prepara a arte bruta das barras: encaixa o par, escurece o vão, separa o líquido da moldura e limpa restos de chroma;
+  - `assets/ui/barra_{vida,xp}_{fundo,preenchimento}.png`, gerados pelo script; originais em `assets/_raw/`;
+  - o tempo decorrido passa a viver em `scripts/systems/game.gd`, contado em passo de física;
+  - `tests/test_hud.gd`.
+- **FASE 5 — XP e Level Up:**
+  - `scripts/components/level_component.gd` — XP, curva e nível, com XP excedente preservado e vários níveis por ganho;
+  - `scripts/pickups/xp_orb.gd` + `scenes/pickups/xp_orb.tscn` — fragmento de XP, visual PLACEHOLDER desenhado em código;
+  - `scripts/player/pickup_area.gd` — área de coleta no Player, com raio ajustável (a passiva de alcance da FASE 6 chama `set_radius()`);
+  - `scripts/systems/pickup_spawner.gd` — larga XP onde o inimigo morre, escutando o `SpawnManager`;
+  - `scripts/ui/level_up_menu.gd` + `scenes/ui/level_up_menu.tscn` — pausa, oferece até 3 opções **aplicáveis** e atende um nível por escolha;
+  - `Level` e `PickupArea` no Player, `PickupSpawner` e `LevelUpMenu` em `game.tscn`;
+  - correção: o orbe entra na cena com `call_deferred` — largá-lo dentro da detecção de área que matou o inimigo fazia a Godot recusar o registro da forma;
+  - `tests/test_phase5.gd`.
+- **Ajuste nas habilidades (DEC-022):**
+  - habilidade com direção aponta só na **horizontal**; o alvo decide o lado;
+  - a vinha **brota do chão** num ponto sorteado em volta do druida, em vez de sair do corpo dele;
+  - `WeaponData` ganha `spawn_mode`, `spawn_radius` e `aim_mode` no lugar dos dois booleanos.
+- **FASE 4 — Primeira arma:**
+  - `scripts/weapons/weapon_data.gd` — `WeaponData`, `Resource` com os números e a cena do ataque; arma nova é um `.tres`, não código (DEC-010);
+  - `scripts/weapons/weapon.gd` — uma arma em funcionamento: cooldown, mira e criação do ataque, sem conhecer arma específica;
+  - `scripts/weapons/weapon_manager.gd` — slots, acrescentar, melhorar e consultar nível; arma repetida **melhora** em vez de duplicar;
+  - `resources/weapons/cajado_raio.tres` e `vinha_espinhosa.tres` — as duas primeiras armas, com progressão de dano e cooldown por nível;
+  - `WeaponManager` no Player, ligado ao mundo por `game.gd`;
+  - `AbilityEffect.set_damage()`: o nível da arma chega ao golpe sem a cena saber que existe arma;
+  - o dano nas cenas de ataque virou `1.0`, marcador — quem manda no número é o `WeaponData`;
+  - `tests/test_phase4.gd`, que absorveu o antigo `test_raio.gd`;
+  - **andaime removido:** nós `RaioTeste` e `VinhaTeste`, `scripts/effects/lightning_caster.gd` e `tests/test_raio.gd`.
 - **Mapa em tiles, bordas e objetos de cenário (arte nova, estado CANDIDATE):**
   - `assets/environment/tileset-{terra,agua}.png` — 16 peças de 64 px cada, conjuntos de **cantos** completos, recortados das folhas originais (que vinham com células de tamanhos diferentes e uma moldura clara por dentro);
   - `assets/environment/forest_tileset.tres` — `TileSet` com terrenos declarados (Terra, Mata, Água, modo cantos), então o pincel do editor autotila;

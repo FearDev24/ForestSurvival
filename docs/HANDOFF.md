@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-01
+Última atualização: 2026-09-04
 
 # Projeto
 
@@ -30,7 +30,9 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 — Fundação, FASE 1 — Movimento e mundo, FASE 2 — Primeiro inimigo e FASE 3 — Spawn e horda.**
+**FASE 0 a FASE 5.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP e level up.
+
+Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
 Ao rodar o jogo existe uma área de protótipo com grid e um Player controlável em oito direções, com câmera acompanhando e paredes de borda.
 
@@ -39,6 +41,10 @@ Depois da FASE 1, o sprite do druida (estado CANDIDATE) foi integrado no lugar d
 Em 2026-08-29 entrou o **diabrete**, primeiro inimigo, com sprites nas quatro direções (estado CANDIDATE). Junto com ele entraram a cena `enemy.tscn` e a perseguição direta simples, porque sem locomoção não dava para avaliar a arte em movimento.
 
 **FASE 2 — Primeiro inimigo. Concluída.** O diabrete persegue, causa dano por contato, recebe dano e morre uma única vez; o Player tem vida e morre. Componentes de vida, hitbox e hurtbox existem em `scripts/components/` e são reutilizáveis pelas armas da FASE 4.
+
+**O laço do gênero fechou.** Matar rende XP, XP rende escolha, escolha muda a
+partida — e o druida ainda pode perder. Falta o sistema de upgrades completo
+(FASE 6), mais armas (FASE 7), waves (FASE 8) e HUD (FASE 9).
 
 O mapa deixou de ser um retângulo liso: tem chão em tiles, vegetação fechando
 as bordas e objetos de cenário com colisão. A morte do druida foi refeita a
@@ -696,20 +702,199 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# HUD da partida (FASE 9, adiantado)
+
+| O quê | Caminho |
+|---|---|
+| Painel | `res://scenes/ui/hud.tscn`, nó `Hud` em `game.tscn` |
+| Lógica | `res://scripts/ui/hud.gd` |
+| Arte | `assets/ui/barra_{vida,xp}_{fundo,preenchimento}.png` |
+| Preparo da arte | `tools/preparar_barras_hud.py`, a partir de `assets/_raw/` |
+| Cronômetro | `_elapsed` em `res://scripts/systems/game.gd` |
+
+## Quem sabe o quê
+
+O HUD é apresentação e nada mais. Não lê estado a cada frame, não guarda regra e
+não conhece Player, armas nem spawn: recebe `HealthComponent` e `LevelComponent`
+em `configure()` e depois só reage aos sinais que os dois já emitiam desde a
+FASE 0 e a FASE 5. Nenhum componente precisou mudar para o painel existir.
+
+O cronômetro é a exceção, e de propósito: tempo decorrido é estado **de
+partida**, não de HUD. Quem conta é `game.gd`, que empurra o valor por
+`set_time()`. O efeito prático é que o relógio congela sozinho quando a tela de
+level up pausa o jogo, sem o HUD saber o que é pausa — e quando o `GameManager`
+da FASE 9 chegar, o tempo vai junto com ele e o painel continua igual.
+
+A contagem é em `_physics_process`, não em `_process`: o passo de física é fixo,
+então o relógio não depende de quantos quadros a máquina desenha e um teste sabe
+exatamente quanto tempo passou depois de N passos.
+
+## Por que a moldura e o líquido são dois arquivos
+
+A arte chegou em dois estados por barra: vazia e cheia. Clipar a imagem cheia
+inteira pela metade cortaria a **gema da ponta direita** junto com o líquido.
+Então o script separa os dois: `texture_under` é a moldura completa,
+`texture_progress` é só o líquido que vive dentro do vão. A moldura fica firme e
+só o conteúdo recua.
+
+## O que o preparo da arte resolveu
+
+Os dois pares vieram em canvas diferentes e construídos de formas diferentes:
+
+- **tamanho:** 1752x897 contra 1717x916 no XP, 1983x793 contra 2172x724 no HP. O `TextureProgressBar` desenha as duas texturas no mesmo retângulo, então tamanhos diferentes deslocariam o líquido para fora do vão;
+- **o vão:** no XP ele é um buraco transparente; no HP já vem pintado de escuro. Por isso a detecção não pode ser "onde é transparente" — é pela **cor do líquido**;
+- **o encaixe:** no HP a borda superior da moldura serve de referência e o erro deu 0,00 px. No XP não serve, porque o musgo da borda difere entre as duas peças e alinhar por ela deixava o verde 6 px acima do vão; ali o alinhamento é pelo próprio vão, com erro de 0,50 px. O script escolhe o critério conforme a moldura tenha ou não vão vazado;
+- **franja de chroma:** 250 px ao todo, removidos com um teste estrito (verde claro, saturado, sem vermelho nem azul) para não comer o musgo, que é mais escuro e amarelado.
+
+O tamanho de tela está baked na textura por necessidade, não por gosto — o
+porquê está em **DEC-023**.
+
+# XP e level up (FASE 5)
+
+| O quê | Caminho |
+|---|---|
+| Nível e curva | `res://scripts/components/level_component.gd`, nó `Level` no Player |
+| Fragmento | `res://scenes/pickups/xp_orb.tscn` |
+| Coleta | `res://scripts/player/pickup_area.gd`, nó `PickupArea` no Player |
+| Drop | `res://scripts/systems/pickup_spawner.gd`, nó em `game.tscn` |
+| Escolha | `res://scenes/ui/level_up_menu.tscn` |
+
+## O caminho do XP
+
+```text
+Enemy.died -> PickupSpawner -> XpOrb no chão
+                                   |
+                        PickupArea do Player coleta
+                                   |
+                   LevelComponent.add_xp -> leveled_up
+                                   |
+                            LevelUpMenu pausa e oferece
+```
+
+Ninguém varre nada. O `PickupSpawner` liga o `died` de cada inimigo **uma vez**,
+quando ele nasce; e quem procura o fragmento é a área do Player, que é uma só,
+não cada orbe — mesmo princípio da DEC-017.
+
+## XP excedente e níveis acumulados
+
+É o ponto que o `docs/03_SYSTEMS.md` §12 marca como IMPORTANTE, e está resolvido
+em dois lugares:
+
+- **no `LevelComponent`:** um ganho grande sobe quantos níveis couberem e guarda
+  o resto. Ganhar 65 quando faltam 20 e depois 40 sobe dois níveis e deixa 5;
+- **no menu:** cada nível vira uma escolha na fila. Subir três de uma vez abre a
+  tela três vezes, uma escolha por vez. Sem isso, dois níveis no mesmo instante
+  dariam uma escolha só e o jogador perderia o que ganhou.
+
+Há um teto de 50 níveis por ganho, contra curva mal configurada: `xp_growth`
+zerado faria o laço rodar para sempre no primeiro fragmento coletado.
+
+## A tela só abre se tiver o que oferecer
+
+A §13 pede "evitar opções impossíveis". Arma no nível máximo não entra na lista,
+e se **nenhuma** opção sobra a tela não abre — pausar o jogo para não oferecer
+nada seria pior que não pausar. Com todas as armas no teto isso é um beco sem
+saída legítimo, até a FASE 6 trazer passivas.
+
+## Um erro de física que apareceu só em execução
+
+`Can't change this state while flushing queries`, cinco vezes por partida. O
+orbe é uma `Area2D`, e ele era acrescentado à cena **dentro** da detecção de
+colisão que matou o inimigo — registrar a forma de uma área durante a consulta
+de física é proibido.
+
+Resolvido com `add_child.call_deferred()`. A posição já está definida antes,
+então um frame de atraso não muda nada visível.
+
+Vale como padrão do projeto: **tudo que nasce a partir de um sinal de física
+entra na cena adiado.** Já valia para `monitorable`/`monitoring` desde a FASE 3;
+agora vale para o nó inteiro.
+
+# Armas (FASE 4)
+
+## Estrutura
+
+| O quê | Caminho |
+|---|---|
+| Dados | `res://scripts/weapons/weapon_data.gd` (`WeaponData`, um `Resource`) |
+| Arma em funcionamento | `res://scripts/weapons/weapon.gd` (`Weapon`) |
+| Gerenciador | `res://scripts/weapons/weapon_manager.gd` (`WeaponManager`) |
+| Armas existentes | `res://resources/weapons/*.tres` |
+| Nó | `WeaponManager`, filho do `Player` |
+
+O `WeaponManager` mora dentro do Player, como manda `docs/02_ARCHITECTURE.md`,
+mas **não conhece arma nenhuma** (DEC-009). Quem liga tudo ao mundo é a raiz da
+partida: o Player não conhece o container de inimigos nem o de efeitos, e não
+deve conhecer.
+
+Acrescentar uma arma ao jogo é criar um `.tres` (DEC-010). Nenhuma linha de
+código muda.
+
+## As duas primeiras
+
+| | Cajado Tempestade | Vinha Espinhosa |
+|---|---|---|
+| dano (nível 1) | 30 | 20 |
+| cooldown | 1,5 s | 1,1 s |
+| alcance | 640 px | 260 px |
+| posição | cai **em cima** do inimigo | **brota do chão**, num anel de 150 px em volta do druida |
+| direção | não tem | **horizontal**, para o lado do alvo |
+| por nível | +10 de dano, cooldown x0,88 | +6 de dano, cooldown x0,9 |
+| teto | nível 5 | nível 5 |
+
+Posição e direção são campos de `WeaponData` — `spawn_mode`, `spawn_radius` e
+`aim_mode` —, não regras no código do ataque. O porquê da vinha brotar do chão e
+de a mira ser só horizontal está em **DEC-022**.
+
+São o raio e a vinha que já existiam como andaime, agora com dados e nível. O
+`RaioTeste`, o `VinhaTeste`, o `lightning_caster.gd` e o `tests/test_raio.gd`
+foram **apagados**.
+
+## Decisões que ficaram no código
+
+**Arma repetida melhora, não duplica.** Pedir de novo a mesma arma sobe o nível.
+É assim que a tela de level up da FASE 5 vai funcionar, e duplicar armaria duas
+cópias atirando em paralelo sem ninguém ter pedido.
+
+**Sem alvo, o cooldown não é gasto.** Guardar o disparo para quando houver
+inimigo é mais justo do que desperdiçá-lo no vazio.
+
+**A mira varre a lista só no instante do disparo.** Com o cooldown atual são
+poucas dezenas de varreduras por minuto, contra milhares se fosse por frame
+(DEC-011). Guardar o alvo entre disparos não serviria: o mais próximo muda o
+tempo todo, e ele pode ter morrido.
+
+**O dano mora no `WeaponData`, não na cena do ataque.** As cenas ficaram com
+`damage = 1.0` como marcador: se sair 1 de dano em jogo, alguém esqueceu de
+configurar. Deixar o número certo na cena esconderia esse esquecimento, porque
+coincidiria com o dano do nível 1 — foi assim que o teste começou passando por
+motivo errado.
+
+**`enabled` é estado do manager, não de cada arma.** Desligado antes de
+`configure()`, continua valendo para as armas criadas depois. Sem isso, quem
+desliga cedo demais não desliga nada: foi exatamente o que quebrou dois testes
+quando as armas entraram, porque `Game._ready()` só roda no primeiro frame.
+
+## Gancho para a FASE 5
+
+`upgrade_weapon()` e `has_upgradable_weapon()` já existem. O segundo é o que
+impede a tela de level up de oferecer melhoria impossível
+(`docs/03_SYSTEMS.md` §13).
+
 # Vinha (segunda habilidade, andaime)
 
 | O quê | Caminho |
 |---|---|
 | Efeito | `res://scenes/effects/vine_lash.tscn` |
 | Script comum | `res://scripts/effects/ability_effect.gd` (`AbilityEffect`) |
-| Disparo | nó `VinhaTeste`, mesmo script do `RaioTeste` |
+| Disparo | `resources/weapons/vinha_espinhosa.tres`, pelo `WeaponManager` |
 
 Uma rosa brota no chão e uma vinha espinhosa chicoteia na direção do inimigo mais
 próximo. 8 quadros de 240 x 88, 20 de dano, alcance 260 px, a cada 1,1 s.
 
 `lightning_strike.gd` virou **`ability_effect.gd`**: era comportamento genérico
-com nome de uma habilidade só, e com duas o nome já mentia. O disparador também é
-o mesmo, com dois exports separando os casos — tudo registrado em **DEC-021**.
+com nome de uma habilidade só, e com duas o nome já mentia — registrado em
+**DEC-021**. Na FASE 4 o disparo saiu do andaime e virou `Weapon`.
 
 ## A arte exigiu três correções
 
@@ -899,6 +1084,14 @@ No mapa e nas habilidades (2026-09-01):
 - `scripts/effects/ability_effect.gd` (substitui `lightning_strike.gd`)
 - `assets/_raw/` — folhas originais, vídeo da morte e artes antes da limpeza
 
+Na FASE 4:
+
+- `scripts/weapons/weapon_data.gd`, `weapon.gd`, `weapon_manager.gd` (+ `.uid`)
+- `resources/weapons/cajado_raio.tres` e `vinha_espinhosa.tres`
+- `tests/test_phase4.gd` (+ `.uid`)
+
+Apagados na FASE 4: `scripts/effects/lightning_caster.gd` e `tests/test_raio.gd`.
+
 # Arquivos modificados
 
 - `scenes/game/game.tscn` (script de composição, instâncias de TestWorld e Player)
@@ -949,7 +1142,20 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 29 | Player empurrado contra um prop sólido | barrado a 32 px do centro dele |
 | 30 | Vinha nas seis direções, inimigo a 130 px | 20 de dano em todas — um golpe por alvo |
 | 31 | Um botão de rosa por quadro, nos 8 quadros da vinha | conferido por contagem de manchas |
-| 32 | Suíte completa depois de tudo | `FASE 0/1/2/3 OK` e `RAIO OK` |
+| 32 | Suíte completa depois do mapa e das habilidades | `FASE 0/1/2/3 OK` e `RAIO OK` |
+| 33 | `--headless --script res://tests/test_phase4.gd` | `FASE 4 OK`, exit 0 |
+| 34 | Três erros injetados nas armas | cooldown ignorado, dano do nível não chegando ao ataque, e arma repetida duplicando; os três foram pegos |
+| 35 | Partida real com as duas armas e 10 inimigos | 10 mortos em 6,7 s, zero efeitos deixados na cena |
+| 36 | Suíte completa depois da FASE 4 | `FASE 0/1/2/3/4 OK` |
+| 37 | `--headless --script res://tests/test_phase5.gd` | `FASE 5 OK`, exit 0 |
+| 38 | Três erros injetados na FASE 5 | XP excedente descartado, opção impossível oferecida e fila de níveis ignorada; os três foram pegos |
+| 39 | Partida real: 12 inimigos, coleta e level up | subiu ao nível 2, tela abriu com duas opções válidas, jogo pausado |
+| 40 | Vinha depois do DEC-022, com render | rotação 0°, nascendo a 145 px do druida |
+| 41 | Suíte completa depois da FASE 5 | `FASE 0/1/2/3/4/5 OK` |
+| 42 | `--headless --script res://tests/test_hud.gd` | `HUD OK`, exit 0 |
+| 43 | Quatro erros injetados no HUD | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
+| 44 | Render de verdade a 1280x720, vida em 62% e XP em 63% | as quatro peças na tela, moldura inteira e líquido no vão |
+| 45 | Suíte completa depois do HUD | sete suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1125,8 +1331,111 @@ próxima habilidade que entrar não quebra os testes em silêncio.
 Vale como aviso geral: teste que depende de nome de nó quebra quando alguém
 acrescenta um irmão.
 
+## O que `tests/test_phase4.gd` cobre
+
+Dados: cada `.tres` é válido, ids não se repetem, e a progressão **progride** —
+dano sobe e cooldown cai do nível 1 para o 2, sem chegar a zero no nível máximo.
+Um `.tres` é editado à mão com frequência, e um valor zerado passa despercebido.
+
+Cenas de ataque: aceitam `set_damage()`, têm `aim()` quando a arma mira, e a
+hitbox está nas layers certas em golpe único.
+
+`WeaponManager` isolado, sem física no meio: arma nova entra no nível 1, arma
+repetida **melhora** em vez de duplicar, o limite de slots recusa a terceira sem
+trocar ninguém, o nível para no teto, e arma inexistente reporta nível 0.
+
+Em execução: a arma dispara sozinha **dentro do cooldown** (2 disparos em 4 s,
+com tolerância de um, porque o dobro seria cooldown ignorado), o dano por golpe
+bate com o nível, e o `EffectContainer` não acumula nós.
+
+## Verificação de que a FASE 4 não passa vazia
+
+Três erros injetados e revertidos:
+
+1. cooldown ignorado no `Weapon` → "240 disparos em 4.0 s, esperado ~2";
+2. `set_damage()` não chamado → "2.0 de dano tirado em 2 disparos de 30.0";
+3. arma repetida deixando de melhorar → "deveria subir para o nível 2, está no 1".
+
+## O que `tests/test_phase5.gd` cobre
+
+Curva isolada, sem cena: ganho pequeno não sobe nível, fechar o nível exato deixa
+sobra zero, e **65 de XP sobe dois níveis guardando 5** — o ponto da §12. Uma
+curva degenerada (`xp_growth` zerado) não pode travar o jogo.
+
+Estrutura: o orbe é `Area2D` na layer Pickup com mask 0, responde a `collect()`,
+e o Player tem `Level` e `PickupArea` com raio válido.
+
+Em execução: inimigo morto larga **um** orbe **onde morreu**, sem coletar
+sozinho; encostar coleta e soma XP; dois níveis de uma vez pausam o jogo, abrem
+opções com ação ligada, aplicam **uma** escolha por nível e só fecham quando a
+fila esvazia; e com todas as armas no teto a tela **não abre**.
+
+## Verificação de que a FASE 5 não passa vazia
+
+Três erros injetados e revertidos. O segundo é o interessante: na primeira
+tentativa ele **passou**, porque o teste nunca chegava a ter arma no nível
+máximo — a regra existia no código, mas nada a protegia. Foi preciso acrescentar
+o caso; hoje o teste enche as armas até o teto de propósito.
+
+1. XP excedente descartado → "65 de XP deveria subir dois níveis, subiu 1";
+2. opção impossível oferecida → "a tela abriu com todas as armas no teto";
+3. fila de níveis ignorada → "a tela fechou com nível ainda na fila".
+
+## O que `tests/test_hud.gd` cobre
+
+Arte: as duas peças de cada barra têm o mesmo tamanho, cabem na viewport,
+esvaziam da direita para a esquerda e usam filtro Linear.
+
+Relógio: `00:00`, `00:09`, `01:05`, `09:59` e — passando de uma hora —
+`1:02:05`.
+
+`configure()`: com componentes soltos em estado que não é o inicial de ninguém —
+vida em 25%, XP em 40% do nível 2 —, as barras e o rótulo precisam refletir isso
+no instante em que o painel é ligado.
+
+Em execução: dano e XP movem as barras na proporção certa, o rótulo de nível
+acompanha, e o relógio **congela** enquanto a tela de level up mantém o jogo
+pausado.
+
+## Verificação de que o teste do HUD não passa vazio
+
+Quatro erros injetados e revertidos. **Dois passaram na primeira tentativa**, e
+os dois motivos valem registro:
+
+1. **`configure()` esvaziado ainda passava.** O teste conferia os valores
+   iniciais na cena de verdade, e `hud.tscn` trazia `value = 100` na barra de
+   vida — o padrão da cena satisfazia a checagem sozinho. Corrigido em dois
+   lugares: a barra nasce vazia na cena, e existe agora um teste de `configure()`
+   com componentes soltos em estado arbitrário, que não tem como ser satisfeito
+   por padrão nenhum;
+2. **cronômetro correndo durante a pausa ainda passava.** A janela de pausa do
+   teste era de 30 passos, meio segundo: um relógio que continuasse correndo
+   ainda mostraria o mesmo número inteiro de segundos. A janela passou para 75
+   passos, mais de um segundo, que é o mínimo para a diferença aparecer.
+
+Os outros dois foram pegos de primeira: rótulo de nível parado e preenchimento
+com tamanho diferente da moldura.
+
+A lição é a mesma das fases anteriores, num formato novo: **um teste que
+verifica o estado inicial não pode aceitar como resposta o valor que a cena já
+traz de fábrica.**
+
+## Uma armadilha já conhecida, num nó novo
+
+`@onready` não resolve em nó acrescentado à árvore de dentro de
+`SceneTree._initialize()` — `_ready()` não dispara ali. É a mesma razão da
+inicialização preguiçosa do `HealthComponent` e do `get_node_or_null` na
+`PickupArea`. O `Hud` resolve os filhos na primeira vez que é usado, pelo mesmo
+motivo. No jogo real `_ready()` roda normalmente; quem tropeça é o teste, e ele
+tropeçou.
+
 # Limitações e pendências
 
+- **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
+- **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
+- **O orbe de XP é PLACEHOLDER** desenhado em código, e não tem atração: coleta só por encostar, no raio de 48 px.
+- **Nenhuma arma é escolhida pelo jogador.** As duas vêm equipadas desde o começo, por `starting_weapons`. Escolher personagem e armas iniciais é FASE 13.
+- **Os ataques não são projéteis.** São efeitos de vida curta no lugar do alvo. O `ProjectileContainer` continua vazio; arma com trajetória entra quando existir uma que precise.
 - **Os inimigos raspam nos props sólidos.** Eles colidem com a layer 8 e perseguem em linha reta, sem pathfinding (DEC-008). Com peças pequenas o `move_and_slide` contorna; com a horda cheia isso precisa ser observado (DEC-020).
 - **Não há transição de terra para água** no tileset: cada folha cobre um par de terrenos. Pintar água encostando em terra não acha peça.
 - **O mapa procedural é placeholder**, não design: existe para o jogo não rodar sobre um retângulo liso. A primeira célula pintada à mão desliga ele.
@@ -1136,7 +1445,8 @@ acrescenta um irmão.
 - **Inimigo não tem nem terá `idle`** (DEC-019). Parado, congela no frame 0 da caminhada. É o alvo, não pendência.
 - **Sprites de mesma linha ainda se misturam.** O Y-sort resolve a profundidade, mas dois inimigos praticamente na mesma coordenada Y têm ordem indefinida entre si, e a sprite de 96 px de altura sobre uma pegada de 28 px faz a horda se sobrepor verticalmente de qualquer jeito. É característica de top-down com personagem alto, não defeito de ordenação.
 - **Não há feedback visual de dano**: nem no Player nem no inimigo. A `Hurtbox` já emite `hit`, que é o gancho para piscar ou mostrar número — falta a arte e é assunto da FASE 11.
-- **A vida não aparece na tela.** A barra de HP é da FASE 9; hoje só dá para ver a vida por script.
+- **O HUD não tem ícones nem números.** Mostra vida, XP, nível e tempo; não mostra quantas armas há, nem o valor exato de vida. Suficiente para balancear a FASE 6.
+- **O tamanho do HUD está baked na textura** (DEC-023): mudá-lo é editar `LARGURA_EM_TELA` em `tools/preparar_barras_hud.py` e rodar de novo, não arrastar o nó no editor.
 - **Nada acontece quando o Player morre.** Ele para e sai do radar, e o jogo continua rodando. Game over, tela de resultado e restart são da FASE 9.
 - **Os `.json` do diabrete têm `sheet` e `id` de frame inconsistentes** (dizem `idle`/`andar`, apontam para nomes inexistentes). Não afeta o jogo; vale corrigir na origem.
 - **O druida não tem `idle` em nenhuma direção**, e é o único personagem que deveria ter (DEC-019). Parado, congela no frame 0 da caminhada correspondente.
@@ -1149,45 +1459,39 @@ acrescenta um irmão.
 
 # Próxima tarefa
 
-**FASE 4 — Primeira arma.** Não iniciada.
+**FASE 6 — Sistema de upgrades.** Não iniciada.
 
-Hoje a partida não é vencível: o druida não tem como matar nada. É o buraco mais
-óbvio do vertical slice.
+Hoje a tela de level up monta as opções à mão e só sabe oferecer uma coisa:
+melhorar arma equipada. A fase troca isso por dados.
+
+O HUD já está no lugar, o que era o pré-requisito prático: cada passiva pode ser
+julgada olhando a tela, e não lendo número em log.
 
 Itens, na ordem do `docs/ROADMAP.md`:
 
-1. criar `WeaponManager` no Player, sem comportamento de arma específica dentro dele (DEC-009);
-2. Cajado da Floresta como primeira arma, com os dados em `Resource` (DEC-010);
-3. targeting do inimigo mais próximo — **sem** busca global por frame por projétil (`docs/02_ARCHITECTURE.md`);
-4. projétil sob `ProjectileContainer`, reaproveitando o `HitboxComponent` que já existe;
-5. dano e cooldown;
-6. criar `tests/test_phase4.gd`; manter as três suítes anteriores passando;
+1. `UpgradeData` em `Resource` — cada opção vira um `.tres`, como as armas (DEC-010);
+2. passivas da primeira lista do `docs/04_CONTENT_PLAN.md`: vida máxima, velocidade, regeneração, área, cooldown e alcance de coleta;
+3. `StatComponent` para as passivas terem onde somar (`docs/03_SYSTEMS.md` §14) — hoje os números vivem espalhados em `move_speed`, `max_health` e no raio da `PickupArea`;
+4. oferecer **arma nova** além de melhorar equipada, respeitando `max_slots`;
+5. validação das opções: nada impossível, nada repetido na mesma tela;
+6. criar `tests/test_phase6.gd`; manter as cinco suítes anteriores passando;
 7. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
-As layers do ataque do jogador já estão decididas e são o espelho exato do que o
-inimigo faz hoje (DEC-017): **layer 5 PlayerAttack (16), mask 8 EnemyHurtbox**.
-Nenhuma camada nova precisa ser inventada.
+O `LevelUpMenu` já tem a forma certa — fila de níveis, opções filtradas, uma
+escolha por vez. O que muda é de onde vem a lista: hoje sai de um laço sobre as
+armas equipadas, e passa a sair de um catálogo de `UpgradeData`.
 
-A fase ficou **menor** do que era quando foi planejada. Já existem, testados:
+Dois ganchos já existem: `WeaponManager.has_upgradable_weapon()` e
+`PickupArea.set_radius()` — este último foi feito exatamente para a passiva de
+alcance de coleta.
 
-- **golpe único** no `HitboxComponent` (`hit_interval = 0`);
-- **`AbilityEffect`**, com ciclo de vida e dano a partir do frame de impacto;
-- **mira**, com o cuidado de manter a hitbox sobre o eixo do golpe (DEC-021);
-- as **layers** do ataque do jogador, em uso por duas habilidades.
+## Critério de aceite da FASE 6
 
-O que falta é só a **arquitetura**: `WeaponManager`, dados em `Resource`, nível e
-cooldown por arma. O raio e a vinha viram as duas primeiras armas.
-
-Ao terminar, apagar o andaime: nós `RaioTeste` e `VinhaTeste`,
-`scripts/effects/lightning_caster.gd` e `tests/test_raio.gd`.
-
-## Critério de aceite da FASE 4
-
-- a arma dispara sozinha, em cooldown;
-- o projétil viaja com velocidade independente do FPS;
-- o inimigo atingido perde vida e morre;
-- nenhum projétil fica eterno na cena;
-- nenhum projétil faz busca global de alvo por frame.
+- upgrades são dados, não código;
+- passivas mudam o jogo de verdade, com efeito observável;
+- nenhuma opção impossível ou repetida é oferecida;
+- arma nova pode ser oferecida enquanto houver slot;
+- as cinco suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

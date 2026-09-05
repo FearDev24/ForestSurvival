@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://bfslevelup0fs"]
+
+[ext_resource type="Script" path="res://scripts/ui/level_up_menu.gd" id="1_menu"]
+
+[node name="LevelUpMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 5
+visible = false
+script = ExtResource("1_menu")
+
+[node name="Fundo" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Caixa" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -150.0
+offset_right = 220.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="Titulo" type="Label" parent="Caixa"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "SUBIU DE NIVEL"
+horizontal_alignment = 1
+
+[node name="Opcoes" type="VBoxContainer" parent="Caixa"]
+editor_description = "Os botoes sao criados em tempo de execucao, a partir do que o WeaponManager tem para oferecer. Nao ha botao fixo aqui de proposito: opcao que nao pode ser aplicada nao deve aparecer (docs/03_SYSTEMS.md secao 13)."
+layout_mode = 2
+theme_override_constants/separation = 10
