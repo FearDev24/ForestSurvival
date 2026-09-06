@@ -31,6 +31,13 @@ signal died
 ## que dê para fugir. Valor provisório: o sistema de Stats só entra na FASE 6.
 @export var move_speed: float = 110.0
 
+## Quanto de XP o fragmento deste inimigo vale. Quem lê é o `PickupSpawner`.
+## Preenchido por `apply_data()`; o valor da cena é o do diabrete comum.
+var xp_value: float = 1.0
+
+## O tipo que originou este inimigo, ou nulo se ele veio direto da cena.
+var data: EnemyData = null
+
 var facing: Facing = Facing.SOUTH
 
 var _is_moving := false
@@ -51,6 +58,56 @@ func _ready() -> void:
 	_target = get_tree().get_first_node_in_group("player")
 	facing_changed.emit(facing)
 	movement_state_changed.emit(_is_moving)
+
+
+## Aplica um tipo de inimigo (`EnemyData`).
+##
+## Chamado pelo `SpawnManager` logo depois de instanciar, **antes** de o nó
+## entrar na árvore: por isso `get_node_or_null` e não `@onready`. É também por
+## isso que a vida pode ser trocada sem cuidado — o `HealthComponent` ainda não
+## se preencheu, e vai nascer já com o máximo do tipo.
+func apply_data(enemy_data: EnemyData) -> void:
+	if enemy_data == null:
+		return
+	data = enemy_data
+	move_speed = enemy_data.move_speed
+	xp_value = enemy_data.xp_value
+
+	var health := get_node_or_null("Health") as HealthComponent
+	if health != null:
+		health.max_health = enemy_data.max_health
+
+	var hitbox := get_node_or_null("Hitbox") as HitboxComponent
+	if hitbox != null:
+		hitbox.damage = enemy_data.contact_damage
+
+	# Só a arte. Colisão é dado de gameplay e se ajusta à parte
+	# (`docs/ASSET_WORKFLOW.md`, regra 7).
+	var visual := get_node_or_null("Visual") as Node2D
+	if visual != null and not is_equal_approx(enemy_data.visual_scale, 1.0):
+		visual.scale *= enemy_data.visual_scale
+
+	if enemy_data.body_radius > 0.0:
+		_redimensionar_corpo(enemy_data.body_radius)
+
+	modulate = enemy_data.tint
+
+
+## Troca o raio das formas de colisão.
+##
+## **Duplica a forma antes de mexer.** As `CircleShape2D` moram como
+## sub-recurso da cena e são compartilhadas entre todas as instâncias dela:
+## mudar o raio de um bruto sem duplicar engordaria todo diabrete em tela.
+func _redimensionar_corpo(raio: float) -> void:
+	for caminho in ["CollisionShape2D", "Hitbox/CollisionShape2D", "Hurtbox/CollisionShape2D"]:
+		var forma := get_node_or_null(caminho) as CollisionShape2D
+		if forma == null or forma.shape == null:
+			continue
+		var circulo := forma.shape.duplicate() as CircleShape2D
+		if circulo == null:
+			continue
+		circulo.radius = raio
+		forma.shape = circulo
 
 
 func _physics_process(_delta: float) -> void:

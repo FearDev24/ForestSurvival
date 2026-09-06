@@ -41,6 +41,16 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `tools/preparar_barras_hud.py` reescrito com os dois caminhos — par de peças para a vida, peça única com líquido pintado para o XP;
   - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
   - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
+- **FASE 8 — Waves:**
+  - `scripts/enemies/enemy_data.gd` — tipo de inimigo em `Resource`: vida, dano, velocidade, XP, escala, raio de corpo e tinta;
+  - `scripts/systems/wave_data.gd` — uma fase da partida: quem nasce, a partir de quando, em que ritmo, com que teto, mais elite e boss;
+  - `scripts/systems/wave_manager.gd` — a tabela em funcionamento, com sinais `wave_started`, `elite_spawned` e `boss_spawned`;
+  - `Enemy.apply_data()` — aplica o tipo antes de o nó entrar na árvore, e **duplica a forma de colisão** antes de redimensionar: as `CircleShape2D` são sub-recurso compartilhado da cena, e engordar o boss engordaria todo diabrete em tela;
+  - `SpawnManager.spawn_data()` e `driven_by_waves` — a rampa linear vira modo sem waves e se cala enquanto a tabela manda;
+  - `PickupSpawner` lê o XP do próprio inimigo: é assim que o elite larga mais, sem que ele conheça tipo nenhum;
+  - `resources/enemies/` com imp, cão, bruto, elite e o boss Guardião Profanado; `resources/waves/` com as cinco waves da partida;
+  - nó `WaveManager` em `game.tscn`;
+  - `tests/test_phase8.gd`.
 - **FASE 7 — Famílias de arma:**
   - `scripts/effects/projectile_effect.gd` — ataque que viaja; some ao atravessar N inimigos ou ao esgotar o voo;
   - `scripts/effects/zone_effect.gd` — ataque que fica no chão e bate repetido enquanto dura;

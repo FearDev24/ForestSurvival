@@ -10,24 +10,22 @@ FASE 4 — Primeira arma.
 FASE 5 — XP e Level Up.
 FASE 6 — Sistema de upgrades.
 FASE 7 — Famílias de arma: golpe, projétil, zona e orbital.
+FASE 8 — Waves, tipos de inimigo, elite e boss.
 HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 8 (waves)
+# Agora — FASE 9 (loop completo)
 
-- [ ] `WaveData` em `Resource`: quem nasce, quando e quantos
-- [ ] elite, com vida e drop maiores
-- [ ] boss ao fim da partida
-- [ ] dificuldade crescente por tempo, no lugar da rampa linear do `SpawnManager`
-- [ ] criar `tests/test_phase8.gd`
+- [x] HP HUD, XP HUD, timer, level — adiantados
+- [ ] `GameManager` com os estados de partida (`03_SYSTEMS.md` §16)
+- [ ] pausa de verdade, com tecla e botão
+- [ ] tela de game over: tempo, nível alcançado, reiniciar, voltar ao menu
+- [ ] vitória ao derrubar o Guardião Profanado
+- [ ] criar `tests/test_phase9.gd`
 
-O `SpawnManager` já cresce a horda com o tempo, mas por fórmula fixa, não por
-dado. A fase troca isso por `.tres`, como as armas e os upgrades.
-
-Ganchos prontos: `PickupSpawner` já escuta o `SpawnManager` e é onde o drop
-maior do elite entra, e `HealthComponent`/`StatComponent` já sustentam um
-inimigo com números diferentes sem código novo.
+O gancho da vitória já existe: `WaveManager.boss_spawned`. Falta escutar a morte
+dele e decidir o que acontece.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

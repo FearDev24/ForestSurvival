@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=30 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
@@ -6,6 +6,12 @@
 [ext_resource type="PackedScene" uid="uid://bfsenemy0forest" path="res://scenes/enemies/enemy.tscn" id="4_enemy"]
 [ext_resource type="Script" path="res://scripts/systems/spawn_manager.gd" id="5_spawn"]
 [ext_resource type="Script" path="res://scripts/systems/pickup_spawner.gd" id="6_drop"]
+[ext_resource type="Script" path="res://scripts/systems/wave_manager.gd" id="23_waves"]
+[ext_resource type="Resource" uid="uid://bfswave1" path="res://resources/waves/wave_1_chegada.tres" id="24_w1"]
+[ext_resource type="Resource" uid="uid://bfswave2" path="res://resources/waves/wave_2_matilha.tres" id="25_w2"]
+[ext_resource type="Resource" uid="uid://bfswave3" path="res://resources/waves/wave_3_brutos.tres" id="26_w3"]
+[ext_resource type="Resource" uid="uid://bfswave4" path="res://resources/waves/wave_4_cerco.tres" id="27_w4"]
+[ext_resource type="Resource" uid="uid://bfswave5" path="res://resources/waves/wave_5_guardiao.tres" id="28_w5"]
 [ext_resource type="PackedScene" uid="uid://bfsxporb0forest" path="res://scenes/pickups/xp_orb.tscn" id="7_orb"]
 [ext_resource type="PackedScene" uid="uid://bfslevelup0fs" path="res://scenes/ui/level_up_menu.tscn" id="9_levelup"]
 [ext_resource type="PackedScene" uid="uid://bfshud0forest" path="res://scenes/ui/hud.tscn" id="10_hud"]
@@ -51,6 +57,11 @@ editor_description = "y_sort_enabled aqui faz os inimigos entrarem na mesma orde
 editor_description = "Cria os inimigos da partida. Ligado ao Player, ao EnemyContainer e aos limites do mundo por scripts/systems/game.gd: o manager nao procura ninguem sozinho."
 script = ExtResource("5_spawn")
 enemy_scene = ExtResource("4_enemy")
+
+[node name="WaveManager" type="Node" parent="."]
+editor_description = "Tabela de waves (docs/03_SYSTEMS.md secao 7). Decide QUEM nasce e QUANDO; o SpawnManager decide ONDE e SE CABE. Enquanto este no existir, a rampa linear do SpawnManager fica desligada. Acrescentar uma wave e criar um .tres em resources/waves e por na lista aqui."
+script = ExtResource("23_waves")
+waves = Array[Resource]([ExtResource("24_w1"), ExtResource("25_w2"), ExtResource("26_w3"), ExtResource("27_w4"), ExtResource("28_w5")])
 
 [node name="PickupSpawner" type="Node" parent="."]
 editor_description = "Larga XP onde o inimigo morre. Separado do SpawnManager: criar inimigo e largar tesouro sao trabalhos diferentes, e a FASE 8 vai querer que o elite largue mais."

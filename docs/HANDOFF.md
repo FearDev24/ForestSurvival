@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 a FASE 7.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up, sistema de upgrades e as famílias de arma.
+**FASE 0 a FASE 8.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up, sistema de upgrades, famílias de arma e waves.
 
 Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
@@ -701,6 +701,92 @@ Antes o `World` inteiro tinha `z_index = -1`, o que jogava tudo dele para baixo
 das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem ela,
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
+
+# Waves (FASE 8)
+
+| O quê | Caminho |
+|---|---|
+| Tipo de inimigo | `res://scripts/enemies/enemy_data.gd`, `resources/enemies/*.tres` |
+| Fase da partida | `res://scripts/systems/wave_data.gd`, `resources/waves/*.tres` |
+| Tabela em funcionamento | `res://scripts/systems/wave_manager.gd`, nó em `game.tscn` |
+
+## A divisão de trabalho
+
+| Quem | Decide |
+|---|---|
+| `WaveManager` | **quem** nasce e **quando** |
+| `SpawnManager` | **onde** nasce e **se cabe** |
+
+É a divisão que a `docs/03_SYSTEMS.md` §6 e §7 já descreviam. A escolha do ponto
+continua no `SpawnManager` porque é lá que se conhece a câmera e as paredes; o
+teto de população vem da wave, mas quem conta os vivos é o `SpawnManager`, com
+`get_child_count()` — O(1) (DEC-011).
+
+## A rampa antiga não foi apagada
+
+O `SpawnManager` mantém a rampa linear como **modo sem waves**, e ela se cala
+enquanto a tabela manda (`driven_by_waves`). Serve para uma cena de teste, e é o
+que a suíte da FASE 3 mede — aquela suíte é sobre o spawn, não sobre a tabela.
+
+Desligar o `WaveManager` **devolve** a rampa em vez de calar os dois. Sem isso,
+um wave desligado deixaria a partida sem inimigo nenhum, que é pior que qualquer
+um dos dois mandando sozinho.
+
+## Os tipos se distinguem por número enquanto não há arte
+
+Cinco `EnemyData`: imp, cão, bruto, elite e o boss Guardião Profanado. Como só
+existe a arte do diabrete, eles diferem em vida, dano, velocidade, XP, escala do
+`Visual`, raio de corpo e **tinta**.
+
+Isso é PLACEHOLDER declarado (DEC-013): quando a arte de cada um chegar, `scene`
+deixa de ser nula e `tint` volta a branco, sem tocar em código. A escala é só da
+arte; colisão se ajusta por `body_radius`, porque colisão é dado de gameplay e
+não consequência do sprite (`docs/ASSET_WORKFLOW.md`, regra 7).
+
+## A armadilha do sub-recurso compartilhado
+
+`Enemy.apply_data()` **duplica a forma de colisão antes de mexer no raio**.
+
+As `CircleShape2D` moram como sub-recurso de `enemy.tscn`, e sub-recurso é
+compartilhado entre todas as instâncias da cena. Engordar o boss sem duplicar
+engordaria **todo diabrete em tela**, silenciosamente. O teste da fase confere
+os dois lados: o raio do boss foi aplicado, e o raio do imp continua pequeno.
+
+## O elite larga mais sem que ninguém saiba o que é um elite
+
+`PickupSpawner` lê `xp_value` do próprio inimigo, com o `@export` do nó como
+valor de reserva para quem não declara. O elite larga 12 vezes o do imp porque
+o `.tres` dele diz isso — não porque exista um `if elite` em lugar nenhum.
+
+## O que `tests/test_phase8.gd` cobre
+
+Tipos: cada `.tres` é válido, os ids não repetem, **as vidas não repetem** — três
+arquivos com os mesmos números não seriam três inimigos —, e o elite e o boss
+justificam o nome (elite acima de 3× o comum em vida e XP, boss acima de 3× o
+elite).
+
+Tabela: a primeira wave começa em 0 s, duas waves não começam no mesmo instante,
+o teto de população cresce ao longo da partida, nenhuma wave passa dos 200
+medidos, e exatamente uma wave tem boss.
+
+Progressão isolada: `configure()` ordena a tabela mesmo recebendo-a ao contrário,
+assume o ritmo do `SpawnManager`, e um salto de 300 s cai na wave certa — o
+percurso da tabela existe porque somar um perderia uma wave num salto grande.
+
+Em partida: a primeira wave só produz imp, e a vida e o XP do tipo chegam ao
+inimigo; um salto para 430 s traz o boss **uma vez**, com a vida e o raio dele,
+sem engordar os imps.
+
+## Verificação de que a FASE 8 não passa vazia
+
+Cinco erros injetados. **Um passou**, pelo mesmo motivo já visto na FASE 6: não
+era bug. O boss só nasce na virada de wave, então a guarda de `_bosses_criados`
+protege uma reentrada que o fluxo normal nunca provoca — o teste não tinha como
+distinguir. Passou a **forçar a reentrada**, e agora remover a guarda falha.
+
+Os outros quatro foram pegos de primeira: progressão somando um em vez de
+percorrer a tabela, forma de colisão redimensionada sem duplicar, tipo não
+chegando ao inimigo, e elite com vida de inimigo comum.
 
 # Famílias de arma (FASE 7)
 
@@ -1428,6 +1514,11 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 57 | Oito erros injetados nas famílias | os oito foram pegos de primeira |
 | 58 | Partida real com as quatro famílias, com render | raio, corvo, zona e vagalumes na tela juntos; cinco de sete inimigos mortos em 5 s |
 | 59 | Suíte completa ao fim da FASE 7 | nove suítes, exit 0 em todas |
+| 60 | `--headless --script res://tests/test_phase8.gd` | `FASE 8 OK`, exit 0 |
+| 61 | Cinco erros injetados nas waves | um passou por não ser bug; o teste passou a forçar a reentrada e os cinco passaram a ser pegos |
+| 62 | Partida saltada para 430 s, com render | wave 5 valendo, 9 imps, 10 cães, 9 brutos, 2 elites e 1 boss em cena |
+| 63 | Os cinco tipos lado a lado, com render | tamanhos e tintas distintos, do cão ao boss |
+| 64 | Suíte completa ao fim da FASE 8 | dez suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1734,7 +1825,9 @@ tropeçou.
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
 - **A zona e o orbital são PLACEHOLDER desenhados em código** (DEC-013): círculo de esporos e três luzes com halo. Só o corvo tem arte de verdade.
 - **Nenhuma passiva aumenta a quantidade de orbes.** O orbital tem três, definidos na cena; `AMOUNT` hoje só decide quantos alvos um disparo atende.
-- **O `SpawnManager` cresce a horda por fórmula fixa**, não por dado. Waves em `Resource` são a FASE 8.
+- **Os tipos de inimigo não têm arte própria.** Todos usam a sprite do diabrete, diferindo em escala e tinta. É PLACEHOLDER declarado, não pendência de código.
+- **O boss não tem comportamento próprio**: persegue igual aos outros, só com muito mais vida. Padrão de ataque de boss não está no roadmap do MVP.
+- **Nada acontece quando o boss morre.** `WaveManager.boss_spawned` é o gancho, e a condição de vitória é da FASE 9.
 - **Nenhum `UpgradeData` tem ícone.** O campo existe e a tela usa quando houver; enquanto não há, ela desenha só o texto (DEC-013).
 - **O sorteio é uniforme.** Não há raridade nem peso: toda opção aplicável tem a mesma chance.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
@@ -1764,36 +1857,29 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 8 — Waves.** Não iniciada.
+**FASE 9 — Loop completo.** Parcialmente feita: HP, XP, nível e cronômetro já
+estão na tela desde que o HUD foi adiantado. Falta o resto.
 
-A FASE 7 fechou: quatro famílias de arma, cada uma com uma forma própria de
-terminar, e arma nova continua sendo `.tres`.
+Itens:
 
-Hoje o `SpawnManager` cresce a horda com o tempo, mas por **fórmula fixa** — uma
-rampa linear escrita no código. A fase troca isso por dado, como as armas e os
-upgrades já são.
-
-Itens, na ordem do `docs/ROADMAP.md`:
-
-1. `WaveData` em `Resource`: quem nasce, a partir de que minuto, em que ritmo e até quantos ao mesmo tempo;
-2. **elite**: mesmo inimigo com vida e drop maiores. `HealthComponent` já aceita qualquer `max_health`, e o `PickupSpawner` já é quem decide o drop — o gancho está pronto;
-3. **boss** ao fim da partida, com a condição de vitória que a FASE 9 vai precisar;
-4. dificuldade crescente vinda das waves, no lugar da rampa do `SpawnManager`;
-5. `tests/test_phase8.gd`; manter as nove suítes passando;
+1. **`GameManager` com os estados de partida** (`docs/03_SYSTEMS.md` §16). Hoje o estado da partida está espalhado: `_running` em `game.gd`, `enabled` no spawn, no wave e nas armas. Um lugar só;
+2. **pausa de verdade**, com tecla e botão. Existe pausa hoje, mas só a que a tela de level up provoca;
+3. **tela de game over**: tempo de partida, nível alcançado, reiniciar, voltar ao menu. Hoje há uma imagem e um botão;
+4. **vitória** ao derrubar o Guardião Profanado. O gancho é `WaveManager.boss_spawned` — falta escutar a morte dele;
+5. `tests/test_phase9.gd`; manter as dez suítes passando;
 6. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
 ## O que já está pronto para receber a fase
 
-- **o teto de população saiu de medição, não de palpite**: 200 inimigos custam 8,20 ms de física, 250 custam 14,03 e 300 custam 19,05, contra 16,6 ms de orçamento por quadro. Qualquer wave que a fase escrever tem de caber nesse teto;
-- **o `PickupSpawner` liga o `died` de cada inimigo uma vez, quando ele nasce**, e é o lugar natural para o drop do elite;
-- **inimigo com números diferentes não pede código novo** — só um `.tres` de wave apontando outros valores.
+- **o HUD existe e é só apresentação**: recebe os componentes em `configure()` e não guarda regra. Um `GameManager` não muda nada nele;
+- **o tempo de partida já é estado da raiz**, contado em passo de física, e vai junto para o `GameManager` sem mudar o HUD;
+- **`WaveManager.boss_spawned` entrega o nó do boss**, e o `HealthComponent` dele já emite `died` — a vitória é uma conexão, não um sistema.
 
-## Critério de aceite da FASE 8
+## Critério de aceite da FASE 9
 
-- quem nasce e quando é dado, não fórmula;
-- elite e boss existem e são sensivelmente diferentes do diabrete;
-- a partida tem um arco de dificuldade legível;
-- as nove suítes anteriores continuam passando.
+- há um estado de partida único e legível, em vez de três `enabled` espalhados;
+- dá para pausar, perder e vencer, e cada um leva a uma tela;
+- as dez suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

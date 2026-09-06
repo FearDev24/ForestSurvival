@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=3 format=3 uid="uid://bfswave1"]
+
+[ext_resource type="Script" path="res://scripts/systems/wave_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsinimigoimp" path="res://resources/enemies/imp_corrompido.tres" id="2_imp_co"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"wave_1_chegada"
+start_time = 0.0
+enemies = Array[Resource]([ExtResource("2_imp_co")])
+spawn_interval = 1.20
+population_cap = 40
+burst_on_start = 0

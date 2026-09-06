@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://bfsinimigobruto"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"bruto_corrompido"
+display_name = "Bruto Corrompido"
+max_health = 130.0
+contact_damage = 18.0
+move_speed = 70.0
+xp_value = 3.0
+visual_scale = 1.45
+body_radius = 22.0
+tint = Color(0.72, 0.55, 0.78, 1)

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=5 format=3 uid="uid://bfswave4"]
+
+[ext_resource type="Script" path="res://scripts/systems/wave_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsinimigocao" path="res://resources/enemies/cao_demoniaco.tres" id="2_cao_de"]
+[ext_resource type="Resource" uid="uid://bfsinimigobruto" path="res://resources/enemies/bruto_corrompido.tres" id="3_bruto_"]
+[ext_resource type="Resource" uid="uid://bfsinimigoelite" path="res://resources/enemies/elite_corrompida.tres" id="4_elite_"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"wave_4_cerco"
+start_time = 270.0
+enemies = Array[Resource]([ExtResource("2_cao_de"), ExtResource("3_bruto_")])
+spawn_interval = 0.38
+population_cap = 170
+burst_on_start = 16
+elite = ExtResource("4_elite_")
+elite_interval = 18.0

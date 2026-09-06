@@ -178,12 +178,23 @@ Observações:
 
 # FASE 8 — Waves
 
-- [ ] WaveData
-- [ ] cronômetro
-- [ ] 3 tipos de inimigo
-- [ ] progressão
-- [ ] elite
-- [ ] boss
+- [x] WaveData
+- [x] cronômetro
+- [x] 3 tipos de inimigo
+- [x] progressão
+- [x] elite
+- [x] boss
+
+Critério:
+quem nasce e quando é dado, não fórmula; elite e boss existem e são
+sensivelmente diferentes; a partida tem um arco legível. **Atingido.**
+
+Observações:
+- a divisão é a que a §6 e a §7 já pediam — o `WaveManager` decide **quem e quando**, o `SpawnManager` decide **onde e se cabe**;
+- a rampa linear do `SpawnManager` continua existindo como modo sem waves, e se cala enquanto a tabela manda. Desligar o `WaveManager` devolve a rampa, em vez de calar os dois;
+- os tipos se distinguem por número, tamanho e cor enquanto só há a arte do diabrete. É PLACEHOLDER declarado (DEC-013): quando cada arte chegar, `scene` deixa de ser nula e `tint` volta a branco, sem tocar em código;
+- nenhuma wave passa de 200 inimigos, que é o teto medido: 250 já custam 14,03 ms de física contra 16,6 de orçamento por quadro;
+- validação automatizada: `tests/test_phase8.gd`.
 
 # FASE 9 — Loop completo
 

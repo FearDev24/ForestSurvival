@@ -15,6 +15,7 @@ extends Node2D
 @onready var _enemy_container: Node2D = $EnemyContainer
 @onready var _effect_container: Node2D = $EffectContainer
 @onready var _spawn_manager: SpawnManager = $SpawnManager
+@onready var _wave_manager: WaveManager = $WaveManager
 ## As armas moram dentro do Player (`docs/02_ARCHITECTURE.md`), mas quem as liga
 ## ao mundo é esta cena: o Player não conhece o container de inimigos nem o de
 ## efeitos, e não deve conhecer.
@@ -53,6 +54,7 @@ func _ready() -> void:
 	# mapa; o spawn fica restrito ao jogável, para não nascer inimigo na parede.
 	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
+	_wave_manager.configure(_spawn_manager)
 	_weapons.configure(_player, _enemy_container, _effect_container, _stats)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
@@ -82,6 +84,7 @@ func _physics_process(delta: float) -> void:
 func _on_player_death_finished() -> void:
 	_running = false
 	_spawn_manager.enabled = false
+	_wave_manager.enabled = false
 	_weapons.set_weapons_enabled(false)
 
 	# O sprite do druida tem 96 px e a origem fica nos pés: subir meia altura

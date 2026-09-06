@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WaveData" load_steps=7 format=3 uid="uid://bfswave5"]
+
+[ext_resource type="Script" path="res://scripts/systems/wave_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsinimigoimp" path="res://resources/enemies/imp_corrompido.tres" id="2_imp_co"]
+[ext_resource type="Resource" uid="uid://bfsinimigocao" path="res://resources/enemies/cao_demoniaco.tres" id="3_cao_de"]
+[ext_resource type="Resource" uid="uid://bfsinimigobruto" path="res://resources/enemies/bruto_corrompido.tres" id="4_bruto_"]
+[ext_resource type="Resource" uid="uid://bfsinimigoelite" path="res://resources/enemies/elite_corrompida.tres" id="5_elite_"]
+[ext_resource type="Resource" uid="uid://bfsinimigoboss" path="res://resources/enemies/guardiao_profanado.tres" id="6_guardi"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"wave_5_guardiao"
+start_time = 420.0
+enemies = Array[Resource]([ExtResource("2_imp_co"), ExtResource("3_cao_de"), ExtResource("4_bruto_")])
+spawn_interval = 0.45
+population_cap = 200
+burst_on_start = 12
+elite = ExtResource("5_elite_")
+elite_interval = 25.0
+boss = ExtResource("6_guardi")

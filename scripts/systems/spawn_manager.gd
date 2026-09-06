@@ -6,8 +6,14 @@ extends Node
 ## respeitar a taxa da wave e limitar a população.
 ##
 ## **Não** decide quais inimigos existem, nem quando a partida acaba, nem o que
-## acontece quando um inimigo morre. A tabela de waves e os tipos de inimigo são
-## do `WaveManager`, na FASE 8; aqui há um único inimigo e uma rampa linear.
+## acontece quando um inimigo morre. Quem escolhe **quem** nasce e **quando** é
+## o `WaveManager` (`docs/03_SYSTEMS.md` §7); aqui se decide **onde** e **se
+## cabe**.
+##
+## A rampa linear abaixo é o modo sem waves: continua existindo para uma cena de
+## teste, ou para o jogo rodar antes de a tabela existir. Quando um
+## `WaveManager` assume, ela se cala — dois relógios mandando na mesma horda
+## dariam dificuldade que ninguém escreveu.
 ##
 ## ## Custo por frame
 ##
@@ -50,6 +56,10 @@ signal enemy_spawned(enemy: Node2D)
 ## ("interromper spawn"); os testes usam para medir sem interferência.
 var enabled: bool = true
 
+## Verdadeiro enquanto um `WaveManager` estiver mandando. Desliga a rampa
+## própria, sem desligar `spawn_data()` — o wave continua podendo pedir.
+var driven_by_waves: bool = false
+
 var _target: Node2D = null
 var _container: Node = null
 var _bounds: Rect2 = Rect2()
@@ -73,7 +83,7 @@ func configure(target: Node2D, container: Node, bounds: Rect2) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not enabled or not is_instance_valid(_target):
+	if not enabled or driven_by_waves or not is_instance_valid(_target):
 		return
 
 	_elapsed += delta
@@ -146,6 +156,36 @@ func spawn_one() -> Node2D:
 	if enemy == null:
 		push_warning("enemy_scene do SpawnManager não é uma cena 2D.")
 		return null
+
+	enemy.global_position = pick_spawn_position()
+	_container.add_child(enemy)
+	enemy_spawned.emit(enemy)
+	return enemy
+
+
+## Cria um inimigo de um tipo específico, ignorando intervalo e teto.
+##
+## É o que o `WaveManager` chama. A escolha do ponto continua aqui, porque é
+## aqui que se conhece a câmera e as paredes.
+func spawn_data(data: EnemyData) -> Node2D:
+	if data == null or not data.is_valid() or _container == null:
+		return null
+	if not is_instance_valid(_target):
+		return null
+
+	var cena := data.scene if data.scene != null else enemy_scene
+	if cena == null:
+		return null
+
+	var enemy := cena.instantiate() as Node2D
+	if enemy == null:
+		push_warning("Cena do tipo '%s' não é uma cena 2D." % data.id)
+		return null
+
+	# Antes de entrar na árvore: o `HealthComponent` ainda não se preencheu, e
+	# nasce já com a vida do tipo em vez de ser corrigido depois.
+	if enemy.has_method("apply_data"):
+		enemy.call("apply_data", data)
 
 	enemy.global_position = pick_spawn_position()
 	_container.add_child(enemy)
