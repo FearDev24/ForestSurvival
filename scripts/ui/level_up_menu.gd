@@ -24,22 +24,25 @@ signal closed
 ## Quantas opções mostrar, no máximo.
 const MAX_OPCOES := 3
 
-## Tamanho de cada linha de opção, em pixels de viewport.
+## Tamanho da **placa** de cada opção, em pixels de viewport.
 ##
 ## A proporção é a da placa desenhada — 1970x330, ou 5,97:1. Deixar o container
-## esticar a linha até a largura toda deformaria as pedras das pontas, então o
+## esticar a placa até a largura toda deformaria as pedras das pontas, então o
 ## tamanho é fixo e o container encolhe em volta.
-##
-## A altura sai da conta do painel: 448 px de área útil medidos na arte, menos o
-## título e as folgas, dividido por três.
-const TAMANHO_OPCAO := Vector2(704.0, 118.0)
+const TAMANHO_PLACA := Vector2(620.0, 104.0)
 
-## Lado do ícone dentro da linha.
+## Espaço entre a moldura do ícone e a placa.
+const FOLGA_ICONE := 16
+
+## Lado da moldura do ícone.
 ##
-## A madeira escura da placa ocupa 72% da altura dela — o resto são os trilhos
-## de pedra de cima e de baixo. Numa linha de 118 px isso dá 85 px de banda
-## útil, e um ícone maior que isso sai por cima dos trilhos.
-const LADO_ICONE := 82.0
+## Ela fica **ao lado** da placa, não em cima. Duas razões: moldura desenhada
+## sobre placa desenhada dava impressão de adesivo colado, e o acender da placa
+## passava por baixo dela — as duas coisas denunciavam a montagem.
+##
+## Solta da placa, ela também deixa de precisar caber na banda de madeira, e
+## pode ser maior do que era.
+const LADO_ICONE := 104.0
 
 ## Placa de fundo de cada opção, nos dois estados. Vêm da cena porque são arte,
 ## e arte não se escolhe em código (DEC-013).
@@ -53,6 +56,7 @@ var _oferta: Array[UpgradeData] = []
 
 @onready var _opcoes: VBoxContainer = $Caixa/Opcoes
 @onready var _titulo: Label = $Caixa/Titulo
+@onready var _titulo_arte: TextureRect = $Caixa/TituloArte
 
 
 ## Ligada pela raiz da partida.
@@ -89,6 +93,12 @@ func _abrir() -> void:
 	for upgrade in _oferta:
 		_opcoes.add_child(_montar_linha(upgrade))
 
+	# Enquanto não houver arte da palavra, o rótulo escrito assume. Quando
+	# houver, ela toma o lugar e o rótulo some — nenhuma das duas depende da
+	# outra existir (DEC-013).
+	var com_arte := _titulo_arte != null and _titulo_arte.texture != null
+	_titulo_arte.visible = com_arte
+	_titulo.visible = not com_arte
 	_titulo.text = "SUBIU DE NIVEL" if _pendentes <= 1 else "SUBIU DE NIVEL  (x%d)" % _pendentes
 	visible = true
 	get_tree().paused = true
@@ -103,52 +113,77 @@ func _abrir() -> void:
 		viewport.gui_release_focus()
 
 
-## Uma linha da tela: placa de fundo, ícone e texto.
+## Uma linha da tela: moldura do ícone à esquerda, placa clicável à direita.
 ##
-## O botão continua sendo um `Button` de verdade — foco pelo teclado, `pressed`,
-## estados — e o conteúdo entra como filho dele. Os filhos ignoram o mouse, para
-## o clique chegar ao botão em vez de parar no rótulo.
-func _montar_linha(upgrade: UpgradeData) -> Button:
+## A moldura fica **fora** do botão. Dentro, ela parecia colada por cima, e o
+## acender da placa passava por baixo dela.
+##
+## Só a placa recebe clique e foco. A moldura é ilustração e não responde ao
+## mouse — passar por cima dela não deve acender a placa.
+func _montar_linha(upgrade: UpgradeData) -> HBoxContainer:
+	var linha := HBoxContainer.new()
+	linha.add_theme_constant_override("separation", FOLGA_ICONE)
+	linha.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	linha.add_child(_coluna_icone(upgrade))
+	linha.add_child(_placa(upgrade))
+	return linha
+
+
+## A moldura, ou um espaço do mesmo tamanho quando ela ainda não existe.
+##
+## O espaço existe mesmo vazio: sem ele, uma opção ainda sem arte deslocaria a
+## placa para a esquerda e a fileira perderia o alinhamento.
+func _coluna_icone(upgrade: UpgradeData) -> Control:
+	if upgrade.icon == null:
+		var vazio := Control.new()
+		vazio.custom_minimum_size = Vector2(LADO_ICONE, LADO_ICONE)
+		vazio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return vazio
+
+	var icone := TextureRect.new()
+	icone.texture = upgrade.icon
+	icone.custom_minimum_size = Vector2(LADO_ICONE, LADO_ICONE)
+	icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icone.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icone
+
+
+## As placas clicáveis da tela aberta, na ordem em que aparecem.
+##
+## Existe para que teclado e teste não precisem saber como a linha é montada por
+## dentro: mexer na estrutura não deve quebrar nada fora daqui.
+func botoes() -> Array[Button]:
+	var lista: Array[Button] = []
+	if _opcoes == null:
+		return lista
+	for linha in _opcoes.get_children():
+		for filho in linha.get_children():
+			var botao := filho as Button
+			if botao != null:
+				lista.append(botao)
+	return lista
+
+
+## A placa: o que é clicável, e o único lugar onde há texto.
+func _placa(upgrade: UpgradeData) -> Button:
 	var botao := Button.new()
-	botao.custom_minimum_size = TAMANHO_OPCAO
+	botao.custom_minimum_size = TAMANHO_PLACA
 	botao.focus_mode = Control.FOCUS_ALL
 	botao.pressed.connect(_on_escolha.bind(upgrade.id))
 	_vestir(botao)
 
-	var linha := HBoxContainer.new()
-	linha.set_anchors_preset(Control.PRESET_FULL_RECT)
-	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	linha.add_theme_constant_override("separation", 18)
-	# 90 px de recuo: a peça de pedra da ponta esquerda vai até 87 px numa linha
-	# de 704, medido na própria placa. Menos que isso e o ícone monta em cima
-	# dela; a ponta direita é simétrica.
-	linha.offset_left = 90.0
-	linha.offset_right = -90.0
-	botao.add_child(linha)
-
-	# A coluna do ícone existe mesmo sem ícone: sem ela, uma opção ainda sem arte
-	# empurraria o texto para a esquerda e a fileira perderia o alinhamento.
-	if upgrade.icon != null:
-		var icone := TextureRect.new()
-		icone.texture = upgrade.icon
-		icone.custom_minimum_size = Vector2(LADO_ICONE, LADO_ICONE)
-		icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icone.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-		icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		linha.add_child(icone)
-	else:
-		var vazio := Control.new()
-		vazio.custom_minimum_size = Vector2(LADO_ICONE, LADO_ICONE)
-		vazio.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		linha.add_child(vazio)
-
 	var texto := VBoxContainer.new()
-	texto.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	texto.alignment = BoxContainer.ALIGNMENT_CENTER
+	texto.set_anchors_preset(Control.PRESET_FULL_RECT)
 	texto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texto.alignment = BoxContainer.ALIGNMENT_CENTER
 	texto.add_theme_constant_override("separation", 2)
-	linha.add_child(texto)
+	# As peças de pedra das pontas ocupam cerca de 12% da largura cada, medido
+	# na arte da placa. O texto começa depois da da esquerda.
+	texto.offset_left = TAMANHO_PLACA.x * 0.14
+	texto.offset_right = -TAMANHO_PLACA.x * 0.11
+	botao.add_child(texto)
 
 	texto.add_child(_rotulo_nome(upgrade))
 	var efeito := upgrade.description if not upgrade.description.is_empty() else upgrade.resumo()
@@ -216,9 +251,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if viewport == null or viewport.gui_get_focus_owner() != null:
 		return
 
+	var lista := botoes()
+	if lista.is_empty():
+		return
+
 	for acao in [&"ui_up", &"ui_down", &"ui_left", &"ui_right", &"ui_accept"]:
 		if event.is_action_pressed(acao):
-			(_opcoes.get_child(0) as Button).grab_focus()
+			lista[0].grab_focus()
 			viewport.set_input_as_handled()
 			return
 

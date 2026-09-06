@@ -51,6 +51,15 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
+[node name="TituloArte" type="TextureRect" parent="Caixa"]
+editor_description = "Fica no lugar do rotulo quando houver arte da palavra. Some sozinho enquanto a textura for nula, e o Label assume - nenhuma das duas depende da outra existir (DEC-013)."
+visible = false
+custom_minimum_size = Vector2(0, 76)
+texture_filter = 2
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="Titulo" type="Label" parent="Caixa"]
 editor_description = "A gema do topo da moldura desce para dentro do miolo. O rotulo reserva 62 px e escreve na base do espaco, para o texto passar por baixo dela em vez de atravessa-la."
 custom_minimum_size = Vector2(0, 62)
@@ -67,5 +76,5 @@ vertical_alignment = 2
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 14
 alignment = 1

@@ -273,24 +273,27 @@ func _check_level_up() -> void:
 	if not paused:
 		_fail("A tela de level up não pausou o jogo")
 
-	var opcoes := _menu.get_node_or_null("Caixa/Opcoes")
-	if opcoes == null or opcoes.get_child_count() == 0:
+	# `botoes()` em vez de descer na árvore: desde que a moldura do ícone saiu
+	# de dentro do botão, a linha tem duas peças, e um teste que conhece a
+	# estrutura por dentro quebra a cada mexida no layout.
+	var lista_botoes: Array[Button] = _menu.botoes()
+	if lista_botoes.is_empty():
 		_fail("A tela abriu sem nenhuma opção")
 		paused = false
 		return
 
 	# Nenhuma opção pode ser impossível de aplicar (§13).
-	for filho in opcoes.get_children():
-		var botao := filho as Button
-		if botao == null or botao.pressed.get_connections().is_empty():
-			_fail("Opção sem ação ligada: '%s'" % (botao.text if botao else "?"))
+	for botao in lista_botoes:
+		if botao.pressed.get_connections().is_empty():
+			_fail("Opção sem ação ligada")
 
-	var primeira := opcoes.get_child(0) as Button
+	var primeira := lista_botoes[0]
 	var arma_antes := 0
 	var id_alvo := &""
+	var nome_primeira := _nome_da_opcao(primeira)
 	for filho in _weapons.get_children():
 		var arma := filho as Weapon
-		if arma != null and primeira.text.begins_with(arma.data.display_name):
+		if arma != null and nome_primeira.begins_with(arma.data.display_name):
 			id_alvo = arma.data.id
 			arma_antes = arma.level
 
@@ -309,10 +312,10 @@ func _check_level_up() -> void:
 	# Escolhe o resto da fila até esvaziar.
 	var guarda := 0
 	while _menu.visible and guarda < 20:
-		var lista := _menu.get_node_or_null("Caixa/Opcoes")
-		if lista == null or lista.get_child_count() == 0:
+		var restantes: Array[Button] = _menu.botoes()
+		if restantes.is_empty():
 			break
-		(lista.get_child(0) as Button).pressed.emit()
+		restantes[0].pressed.emit()
 		guarda += 1
 
 	if _menu.visible:
@@ -365,11 +368,22 @@ func _start_sem_opcao() -> void:
 	_stage = 4
 
 
+## O nome da opção mora num rótulo dentro da placa, não no `text` do botão —
+## que fica vazio, porque o texto e o efeito são dois rótulos com tamanhos
+## diferentes.
+func _nome_da_opcao(botao: Button) -> String:
+	for filho in botao.get_children():
+		for neto in filho.get_children():
+			var rotulo := neto as Label
+			if rotulo != null:
+				return rotulo.text
+	return botao.text
+
+
 func _check_sem_opcao() -> void:
 	if _menu.visible:
-		var lista := _menu.get_node_or_null("Caixa/Opcoes")
-		var quantas := lista.get_child_count() if lista != null else 0
-		_fail("A tela abriu com o catálogo esgotado, oferecendo %d opção(ões)" % quantas)
+		_fail("A tela abriu com o catálogo esgotado, oferecendo %d opção(ões)"
+			% _menu.botoes().size())
 	if paused:
 		_fail("O jogo pausou para uma escolha que não existia")
 	paused = false
