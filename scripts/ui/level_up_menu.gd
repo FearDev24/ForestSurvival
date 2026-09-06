@@ -34,9 +34,12 @@ const MAX_OPCOES := 3
 ## título e as folgas, dividido por três.
 const TAMANHO_OPCAO := Vector2(704.0, 118.0)
 
-## Lado do ícone dentro da linha. Menor que a altura da placa para não encostar
-## nos trilhos de pedra de cima e de baixo.
-const LADO_ICONE := 96.0
+## Lado do ícone dentro da linha.
+##
+## A madeira escura da placa ocupa 72% da altura dela — o resto são os trilhos
+## de pedra de cima e de baixo. Numa linha de 118 px isso dá 85 px de banda
+## útil, e um ícone maior que isso sai por cima dos trilhos.
+const LADO_ICONE := 82.0
 
 ## Placa de fundo de cada opção, nos dois estados. Vêm da cena porque são arte,
 ## e arte não se escolhe em código (DEC-013).
@@ -111,8 +114,11 @@ func _montar_linha(upgrade: UpgradeData) -> Button:
 	linha.set_anchors_preset(Control.PRESET_FULL_RECT)
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	linha.add_theme_constant_override("separation", 18)
-	linha.offset_left = 26.0
-	linha.offset_right = -26.0
+	# 90 px de recuo: a peça de pedra da ponta esquerda vai até 87 px numa linha
+	# de 704, medido na própria placa. Menos que isso e o ícone monta em cima
+	# dela; a ponta direita é simétrica.
+	linha.offset_left = 90.0
+	linha.offset_right = -90.0
 	botao.add_child(linha)
 
 	# A coluna do ícone existe mesmo sem ícone: sem ela, uma opção ainda sem arte
@@ -147,20 +153,34 @@ func _montar_linha(upgrade: UpgradeData) -> Button:
 	return botao
 
 
-## Troca o visual padrão do botão pela placa desenhada, nos quatro estados.
+## Troca o visual padrão do botão pela placa desenhada.
 ##
-## `hover`, `focus` e `pressed` usam a mesma placa acesa: o jogador que navega
-## no teclado precisa ver onde está tanto quanto quem usa o mouse.
+## Só `hover` e `pressed` acendem a placa. O foco **não** — a Godot desenha o
+## estilo de foco **por cima** do estado, então uma placa acesa ali deixaria a
+## primeira opção permanentemente ligada, já que ela recebe o foco ao abrir.
+##
+## O foco vira um contorno: quem navega no teclado continua vendo onde está, sem
+## que a linha finja estar sob o mouse.
 func _vestir(botao: Button) -> void:
 	if textura_opcao == null:
 		return
-	var acesos: Array[String] = ["hover", "pressed", "focus"]
-	var estados: Array[String] = ["normal", "hover", "pressed", "focus", "disabled"]
+
+	var acesos: Array[String] = ["hover", "pressed"]
+	var estados: Array[String] = ["normal", "hover", "pressed", "disabled"]
 	for estado in estados:
 		var caixa := StyleBoxTexture.new()
 		var aceso: bool = estado in acesos and textura_opcao_destaque != null
 		caixa.texture = textura_opcao_destaque if aceso else textura_opcao
 		botao.add_theme_stylebox_override(estado, caixa)
+
+	var contorno := StyleBoxFlat.new()
+	contorno.draw_center = false
+	contorno.border_color = Color(0.35, 0.95, 0.65, 0.85)
+	contorno.set_border_width_all(2)
+	contorno.set_corner_radius_all(3)
+	# A placa tem musgo saindo das bordas; o contorno recua para não cortá-lo.
+	contorno.set_expand_margin_all(-6.0)
+	botao.add_theme_stylebox_override("focus", contorno)
 
 
 func _rotulo_nome(upgrade: UpgradeData) -> Label:
