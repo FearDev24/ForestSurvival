@@ -169,17 +169,23 @@ def pintar_liquido(c, caixa, paradas):
     h, w = c.shape[:2]
     alt = y1 - y0 + 1
 
-    t = np.linspace(0.0, 1.0, alt)
     pontos = [p for p, _ in paradas]
-    rampa = np.stack([np.interp(t, pontos, [cor[k] for _, cor in paradas]) for k in range(3)], axis=1)
 
+    # Recuo: o líquido não encosta na parede do sulco. Sem ele o verde toca a
+    # pedra direto e a barra lê como uma peça apoiada em cima da placa; com a
+    # borda escura do sulco aparecendo em volta, lê como líquido dentro dele.
+    recuo = max(2, int(round(alt * 0.10)))
     dentro = np.zeros((h, w), bool)
-    dentro[y0:y1 + 1, x0:x1 + 1] = True
+    dentro[y0 + recuo:y1 + 1 - recuo, x0 + recuo:x1 + 1 - recuo] = True
     visivel = nd.binary_opening(dentro & (luminancia(c) < ESCURO), np.ones((2, 2), bool))
+
+    pintadas = slice(y0 + recuo, y1 + 1 - recuo)
+    t = np.linspace(0.0, 1.0, pintadas.stop - pintadas.start)
+    rampa = np.stack([np.interp(t, pontos, [cor[k] for _, cor in paradas]) for k in range(3)], axis=1)
 
     liquido = np.zeros_like(c)
     faixa = np.zeros((h, w, 3))
-    faixa[y0:y1 + 1] = rampa[:, None, :]
+    faixa[pintadas] = rampa[:, None, :]
     liquido[:, :, :3] = faixa
     liquido[:, :, 3] = np.where(visivel, 255, 0)
 
