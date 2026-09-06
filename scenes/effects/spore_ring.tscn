@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3 uid="uid://bfsesporo0forest"]
+
+[ext_resource type="Script" path="res://scripts/effects/zone_effect.gd" id="1_efeito"]
+[ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_esporo"]
+radius = 64.0
+
+[node name="SporeRing" type="Node2D"]
+editor_description = "Terceira familia de arma: ataque que fica. Visual PLACEHOLDER desenhado em codigo (DEC-013). z_index baixo porque a zona esta no chao: o druida e os inimigos passam por cima dela."
+z_index = -1
+script = ExtResource("1_efeito")
+duration = 3.5
+visual_radius = 64.0
+
+[node name="Hitbox" type="Area2D" parent="."]
+editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox. hit_interval 0.5 - aqui o dano REPETE, que e o que distingue esta familia das outras duas. hit_on_enter true para quem pisa na zona sentir na hora. O dano 1.0 e marcador; quem manda e o WeaponData."
+collision_layer = 16
+collision_mask = 8
+monitorable = false
+script = ExtResource("2_hitbox")
+damage = 1.0
+hit_interval = 0.5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CircleShape2D_esporo")

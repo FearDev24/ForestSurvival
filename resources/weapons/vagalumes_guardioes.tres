@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://bfsarmavagalume"]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://bfsvagalume0fs" path="res://scenes/effects/guardian_fireflies.tscn" id="2_efeito"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"vagalumes_guardioes"
+display_name = "Vagalumes Guardiões"
+base_damage = 9.0
+cooldown = 4.5
+attack_range = 900.0
+amount = 1
+spawn_mode = 1
+aim_mode = 0
+effect_duration = 4.0
+max_level = 5
+damage_per_level = 3.0
+cooldown_multiplier_per_level = 0.9
+effect_scene = ExtResource("2_efeito")

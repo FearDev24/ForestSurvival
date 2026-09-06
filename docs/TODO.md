@@ -9,23 +9,25 @@ FASE 3 — Spawn e horda.
 FASE 4 — Primeira arma.
 FASE 5 — XP e Level Up.
 FASE 6 — Sistema de upgrades.
+FASE 7 — Famílias de arma: golpe, projétil, zona e orbital.
 HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 6 (sistema de upgrades)
+# Agora — FASE 8 (waves)
 
-- [x] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
-- [x] passivas da primeira lista do `04_CONTENT_PLAN.md` — as 6
-- [x] `Weapon` lê dano, cooldown e área do `StatComponent`
-- [x] regeneração no `HealthComponent`, com tique só quando há o que regenerar
-- [x] oferecer arma nova além de melhorar equipada, respeitando os slots
-- [x] validar opções: nada impossível, nada repetido na mesma tela
-- [x] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14) — velocidade, vida máxima e alcance de coleta já passam por ele
-- [x] criar `tests/test_phase6.gd` (cobre o `StatComponent`; cresce com o resto da fase)
+- [ ] `WaveData` em `Resource`: quem nasce, quando e quantos
+- [ ] elite, com vida e drop maiores
+- [ ] boss ao fim da partida
+- [ ] dificuldade crescente por tempo, no lugar da rampa linear do `SpawnManager`
+- [ ] criar `tests/test_phase8.gd`
 
-Com o HUD no lugar, dá para julgar cada passiva olhando a tela em vez de ler
-número em log — que era o motivo de adiantá-lo.
+O `SpawnManager` já cresce a horda com o tempo, mas por fórmula fixa, não por
+dado. A fase troca isso por `.tres`, como as armas e os upgrades.
+
+Ganchos prontos: `PickupSpawner` já escuta o `SpawnManager` e é onde o drop
+maior do elite entra, e `HealthComponent`/`StatComponent` já sustentam um
+inimigo com números diferentes sem código novo.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

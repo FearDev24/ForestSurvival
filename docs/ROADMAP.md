@@ -153,9 +153,28 @@ bônus somado a um stat e mais nada.
 
 # FASE 7 — Três famílias de arma
 
-- [ ] Cajado — projétil
-- [ ] Espinhos — AoE
-- [ ] Corvo — orbital
+- [x] golpe — `AbilityEffect` (Cajado Tempestade, Vinha Espinhosa)
+- [x] projétil — `ProjectileEffect` (Corvo Espiritual)
+- [x] zona — `ZoneEffect` (Anel de Esporos)
+- [x] orbital — `OrbitEffect` (Vagalumes Guardiões)
+
+Critério:
+famílias sensivelmente diferentes, e arma nova continua sendo `.tres`.
+**Atingido** — com quatro famílias, não três.
+
+A lista original pareava arma e família assim: *Cajado — projétil, Espinhos —
+AoE, Corvo — orbital*. Foi escrita antes da FASE 4, e a FASE 4 decidiu outra
+coisa: o cajado virou raio que cai **sobre** o alvo e a vinha virou golpe que
+brota do chão (DEC-021, DEC-022). Os dois acabaram na mesma família. Manter o
+pareamento antigo significaria refazer duas armas já aprovadas em jogo; em vez
+disso entraram duas armas novas, e a orbital — que era a única família da lista
+sem representante — foi construída.
+
+Observações:
+- o que separa as famílias é **como o ataque termina**: animação, alvos atravessados, duração no chão, duração acompanhando. É por isso que são scripts diferentes e não campos do mesmo;
+- `WeaponData` ganhou `projectile_speed`, `projectile_pierce` e `effect_duration`, todos com **zero = usa o valor da cena** — assim uma família nova não obriga arma antiga a preencher número alheio;
+- `DURATION`, `PROJECTILE_SPEED` e `AMOUNT` deixaram de ser stats sem leitor;
+- validação automatizada: `tests/test_phase7.gd`.
 
 # FASE 8 — Waves
 

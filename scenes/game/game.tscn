@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=24 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
@@ -16,6 +16,9 @@
 [ext_resource type="Resource" uid="uid://bfsupgsemente" path="res://resources/upgrades/semente_ancestral.tres" id="17_semente"]
 [ext_resource type="Resource" uid="uid://bfsupgciclo" path="res://resources/upgrades/ciclo_lunar.tres" id="18_ciclo"]
 [ext_resource type="Resource" uid="uid://bfsupgcoracao" path="res://resources/upgrades/coracao_verde.tres" id="19_coracao"]
+[ext_resource type="Resource" uid="uid://bfsupgcorvo" path="res://resources/upgrades/arma_corvo_espiritual.tres" id="20_corvo"]
+[ext_resource type="Resource" uid="uid://bfsupgesporo" path="res://resources/upgrades/arma_anel_de_esporos.tres" id="21_esporo"]
+[ext_resource type="Resource" uid="uid://bfsupgvagalume" path="res://resources/upgrades/arma_vagalumes_guardioes.tres" id="22_vagalume"]
 [ext_resource type="Resource" uid="uid://bfsupgraio" path="res://resources/upgrades/arma_cajado_raio.tres" id="15_raio"]
 [ext_resource type="Resource" uid="uid://bfsupgvinha" path="res://resources/upgrades/arma_vinha_espinhosa.tres" id="16_vinha"]
 [ext_resource type="Texture2D" path="res://assets/ui/gameover.png" id="8_gameover"]
@@ -57,7 +60,7 @@ orb_scene = ExtResource("7_orb")
 [node name="UpgradePool" type="Node" parent="."]
 editor_description = "Catalogo do level up. Decide o que pode ser oferecido e o que a escolha faz; a tela so desenha. Acrescentar uma passiva ao jogo e criar um .tres em resources/upgrades e por na lista aqui - nao escrever codigo (DEC-010)."
 script = ExtResource("11_pool")
-catalogo = Array[Resource]([ExtResource("12_casca"), ExtResource("13_cervo"), ExtResource("14_essencia"), ExtResource("17_semente"), ExtResource("18_ciclo"), ExtResource("19_coracao"), ExtResource("15_raio"), ExtResource("16_vinha")])
+catalogo = Array[Resource]([ExtResource("12_casca"), ExtResource("13_cervo"), ExtResource("14_essencia"), ExtResource("17_semente"), ExtResource("18_ciclo"), ExtResource("19_coracao"), ExtResource("15_raio"), ExtResource("16_vinha"), ExtResource("20_corvo"), ExtResource("21_esporo"), ExtResource("22_vagalume")])
 
 [node name="Hud" parent="." instance=ExtResource("10_hud")]
 

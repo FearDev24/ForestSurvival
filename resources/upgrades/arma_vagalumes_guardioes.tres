@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgvagalume"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsarmavagalume" path="res://resources/weapons/vagalumes_guardioes.tres" id="2_arma"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"arma_vagalumes_guardioes"
+display_name = "Vagalumes Guardiões"
+description = "Três luzes giram em volta do druida."
+kind = 1
+weapon = ExtResource("2_arma")

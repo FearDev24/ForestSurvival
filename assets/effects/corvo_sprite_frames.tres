@@ -1,0 +1,43 @@
+[gd_resource type="SpriteFrames" load_steps=8 format=3 uid="uid://bfscorvoframes"]
+
+[ext_resource type="Texture2D" path="res://assets/effects/corvo.png" id="1_corvo"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_corvo_00"]
+atlas = ExtResource("1_corvo")
+region = Rect2(0, 0, 96, 68)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_corvo_01"]
+atlas = ExtResource("1_corvo")
+region = Rect2(96, 0, 96, 68)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_corvo_02"]
+atlas = ExtResource("1_corvo")
+region = Rect2(192, 0, 96, 68)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_corvo_03"]
+atlas = ExtResource("1_corvo")
+region = Rect2(288, 0, 96, 68)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_corvo_04"]
+atlas = ExtResource("1_corvo")
+region = Rect2(384, 0, 96, 68)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_corvo_05"]
+atlas = ExtResource("1_corvo")
+region = Rect2(480, 0, 96, 68)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_corvo_00")}, {"duration": 1.0,
+"texture": SubResource("AtlasTexture_corvo_01")}, {"duration": 1.0,
+"texture": SubResource("AtlasTexture_corvo_02")}, {"duration": 1.0,
+"texture": SubResource("AtlasTexture_corvo_03")}, {"duration": 1.0,
+"texture": SubResource("AtlasTexture_corvo_04")}, {"duration": 1.0,
+"texture": SubResource("AtlasTexture_corvo_05")
+}],
+"loop": true,
+"name": &"fly",
+"speed": 12.0
+}]

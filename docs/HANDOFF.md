@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 a FASE 6.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up e sistema de upgrades.
+**FASE 0 a FASE 7.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up, sistema de upgrades e as famílias de arma.
 
 Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
@@ -702,6 +702,102 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# Famílias de arma (FASE 7)
+
+| Família | Script | Armas |
+|---|---|---|
+| golpe | `res://scripts/effects/ability_effect.gd` | Cajado Tempestade, Vinha Espinhosa |
+| projétil | `res://scripts/effects/projectile_effect.gd` | Corvo Espiritual |
+| zona | `res://scripts/effects/zone_effect.gd` | Anel de Esporos |
+| orbital | `res://scripts/effects/orbit_effect.gd` | Vagalumes Guardiões |
+
+## O que separa uma família da outra
+
+**Como o ataque termina.** É a única diferença que não cabe num campo:
+
+- o golpe morre quando a animação acaba;
+- o projétil morre ao atravessar N inimigos **ou** ao esgotar o tempo de voo;
+- a zona morre quando a duração acaba, e enquanto vive bate repetido;
+- o orbital morre pela duração também, mas acompanha o druida enquanto existe.
+
+Empilhar as quatro regras num script só faria cada uma carregar a condição das
+outras três. Por isso são scripts diferentes — e por isso a arma continua sendo
+só um `.tres`: quem escolhe a família é o `effect_scene`, que já era um campo.
+
+## Campos opcionais, e por quê
+
+`WeaponData` ganhou `projectile_speed`, `projectile_pierce` e `effect_duration`.
+Nos três, **zero quer dizer "usa o valor da cena"**, e não zero.
+
+Sem isso, acrescentar velocidade de voo obrigaria o raio e a vinha — que não
+voam — a preencher um número que não lhes diz respeito, e cada família nova
+somaria campos mortos a todas as armas já escritas.
+
+## O orbital é temporário de propósito
+
+Ele nasce no cooldown da arma, gira por alguns segundos e some — não fica para
+sempre. Não é limitação: é o que permite a família caber no mesmo modelo das
+outras três (arma dispara, efeito vive, efeito morre) em vez de exigir um
+segundo modelo só para ela.
+
+Ele acompanha o druida por coordenada de mundo, não sendo filho dele. Ser filho
+resolveria o acompanhamento de graça, mas colocaria um ataque dentro do Player
+— e o Player não conhece arma nem efeito (`docs/02_ARCHITECTURE.md`).
+
+## O pareamento do roadmap ficou para trás
+
+`docs/ROADMAP.md` listava *Cajado — projétil, Espinhos — AoE, Corvo — orbital*.
+Essa lista é anterior à FASE 4, e a FASE 4 decidiu outra coisa: o cajado virou
+raio que cai sobre o alvo, a vinha virou golpe que brota do chão (DEC-021,
+DEC-022). Os dois ficaram na mesma família.
+
+Respeitar o pareamento antigo significaria refazer duas armas já aprovadas em
+jogo. Em vez disso entraram armas novas para as famílias que faltavam, e a
+orbital — única da lista sem representante — foi construída. São quatro
+famílias onde o roadmap pedia três.
+
+## Três stats ganharam leitor
+
+`PROJECTILE_SPEED`, `DURATION` e `AMOUNT` estavam declarados desde a FASE 6 sem
+ninguém perguntar por eles. Agora a arma pergunta: velocidade de voo, duração da
+zona e do orbital, e quantos alvos um disparo atende.
+
+## O que `tests/test_phase7.gd` cobre
+
+Estrutura: cada arma aponta o script de família certo, existem quatro famílias
+distintas, e toda hitbox de cena traz o dano-marcador 1.0 — se sair 1 de dano em
+jogo, alguém esqueceu de chamar `set_damage()`.
+
+A zona é a única com `hit_interval` maior que zero; golpe e projétil batem uma
+vez por alvo. No projétil isso é o que faz a perfuração contar direito — sem
+isso o mesmo inimigo gastaria todas as perfurações sozinho.
+
+Isolado: o projétil anda 30 px em 0,3 s a 100 px/s e some ao esgotar o voo; o
+orbital nasce sobre quem acompanha, espalha três orbes no raio certo, vai junto
+quando o druida anda, gira, e some na duração.
+
+Em partida: o corvo cria projétil, ele se desloca, e a cena esvazia sozinha.
+
+## Verificação de que a FASE 7 não passa vazia
+
+Oito erros injetados, **os oito pegos de primeira**: projétil parado, projétil
+sem prazo de validade, zona que não some, zona com golpe único, corvo apontando
+para a cena do raio, orbital que não acompanha, orbes empilhados no centro e
+`set_damage()` alcançando só o primeiro orbe.
+
+Duas armadilhas velhas reapareceram durante o desenvolvimento, e valem registro
+porque foram erros **do teste**, não do código:
+
+1. **`_ready` não dispara** em nó acrescentado de dentro de
+   `SceneTree._initialize()` — quarta aparição. O `OrbitEffect` posicionava os
+   orbes no `_ready`, e o teste via os três empilhados na origem. Virou
+   inicialização preguiçosa, como no `HealthComponent`, na `PickupArea` e no
+   `Hud`;
+2. **medir no mesmo quadro em que se anota** não mede nada. A primeira versão
+   anotava a posição do projétil e comparava na linha seguinte: a distância era
+   zero por construção, e o teste não tinha como falhar nem como passar por
+   mérito. Passou a comparar seis quadros depois.
+
 # Catálogo de upgrades (FASE 6)
 
 | O quê | Caminho |
@@ -1328,6 +1424,10 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 53 | Quatro erros injetados na arma e na regeneração | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
 | 54 | Partida real com as seis passivas | tela ofereceu Essência Viva, Coração Verde e Passos do Cervo |
 | 55 | Suíte completa ao fim da FASE 6 | `FASE 0/1/2/3/4/5/6 OK` mais o HUD |
+| 56 | `--headless --script res://tests/test_phase7.gd` | `FASE 7 OK`, exit 0 |
+| 57 | Oito erros injetados nas famílias | os oito foram pegos de primeira |
+| 58 | Partida real com as quatro famílias, com render | raio, corvo, zona e vagalumes na tela juntos; cinco de sete inimigos mortos em 5 s |
+| 59 | Suíte completa ao fim da FASE 7 | nove suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1632,7 +1732,9 @@ tropeçou.
 # Limitações e pendências
 
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
-- **Três stats continuam sem leitor**: `DURATION`, `PROJECTILE_SPEED` e `AMOUNT`. Estão declarados e ninguém pergunta por eles — duração pede que o efeito saiba encurtar ou esticar a animação, e quantidade pede que a arma dispare em vários alvos.
+- **A zona e o orbital são PLACEHOLDER desenhados em código** (DEC-013): círculo de esporos e três luzes com halo. Só o corvo tem arte de verdade.
+- **Nenhuma passiva aumenta a quantidade de orbes.** O orbital tem três, definidos na cena; `AMOUNT` hoje só decide quantos alvos um disparo atende.
+- **O `SpawnManager` cresce a horda por fórmula fixa**, não por dado. Waves em `Resource` são a FASE 8.
 - **Nenhum `UpgradeData` tem ícone.** O campo existe e a tela usa quando houver; enquanto não há, ela desenha só o texto (DEC-013).
 - **O sorteio é uniforme.** Não há raridade nem peso: toda opção aplicável tem a mesma chance.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
@@ -1662,34 +1764,36 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 7 — Três famílias de arma.** Não iniciada.
+**FASE 8 — Waves.** Não iniciada.
 
-A FASE 6 fechou: upgrades são dados, as seis passivas da primeira lista existem
-e nada impossível é oferecido.
+A FASE 7 fechou: quatro famílias de arma, cada uma com uma forma própria de
+terminar, e arma nova continua sendo `.tres`.
 
-`docs/ROADMAP.md` pede três famílias de arma. Hoje existem duas armas, ambas da
-mesma família — golpe curto que nasce, dá dano e some.
+Hoje o `SpawnManager` cresce a horda com o tempo, mas por **fórmula fixa** — uma
+rampa linear escrita no código. A fase troca isso por dado, como as armas e os
+upgrades já são.
 
-Itens:
+Itens, na ordem do `docs/ROADMAP.md`:
 
-1. escolher as três famílias a partir do `docs/04_CONTENT_PLAN.md`. O **Corvo Espiritual** já tem sheet de efeito gerado e é a terceira arma planejada;
-2. ver o que `WeaponData` ainda não cobre. Um projétil que viaja precisa de velocidade e de alcance de voo, e nenhum dos dois existe hoje — mas `PROJECTILE_SPEED` e `DURATION` já estão no `StatComponent` esperando leitor;
-3. `amount` já existe no `WeaponData` e a arma já sabe atacar vários alvos, mas nada usa: `AMOUNT` é o terceiro stat sem leitor;
-4. um `.tres` por arma, sem código novo — se alguma família exigir código, o acoplamento é defeito de arquitetura e vem antes (DEC-009);
-5. `tests/test_phase7.gd`; manter as oito suítes passando;
+1. `WaveData` em `Resource`: quem nasce, a partir de que minuto, em que ritmo e até quantos ao mesmo tempo;
+2. **elite**: mesmo inimigo com vida e drop maiores. `HealthComponent` já aceita qualquer `max_health`, e o `PickupSpawner` já é quem decide o drop — o gancho está pronto;
+3. **boss** ao fim da partida, com a condição de vitória que a FASE 9 vai precisar;
+4. dificuldade crescente vinda das waves, no lugar da rampa do `SpawnManager`;
+5. `tests/test_phase8.gd`; manter as nove suítes passando;
 6. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
 ## O que já está pronto para receber a fase
 
-- **o catálogo aceita arma nova sem código**: basta um `UpgradeData` com `kind = ARMA` apontando o `WeaponData`, e o slot livre já é verificado;
-- **a arma já lê os stats** a cada disparo, então uma família nova nasce respeitando passiva;
-- **`AbilityEffect` já serve a duas habilidades diferentes** com dois campos de posicionamento e mira (DEC-021, DEC-022). A pergunta da fase é se ele serve a uma terceira, ou se projétil que viaja pede outro tipo de nó.
+- **o teto de população saiu de medição, não de palpite**: 200 inimigos custam 8,20 ms de física, 250 custam 14,03 e 300 custam 19,05, contra 16,6 ms de orçamento por quadro. Qualquer wave que a fase escrever tem de caber nesse teto;
+- **o `PickupSpawner` liga o `died` de cada inimigo uma vez, quando ele nasce**, e é o lugar natural para o drop do elite;
+- **inimigo com números diferentes não pede código novo** — só um `.tres` de wave apontando outros valores.
 
-## Critério de aceite da FASE 7
+## Critério de aceite da FASE 8
 
-- três famílias de arma jogáveis, sensivelmente diferentes entre si;
-- arma nova continua sendo `.tres`, não código;
-- as oito suítes anteriores continuam passando.
+- quem nasce e quando é dado, não fórmula;
+- elite e boss existem e são sensivelmente diferentes do diabrete;
+- a partida tem um arco de dificuldade legível;
+- as nove suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

@@ -75,6 +75,16 @@ func area_efetiva() -> float:
 	return stats.apply(StatComponent.Stat.AREA, 1.0) if stats != null else 1.0
 
 
+## Quantos alvos este disparo atende.
+##
+## Arredonda para baixo e nunca desce de 1: uma passiva de quantidade que
+## deixasse a arma sem alvo nenhum a desligaria em vez de enfraquecê-la.
+func amount_efetivo() -> int:
+	var base := float(maxi(1, data.amount))
+	var total := stats.apply(StatComponent.Stat.AMOUNT, base) if stats != null else base
+	return maxi(1, int(floorf(total)))
+
+
 ## Os `amount` inimigos mais próximos dentro do alcance.
 ##
 ## A varredura acontece **só no instante do disparo**, nunca a cada frame: com o
@@ -99,7 +109,7 @@ func _find_targets() -> Array[Node2D]:
 	candidatos.sort_custom(func(a, b): return a[0] < b[0])
 
 	var escolhidos: Array[Node2D] = []
-	for i in mini(maxi(1, data.amount), candidatos.size()):
+	for i in mini(amount_efetivo(), candidatos.size()):
 		escolhidos.append(candidatos[i][1])
 	return escolhidos
 
@@ -125,6 +135,30 @@ func _attack(alvo: Node2D) -> void:
 	# nível 5.
 	if efeito.has_method("set_damage"):
 		efeito.call("set_damage", damage_efetivo())
+
+	# Campos de família. Cada efeito atende só o que lhe diz respeito, e o
+	# `WeaponData` usa zero para dizer "fica com o valor da cena" — assim uma
+	# família nova não obriga as armas antigas a preencher nada.
+	if data.projectile_speed > 0.0 and efeito.has_method("set_speed"):
+		var velocidade := data.projectile_speed
+		if stats != null:
+			velocidade = stats.apply(StatComponent.Stat.PROJECTILE_SPEED, velocidade)
+		efeito.call("set_speed", velocidade)
+
+	if data.projectile_pierce > 0 and efeito.has_method("set_pierce"):
+		efeito.call("set_pierce", data.projectile_pierce)
+
+	if data.effect_duration > 0.0 and efeito.has_method("set_duration"):
+		var duracao := data.effect_duration
+		if stats != null:
+			duracao = stats.apply(StatComponent.Stat.DURATION, duracao)
+		efeito.call("set_duration", duracao)
+
+	# Ataque que acompanha precisa saber quem seguir. É o único que recebe uma
+	# referência de nó, e não um número — por isso vale a guarda: nenhuma outra
+	# família responde a este método.
+	if efeito.has_method("set_follow"):
+		efeito.call("set_follow", _target)
 
 	var direcao := _aim_direction(alvo, origem)
 	if direcao != Vector2.ZERO and efeito.has_method("aim"):

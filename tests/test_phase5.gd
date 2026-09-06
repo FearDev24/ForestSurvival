@@ -343,6 +343,11 @@ func _start_sem_opcao() -> void:
 		if arma != null:
 			arma.level = arma.data.max_level
 
+	# Fechar os slots também. Desde a FASE 7 o catálogo tem mais armas do que o
+	# druida começa carregando, e uma arma que ainda caberia é opção legítima —
+	# "nada a oferecer" exige que nem arma nova entre.
+	_weapons.max_slots = _weapons.get_weapon_count()
+
 	var pool := _game.get_node_or_null("UpgradePool") as UpgradePool
 	if pool == null:
 		_fail("game.tscn sem UpgradePool")

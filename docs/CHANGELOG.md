@@ -41,6 +41,15 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `tools/preparar_barras_hud.py` reescrito com os dois caminhos — par de peças para a vida, peça única com líquido pintado para o XP;
   - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
   - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
+- **FASE 7 — Famílias de arma:**
+  - `scripts/effects/projectile_effect.gd` — ataque que viaja; some ao atravessar N inimigos ou ao esgotar o voo;
+  - `scripts/effects/zone_effect.gd` — ataque que fica no chão e bate repetido enquanto dura;
+  - `scripts/effects/orbit_effect.gd` — ataque que gira em volta do druida e o acompanha;
+  - armas novas: Corvo Espiritual (projétil), Anel de Esporos (zona) e Vagalumes Guardiões (orbital), com as entradas de catálogo correspondentes;
+  - `assets/effects/corvo.png` mais `tools/preparar_corvo.py` — recorta o sheet gerado e recentraliza os seis quadros numa tela comum, senão o projétil pularia de posição a cada frame;
+  - `WeaponData` ganha `projectile_speed`, `projectile_pierce` e `effect_duration`, com **zero = usa o valor da cena**: acrescentar campo de família nova não obriga arma antiga a preencher número alheio;
+  - `Weapon` passa a ler `AMOUNT`, `PROJECTILE_SPEED` e `DURATION` — os três stats que estavam declarados sem leitor;
+  - `tests/test_phase7.gd`.
 - **FASE 6 — Sistema de upgrades:**
   - `scripts/upgrades/upgrade_data.gd` — cada opção do level up vira um `.tres`. Uma passiva é um stat mais um número, e nada além disso;
   - `scripts/systems/upgrade_pool.gd` — catálogo: decide o que pode ser oferecido e o que a escolha faz. Sorteia sem repetir na mesma tela e nunca oferece o inaplicável (§13);
