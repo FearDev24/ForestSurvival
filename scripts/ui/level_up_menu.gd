@@ -93,9 +93,14 @@ func _abrir() -> void:
 	visible = true
 	get_tree().paused = true
 
-	# Foco no primeiro botão: dá para escolher no teclado, sem mouse.
-	if _opcoes.get_child_count() > 0:
-		(_opcoes.get_child(0) as Button).grab_focus()
+	# **Sem** foco inicial: a tela abre com nada aceso.
+	#
+	# Dar foco ao primeiro botão ao abrir fazia ele parecer escolhido antes de o
+	# jogador tocar em nada. Quem entra pelo teclado ganha o foco na primeira
+	# tecla de navegação — ver `_unhandled_input`.
+	var viewport := get_viewport()
+	if viewport != null and viewport.gui_get_focus_owner() != null:
+		viewport.gui_release_focus()
 
 
 ## Uma linha da tela: placa de fundo, ícone e texto.
@@ -155,32 +160,24 @@ func _montar_linha(upgrade: UpgradeData) -> Button:
 
 ## Troca o visual padrão do botão pela placa desenhada.
 ##
-## Só `hover` e `pressed` acendem a placa. O foco **não** — a Godot desenha o
-## estilo de foco **por cima** do estado, então uma placa acesa ali deixaria a
-## primeira opção permanentemente ligada, já que ela recebe o foco ao abrir.
+## A placa acesa é o **único** destaque: hover, pressed e foco usam ela. Não há
+## contorno nem moldura por cima — a arte já diz o que está selecionado, e um
+## retângulo desenhado em código sobre uma moldura desenhada à mão briga com ela.
 ##
-## O foco vira um contorno: quem navega no teclado continua vendo onde está, sem
-## que a linha finja estar sob o mouse.
+## O estilo de foco é desenhado **por cima** do estado, e é por isso que ele
+## recebe a mesma placa: sobrepor a acesa sobre a normal mostra a acesa, sem
+## nada mais aparecer.
 func _vestir(botao: Button) -> void:
 	if textura_opcao == null:
 		return
 
-	var acesos: Array[String] = ["hover", "pressed"]
-	var estados: Array[String] = ["normal", "hover", "pressed", "disabled"]
+	var acesos: Array[String] = ["hover", "pressed", "focus"]
+	var estados: Array[String] = ["normal", "hover", "pressed", "focus", "disabled"]
 	for estado in estados:
 		var caixa := StyleBoxTexture.new()
 		var aceso: bool = estado in acesos and textura_opcao_destaque != null
 		caixa.texture = textura_opcao_destaque if aceso else textura_opcao
 		botao.add_theme_stylebox_override(estado, caixa)
-
-	var contorno := StyleBoxFlat.new()
-	contorno.draw_center = false
-	contorno.border_color = Color(0.35, 0.95, 0.65, 0.85)
-	contorno.set_border_width_all(2)
-	contorno.set_corner_radius_all(3)
-	# A placa tem musgo saindo das bordas; o contorno recua para não cortá-lo.
-	contorno.set_expand_margin_all(-6.0)
-	botao.add_theme_stylebox_override("focus", contorno)
 
 
 func _rotulo_nome(upgrade: UpgradeData) -> Label:
@@ -204,6 +201,26 @@ func _rotulo_efeito(texto: String) -> Label:
 	linha.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return linha
+
+
+## O teclado entra na tela sem o mouse, mas só quando é usado.
+##
+## Enquanto ninguém navega, nada fica aceso. A primeira seta ou confirmação põe
+## o foco na primeira opção, e daí em diante a navegação da própria Godot toma
+## conta. A tecla que traz o foco é consumida de propósito: ela serve para
+## entrar na lista, não para escolher às cegas.
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible or _opcoes == null or _opcoes.get_child_count() == 0:
+		return
+	var viewport := get_viewport()
+	if viewport == null or viewport.gui_get_focus_owner() != null:
+		return
+
+	for acao in [&"ui_up", &"ui_down", &"ui_left", &"ui_right", &"ui_accept"]:
+		if event.is_action_pressed(acao):
+			(_opcoes.get_child(0) as Button).grab_focus()
+			viewport.set_input_as_handled()
+			return
 
 
 ## Nome, e quantas vezes a opção já foi levada.
