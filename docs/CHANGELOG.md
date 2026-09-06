@@ -35,6 +35,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **Barra de XP refeita:**
+  - a arte antiga era um quadro vazado — dois trilhos finos com um buraco no meio —, e escurecer o buraco no processamento não criava corpo. A nova é uma placa maciça com sulco, como a de vida sempre foi;
+  - a barra passa a vir em **uma peça só**: o líquido é pintado dentro da fenda, porque o verde não se distingue do musgo por cor (DEC-023);
+  - `tools/preparar_barras_hud.py` reescrito com os dois caminhos — par de peças para a vida, peça única com líquido pintado para o XP;
+  - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
+  - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
 - **FASE 6 — Sistema de upgrades (em andamento):**
   - `scripts/components/stat_component.gd` — onde os bônus se somam (`03_SYSTEMS.md` §14). Guarda bônus, não bases: `efetivo = (base + plano) * (1 + percentual)`, com piso no fator para redução exagerada não zerar nem inverter um valor;
   - nó `Stats` no Player; `Player` recalcula velocidade, vida máxima e alcance de coleta quando o componente avisa;
