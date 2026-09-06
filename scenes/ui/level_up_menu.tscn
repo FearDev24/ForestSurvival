@@ -1,12 +1,17 @@
-[gd_scene load_steps=2 format=3 uid="uid://bfslevelup0fs"]
+[gd_scene load_steps=5 format=3 uid="uid://bfslevelup0fs"]
 
 [ext_resource type="Script" path="res://scripts/ui/level_up_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" path="res://assets/ui/painel_escolha.png" id="2_painel"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_normal.png" id="3_normal"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_destaque.png" id="4_destaque"]
 
 [node name="LevelUpMenu" type="CanvasLayer"]
 process_mode = 3
 layer = 5
 visible = false
 script = ExtResource("1_menu")
+textura_opcao = ExtResource("3_normal")
+textura_opcao_destaque = ExtResource("4_destaque")
 
 [node name="Fundo" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -14,28 +19,53 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
+color = Color(0, 0, 0, 0.62)
 
-[node name="Caixa" type="VBoxContainer" parent="."]
+[node name="Painel" type="TextureRect" parent="."]
+editor_description = "Moldura do painel. 1000x598 mantem a proporcao 1.67:1 da arte; deformar a moldura para caber outro retangulo seria visivel nas gemas dos cantos. texture_filter LINEAR pelo mesmo motivo das barras: a arte da UI nao e pixel art e serrilha com NEAREST (DEC-023)."
+texture_filter = 2
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = -150.0
-offset_right = 220.0
-offset_bottom = 150.0
+offset_left = -500.0
+offset_top = -299.0
+offset_right = 500.0
+offset_bottom = 299.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+texture = ExtResource("2_painel")
+expand_mode = 1
+
+[node name="Caixa" type="VBoxContainer" parent="."]
+editor_description = "Area util dentro da moldura. Os botoes sao criados em tempo de execucao a partir do que o UpgradePool tem para oferecer: nao ha botao fixo aqui de proposito, porque opcao que nao pode ser aplicada nao deve aparecer (docs/03_SYSTEMS.md secao 13)."
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -219.0
+offset_right = 420.0
+offset_bottom = 229.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
 
 [node name="Titulo" type="Label" parent="Caixa"]
+editor_description = "A gema do topo da moldura desce para dentro do miolo. O rotulo reserva 62 px e escreve na base do espaco, para o texto passar por baixo dela em vez de atravessa-la."
+custom_minimum_size = Vector2(0, 62)
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(0.87, 0.96, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 30
 text = "SUBIU DE NIVEL"
 horizontal_alignment = 1
+vertical_alignment = 2
 
 [node name="Opcoes" type="VBoxContainer" parent="Caixa"]
-editor_description = "Os botoes sao criados em tempo de execucao, a partir do que o WeaponManager tem para oferecer. Nao ha botao fixo aqui de proposito: opcao que nao pode ser aplicada nao deve aparecer (docs/03_SYSTEMS.md secao 13)."
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
 theme_override_constants/separation = 10
+alignment = 1

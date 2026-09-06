@@ -702,6 +702,53 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# Tela de level up com arte
+
+| O quê | Caminho |
+|---|---|
+| Ícones | `tools/preparar_icones_ui.py` → `assets/ui/icones/` |
+| Painel e placas | `tools/preparar_painel_ui.py` → `assets/ui/` |
+| Tela | `res://scenes/ui/level_up_menu.tscn` |
+
+## A moldura comum é o que faz os nove lerem como conjunto
+
+Sem ela, um escudo de casca marrom e um corvo etéreo não parecem do mesmo jogo.
+Gema marca arma, folha marca passiva.
+
+As duas molduras chegaram com **alfa de verdade em vez de fundo magenta**, e com
+a janela interna em `813x781` na posição `(221,224)` — **idêntica nas duas, ao
+pixel**. Isso permitiu compor os dois conjuntos com a mesma conta, sem registro
+manual.
+
+## Assunto que não é ícone
+
+O cajado e a vinha vieram em proporção 1:2,6 e, encaixados inteiros num
+quadrado, viravam um fio de 28 px. Para eles há recorte declarado em `RECORTES`,
+que fica com a parte que identifica a habilidade: a coroa do cajado, o botão da
+rosa. A rosa virou o **único vermelho do conjunto**, o que ajuda a achá-la de
+relance.
+
+## O layout saiu de medição, não de palpite
+
+O miolo escuro do painel foi medido na própria arte: `1223x627` dentro de
+`1374x821`. Em tela, com o painel a 1000x598, isso dá **890x456** de área útil.
+Daí saem os 62 px de título — a gema do topo desce para dentro do miolo, e o
+rótulo escreve na base do espaço para passar por baixo dela — e as linhas de
+`704x118`, que é a proporção exata da placa desenhada.
+
+Deixar o container esticar a linha até a largura toda deformaria as pedras das
+pontas. Por isso o tamanho é fixo e o container encolhe em volta.
+
+## O botão continua sendo um botão
+
+Foco pelo teclado, `pressed`, estados. O conteúdo entra como filho, e os filhos
+usam `MOUSE_FILTER_IGNORE` para o clique chegar ao botão em vez de parar no
+rótulo. `hover`, `focus` e `pressed` usam a mesma placa acesa: quem navega no
+teclado precisa ver onde está tanto quanto quem usa o mouse.
+
+E a coluna do ícone existe **mesmo sem ícone**. Sem ela, uma opção ainda sem
+arte empurraria o texto para a esquerda e a fileira perderia o alinhamento.
+
 # Waves (FASE 8)
 
 | O quê | Caminho |
@@ -1828,7 +1875,7 @@ tropeçou.
 - **Os tipos de inimigo não têm arte própria.** Todos usam a sprite do diabrete, diferindo em escala e tinta. É PLACEHOLDER declarado, não pendência de código.
 - **O boss não tem comportamento próprio**: persegue igual aos outros, só com muito mais vida. Padrão de ataque de boss não está no roadmap do MVP.
 - **Nada acontece quando o boss morre.** `WaveManager.boss_spawned` é o gancho, e a condição de vitória é da FASE 9.
-- **Nenhum `UpgradeData` tem ícone.** O campo existe e a tela usa quando houver; enquanto não há, ela desenha só o texto (DEC-013).
+- **Duas das onze opções ainda não têm ícone**: Anel de Esporos e Vagalumes Guardiões. A tela reserva a coluna e desenha só o texto (DEC-013).
 - **O sorteio é uniforme.** Não há raridade nem peso: toda opção aplicável tem a mesma chance.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
 - **O orbe de XP é PLACEHOLDER** desenhado em código, e não tem atração: coleta só por encostar, no raio de 48 px.

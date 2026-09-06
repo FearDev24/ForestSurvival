@@ -41,6 +41,13 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `tools/preparar_barras_hud.py` reescrito com os dois caminhos — par de peças para a vida, peça única com líquido pintado para o XP;
   - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
   - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
+- **Tela de level up com arte:**
+  - `tools/preparar_icones_ui.py` — compõe os nove ícones: assunto dentro da moldura comum, gema para arma e folha para passiva. As molduras chegaram com a janela interna no **mesmo lugar nas duas, ao pixel**, o que permitiu a mesma conta para os dois conjuntos;
+  - `tools/preparar_painel_ui.py` — painel e as duas placas de opção, com o miolo das placas escurecido poupando musgo e gemas: escurecê-los apagaria a diferença entre normal e destacado;
+  - `assets/ui/icones/` com nove ícones de 256x256, mais `painel_escolha.png`, `opcao_normal.png` e `opcao_destaque.png`;
+  - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
+  - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
+  - `icon` preenchido nos nove `UpgradeData` correspondentes.
 - **FASE 8 — Waves:**
   - `scripts/enemies/enemy_data.gd` — tipo de inimigo em `Resource`: vida, dano, velocidade, XP, escala, raio de corpo e tinta;
   - `scripts/systems/wave_data.gd` — uma fase da partida: quem nasce, a partir de quando, em que ritmo, com que teto, mais elite e boss;

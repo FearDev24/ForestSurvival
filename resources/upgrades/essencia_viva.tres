@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3 uid="uid://bfsupgessencia"]
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgessencia"]
 
 [ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+[ext_resource type="Texture2D" path="res://assets/ui/icones/essencia_viva.png" id="2_icone"]
 
 [resource]
 script = ExtResource("1_data")
 id = &"essencia_viva"
 display_name = "Essência Viva"
 description = "Alcance de coleta +25%."
+icon = ExtResource("2_icone")
 kind = 0
 stat = 2
 flat = 0.0

@@ -24,6 +24,25 @@ signal closed
 ## Quantas opções mostrar, no máximo.
 const MAX_OPCOES := 3
 
+## Tamanho de cada linha de opção, em pixels de viewport.
+##
+## A proporção é a da placa desenhada — 1970x330, ou 5,97:1. Deixar o container
+## esticar a linha até a largura toda deformaria as pedras das pontas, então o
+## tamanho é fixo e o container encolhe em volta.
+##
+## A altura sai da conta do painel: 448 px de área útil medidos na arte, menos o
+## título e as folgas, dividido por três.
+const TAMANHO_OPCAO := Vector2(704.0, 118.0)
+
+## Lado do ícone dentro da linha. Menor que a altura da placa para não encostar
+## nos trilhos de pedra de cima e de baixo.
+const LADO_ICONE := 96.0
+
+## Placa de fundo de cada opção, nos dois estados. Vêm da cena porque são arte,
+## e arte não se escolhe em código (DEC-013).
+@export var textura_opcao: Texture2D
+@export var textura_opcao_destaque: Texture2D
+
 var _pool: UpgradePool = null
 var _pendentes := 0
 ## As opções da tela aberta, para o botão saber o que aplicar.
@@ -65,17 +84,7 @@ func _abrir() -> void:
 		antigo.queue_free()
 
 	for upgrade in _oferta:
-		var botao := Button.new()
-		botao.text = _rotulo(upgrade)
-		botao.custom_minimum_size = Vector2(0.0, 52.0)
-		botao.add_theme_font_size_override("font_size", 22)
-		# Ícone e moldura entram quando a arte chegar. Enquanto não chega, o
-		# texto sozinho já deixa a escolha jogável (DEC-013).
-		if upgrade.icon != null:
-			botao.icon = upgrade.icon
-			botao.expand_icon = true
-		botao.pressed.connect(_on_escolha.bind(upgrade.id))
-		_opcoes.add_child(botao)
+		_opcoes.add_child(_montar_linha(upgrade))
 
 	_titulo.text = "SUBIU DE NIVEL" if _pendentes <= 1 else "SUBIU DE NIVEL  (x%d)" % _pendentes
 	visible = true
@@ -86,21 +95,108 @@ func _abrir() -> void:
 		(_opcoes.get_child(0) as Button).grab_focus()
 
 
-## Nome, efeito e quantas vezes a opção já foi levada.
+## Uma linha da tela: placa de fundo, ícone e texto.
+##
+## O botão continua sendo um `Button` de verdade — foco pelo teclado, `pressed`,
+## estados — e o conteúdo entra como filho dele. Os filhos ignoram o mouse, para
+## o clique chegar ao botão em vez de parar no rótulo.
+func _montar_linha(upgrade: UpgradeData) -> Button:
+	var botao := Button.new()
+	botao.custom_minimum_size = TAMANHO_OPCAO
+	botao.focus_mode = Control.FOCUS_ALL
+	botao.pressed.connect(_on_escolha.bind(upgrade.id))
+	_vestir(botao)
+
+	var linha := HBoxContainer.new()
+	linha.set_anchors_preset(Control.PRESET_FULL_RECT)
+	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	linha.add_theme_constant_override("separation", 18)
+	linha.offset_left = 26.0
+	linha.offset_right = -26.0
+	botao.add_child(linha)
+
+	# A coluna do ícone existe mesmo sem ícone: sem ela, uma opção ainda sem arte
+	# empurraria o texto para a esquerda e a fileira perderia o alinhamento.
+	if upgrade.icon != null:
+		var icone := TextureRect.new()
+		icone.texture = upgrade.icon
+		icone.custom_minimum_size = Vector2(LADO_ICONE, LADO_ICONE)
+		icone.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icone.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icone.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		icone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		linha.add_child(icone)
+	else:
+		var vazio := Control.new()
+		vazio.custom_minimum_size = Vector2(LADO_ICONE, LADO_ICONE)
+		vazio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		linha.add_child(vazio)
+
+	var texto := VBoxContainer.new()
+	texto.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	texto.alignment = BoxContainer.ALIGNMENT_CENTER
+	texto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	texto.add_theme_constant_override("separation", 2)
+	linha.add_child(texto)
+
+	texto.add_child(_rotulo_nome(upgrade))
+	var efeito := upgrade.description if not upgrade.description.is_empty() else upgrade.resumo()
+	if not efeito.is_empty():
+		texto.add_child(_rotulo_efeito(efeito))
+
+	return botao
+
+
+## Troca o visual padrão do botão pela placa desenhada, nos quatro estados.
+##
+## `hover`, `focus` e `pressed` usam a mesma placa acesa: o jogador que navega
+## no teclado precisa ver onde está tanto quanto quem usa o mouse.
+func _vestir(botao: Button) -> void:
+	if textura_opcao == null:
+		return
+	var acesos: Array[String] = ["hover", "pressed", "focus"]
+	var estados: Array[String] = ["normal", "hover", "pressed", "focus", "disabled"]
+	for estado in estados:
+		var caixa := StyleBoxTexture.new()
+		var aceso: bool = estado in acesos and textura_opcao_destaque != null
+		caixa.texture = textura_opcao_destaque if aceso else textura_opcao
+		botao.add_theme_stylebox_override(estado, caixa)
+
+
+func _rotulo_nome(upgrade: UpgradeData) -> Label:
+	var nome := Label.new()
+	nome.text = _titulo_da_opcao(upgrade)
+	nome.add_theme_font_size_override("font_size", 25)
+	nome.add_theme_color_override("font_color", Color(0.93, 0.98, 0.88))
+	nome.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	nome.add_theme_constant_override("outline_size", 6)
+	nome.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return nome
+
+
+func _rotulo_efeito(texto: String) -> Label:
+	var linha := Label.new()
+	linha.text = texto
+	linha.add_theme_font_size_override("font_size", 17)
+	linha.add_theme_color_override("font_color", Color(0.72, 0.82, 0.66))
+	linha.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	linha.add_theme_constant_override("outline_size", 5)
+	linha.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	linha.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return linha
+
+
+## Nome, e quantas vezes a opção já foi levada.
 ##
 ## O contador só aparece a partir da segunda vez: "Casca de Carvalho II" diz ao
 ## jogador que ele está empilhando, e some quando não há o que dizer.
-func _rotulo(upgrade: UpgradeData) -> String:
-	var nome := upgrade.display_name
+func _titulo_da_opcao(upgrade: UpgradeData) -> String:
 	var repetida := _pool.stacks(upgrade.id) if _pool != null else 0
-	if repetida > 0:
-		nome += "  %s" % "I".repeat(mini(repetida + 1, 5))
-
-	var efeito := upgrade.description
-	if efeito.is_empty():
-		efeito = upgrade.resumo()
-	return nome if efeito.is_empty() else "%s
-%s" % [nome, efeito]
+	if repetida <= 0:
+		return upgrade.display_name
+	# O contador só aparece a partir da segunda vez: "Casca de Carvalho II" diz
+	# ao jogador que ele está empilhando, e some quando não há o que dizer.
+	return "%s  %s" % [upgrade.display_name, "I".repeat(mini(repetida + 1, 5))]
 
 
 func _on_escolha(id: StringName) -> void:
