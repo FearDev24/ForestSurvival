@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgraio"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsarmaraio" path="res://resources/weapons/cajado_raio.tres" id="2_arma"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"arma_cajado_raio"
+display_name = "Cajado Tempestade"
+description = "Um raio cai sobre o inimigo mais próximo."
+kind = 1
+weapon = ExtResource("2_arma")

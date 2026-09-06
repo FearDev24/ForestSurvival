@@ -324,11 +324,14 @@ func _check_level_up() -> void:
 	print("  nível %d, %d escolhas atendidas" % [_level.level, guarda + 1])
 
 
-## Todas as armas no teto: subir de nível não tem o que oferecer.
+## Catálogo esgotado: subir de nível não tem o que oferecer.
 ##
-## A §13 pede "evitar opções impossíveis". Oferecer uma arma que já está no
-## nível máximo seria uma escolha que não faz nada — e pausar o jogo para isso é
-## pior ainda.
+## A §13 pede "evitar opções impossíveis" — e pausar o jogo para não oferecer
+## nada é pior ainda.
+##
+## Até a FASE 6, bastava encher as armas: elas eram a única opção que existia.
+## Com passivas no catálogo isso deixou de ser um beco sem saída, e o teste
+## passou a esgotar o **catálogo inteiro** — que é a condição de verdade.
 func _start_sem_opcao() -> void:
 	if _weapons == null:
 		_frames_left = 1
@@ -340,6 +343,18 @@ func _start_sem_opcao() -> void:
 		if arma != null:
 			arma.level = arma.data.max_level
 
+	var pool := _game.get_node_or_null("UpgradePool") as UpgradePool
+	if pool == null:
+		_fail("game.tscn sem UpgradePool")
+	else:
+		for upgrade in pool.catalogo:
+			if upgrade != null and upgrade.kind == UpgradeData.Kind.PASSIVA:
+				for _i in range(upgrade.max_stacks):
+					pool.apply(upgrade.id)
+		if not pool.aplicaveis().is_empty():
+			_fail("O catálogo deveria estar esgotado, ainda sobram %d opções"
+				% pool.aplicaveis().size())
+
 	_level.add_xp(_level.xp_to_next() * 2.0)
 	_frames_left = 4
 	_stage = 4
@@ -349,7 +364,7 @@ func _check_sem_opcao() -> void:
 	if _menu.visible:
 		var lista := _menu.get_node_or_null("Caixa/Opcoes")
 		var quantas := lista.get_child_count() if lista != null else 0
-		_fail("A tela abriu com todas as armas no teto, oferecendo %d opção(ões)" % quantas)
+		_fail("A tela abriu com o catálogo esgotado, oferecendo %d opção(ões)" % quantas)
 	if paused:
 		_fail("O jogo pausou para uma escolha que não existia")
 	paused = false

@@ -14,10 +14,10 @@ Detalhes em `docs/HANDOFF.md`.
 
 # Agora — FASE 6 (sistema de upgrades)
 
-- [ ] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
-- [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` (vida, velocidade, área, cooldown, alcance de coleta)
-- [ ] oferecer arma nova além de melhorar equipada, respeitando os slots
-- [ ] validar opções: nada impossível, nada repetido na mesma tela
+- [x] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
+- [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` — **3 de 6 feitas** (vida, velocidade, coleta). Faltam área, cooldown e regeneração, que dependem de a `Weapon` e o `HealthComponent` lerem os stats
+- [x] oferecer arma nova além de melhorar equipada, respeitando os slots
+- [x] validar opções: nada impossível, nada repetido na mesma tela
 - [x] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14) — velocidade, vida máxima e alcance de coleta já passam por ele
 - [x] criar `tests/test_phase6.gd` (cobre o `StatComponent`; cresce com o resto da fase)
 

@@ -42,6 +42,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
   - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
 - **FASE 6 — Sistema de upgrades (em andamento):**
+  - `scripts/upgrades/upgrade_data.gd` — cada opção do level up vira um `.tres`. Uma passiva é um stat mais um número, e nada além disso;
+  - `scripts/systems/upgrade_pool.gd` — catálogo: decide o que pode ser oferecido e o que a escolha faz. Sorteia sem repetir na mesma tela e nunca oferece o inaplicável (§13);
+  - `resources/upgrades/` — três passivas (Casca de Carvalho, Passos do Cervo, Essência Viva) e as duas armas como opção;
+  - `scripts/ui/level_up_menu.gd` deixa de montar as opções à mão: recebe a lista do catálogo e devolve o id;
+  - nó `UpgradePool` em `game.tscn`;
+  - `tests/test_phase5.gd` passa a esgotar o **catálogo inteiro** para testar o caso "nada a oferecer" — encher só as armas deixou de ser beco sem saída.
   - `scripts/components/stat_component.gd` — onde os bônus se somam (`03_SYSTEMS.md` §14). Guarda bônus, não bases: `efetivo = (base + plano) * (1 + percentual)`, com piso no fator para redução exagerada não zerar nem inverter um valor;
   - nó `Stats` no Player; `Player` recalcula velocidade, vida máxima e alcance de coleta quando o componente avisa;
   - `Player.get_move_speed()` — a velocidade depois das passivas, que é a que o movimento usa;

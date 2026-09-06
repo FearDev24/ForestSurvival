@@ -126,10 +126,10 @@ Observações:
 # FASE 6 — Sistema de upgrades
 
 - [x] WeaponData — feito na FASE 4
-- [ ] UpgradeData
+- [x] UpgradeData
 - [x] levels — feito na FASE 4, com teto por arma
-- [ ] passivas
-- [ ] validação das opções
+- [ ] passivas — 3 de 6
+- [x] validação das opções
 
 Fora da lista original, feito primeiro:
 

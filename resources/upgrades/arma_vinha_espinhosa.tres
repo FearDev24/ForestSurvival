@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgvinha"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsarmavinha" path="res://resources/weapons/vinha_espinhosa.tres" id="2_arma"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"arma_vinha_espinhosa"
+display_name = "Vinha Espinhosa"
+description = "Vinhas brotam do chão em volta do druida."
+kind = 1
+weapon = ExtResource("2_arma")

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-05
+Última atualização: 2026-09-06
 
 # Projeto
 
@@ -702,6 +702,67 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# Catálogo de upgrades (FASE 6)
+
+| O quê | Caminho |
+|---|---|
+| Opção | `res://scripts/upgrades/upgrade_data.gd` |
+| Catálogo | `res://scripts/systems/upgrade_pool.gd`, nó `UpgradePool` em `game.tscn` |
+| Conteúdo | `res://resources/upgrades/*.tres` |
+| Tela | `res://scripts/ui/level_up_menu.gd` |
+
+## Quem decide o quê
+
+```text
+LevelComponent.leveled_up
+        |
+   LevelUpMenu pede a lista       ->  UpgradePool.sortear()
+        |                                    |
+   desenha os botões              aplicáveis, sem repetir na tela
+        |
+   devolve o id escolhido         ->  UpgradePool.apply()
+                                             |
+                              StatComponent  ou  WeaponManager
+```
+
+A tela não sabe o que é uma passiva. O catálogo não sabe desenhar. A separação
+existe porque os dois mudam por motivos diferentes: a regra do que é oferecível
+muda quando entra conteúdo, o desenho muda quando entra arte.
+
+## Uma passiva é um stat mais um número
+
+`UpgradeData` tem `stat`, `flat`, `mult` e `max_stacks`. Nada além disso — e é
+proposital: se alguma passiva precisar de campo próprio, virou caso especial, e
+era exatamente isso que o `StatComponent` existia para evitar.
+
+Armas convivem na mesma lista, com `kind = ARMA` e um `WeaponData` apontado.
+Escolher uma arma que já está equipada sobe o nível dela, porque
+`WeaponManager.add_weapon()` já fazia isso desde a FASE 4.
+
+## O que "opção impossível" quer dizer (§13)
+
+| Caso | Regra |
+|---|---|
+| passiva no teto | `stacks < max_stacks` |
+| arma equipada | `level < max_level` |
+| arma nova | há slot livre |
+
+E o sorteio tira sem reposição: a mesma opção não aparece duas vezes na mesma
+tela — isso gastaria uma das três escolhas sem dar alternativa.
+
+O sorteio é uniforme. Raridade e peso são conteúdo, não estrutura, e entram como
+campo do `UpgradeData` quando houver opções suficientes para isso importar.
+
+## Um teste da FASE 5 teve de mudar
+
+`tests/test_phase5.gd` afirmava que, **com todas as armas no teto**, a tela não
+abre. Isso era verdade quando armas eram a única opção que existia. Com passivas
+no catálogo deixou de ser, e o teste passou a falhar — corretamente.
+
+A regra sob teste continua a mesma, mas a condição virou a de verdade: esgotar o
+**catálogo inteiro**. É a fase seguinte corrigindo uma premissa da anterior, e o
+teste antigo cumpriu o papel dele ao acusar a mudança.
+
 # Stats (FASE 6, primeiro item)
 
 | O quê | Caminho |
@@ -1229,6 +1290,10 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 46 | `--headless --script res://tests/test_phase6.gd` | `FASE 6 (parcial) OK`, exit 0 |
 | 47 | Seis erros injetados no `StatComponent` e no aplicador do Player | os seis foram pegos de primeira |
 | 48 | Suíte completa depois do `StatComponent` | oito suítes, exit 0 em todas |
+| 49 | `--headless --script res://tests/test_phase6.gd` com catálogo | `FASE 6 (parcial) OK`, exit 0 |
+| 50 | Quatro erros injetados no catálogo | teto ignorado, arma sem slot, sorteio repetindo e passiva sem efeito; os quatro foram pegos |
+| 51 | Partida real, level up com render | tela pausou e ofereceu duas passivas e uma arma, com descrição |
+| 52 | Suíte completa depois do catálogo | oito suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1505,8 +1570,10 @@ tropeçou.
 # Limitações e pendências
 
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
-- **O `StatComponent` existe mas ninguém o alimenta ainda.** Nenhuma passiva chega até ele pelo jogo: hoje só um teste soma bônus. O caminho `escolha -> stat` é o `UpgradeData`, ainda por fazer.
 - **Seis dos nove stats da §14 não têm leitor.** `MAX_HEALTH`, `MOVE_SPEED` e `PICKUP_RADIUS` são aplicados pelo Player; dano, cooldown, área, duração, velocidade de projétil e quantidade estão declarados e ninguém pergunta por eles. Quem vai perguntar é `Weapon`.
+- **Só 3 das 6 passivas da primeira lista existem.** Área, cooldown e regeneração dependem daqueles leitores.
+- **Nenhum `UpgradeData` tem ícone.** O campo existe e a tela usa quando houver; enquanto não há, ela desenha só o texto (DEC-013).
+- **O sorteio é uniforme.** Não há raridade nem peso: toda opção aplicável tem a mesma chance.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
 - **O orbe de XP é PLACEHOLDER** desenhado em código, e não tem atração: coleta só por encostar, no raio de 48 px.
 - **Nenhuma arma é escolhida pelo jogador.** As duas vêm equipadas desde o começo, por `starting_weapons`. Escolher personagem e armas iniciais é FASE 13.
@@ -1534,19 +1601,14 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 6 — Sistema de upgrades.** Em andamento: o `StatComponent` está feito e
-três valores já passam por ele. Falta o resto.
-
-Hoje a tela de level up monta as opções à mão e só sabe oferecer uma coisa:
-melhorar arma equipada. A fase troca isso por dados.
-
-O HUD já está no lugar, o que era o pré-requisito prático: cada passiva pode ser
-julgada olhando a tela, e não lendo número em log.
+**FASE 6 — Sistema de upgrades.** Em andamento. O `StatComponent` e o catálogo
+de `UpgradeData` estão feitos; a tela de level up já oferece passivas e armas
+vindas de `.tres`. Falta metade das passivas.
 
 Itens restantes:
 
-1. `UpgradeData` em `Resource` — cada opção vira um `.tres`, como as armas (DEC-010). Uma passiva é `stat` + `plano` + `percentual`, e nada além disso;
-2. passivas da primeira lista do `docs/04_CONTENT_PLAN.md`: vida máxima, velocidade, regeneração, área, cooldown e alcance de coleta. Três já têm onde bater; **regeneração, área e cooldown ainda não têm quem leia o stat** — área e cooldown pedem que `Weapon` pergunte ao `StatComponent`, e regeneração pede um tique no `HealthComponent`;
+1. **`Weapon` lendo os stats.** Hoje `damage_at()` e `cooldown_at()` só olham o nível da arma; precisam passar por `StatComponent` com `DAMAGE`, `COOLDOWN` e `AREA`. É o que destrava três passivas de uma vez;
+2. **as três passivas que faltam** da primeira lista do `docs/04_CONTENT_PLAN.md`: Semente Ancestral (área), Ciclo Lunar (cooldown) e Coração Verde (regeneração). A de regeneração pede um tique no `HealthComponent`, as outras duas caem prontas assim que o item 1 existir;
 4. oferecer **arma nova** além de melhorar equipada, respeitando `max_slots`;
 5. validação das opções: nada impossível, nada repetido na mesma tela;
 6. criar `tests/test_phase6.gd`; manter as cinco suítes anteriores passando;

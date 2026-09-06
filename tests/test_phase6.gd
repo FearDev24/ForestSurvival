@@ -4,10 +4,12 @@ extends SceneTree
 ## Uso:
 ##   godot --headless --path . --script res://tests/test_phase6.gd
 ##
-## Por enquanto cobre só o primeiro item da fase: o `StatComponent`
-## (`docs/03_SYSTEMS.md` §14) e as três bases que já migraram para ele —
-## velocidade, vida máxima e alcance de coleta. `UpgradeData`, passivas em
-## `Resource` e a validação de opções entram aqui conforme forem feitas.
+## Cobre o `StatComponent` (`docs/03_SYSTEMS.md` §14) com as três bases que
+## passam por ele — velocidade, vida máxima e alcance de coleta —, o catálogo
+## de `UpgradeData` e a validação de opções da §13.
+##
+## Falta ainda: passivas de área, cooldown e regeneração, que dependem de a
+## `Weapon` e o `HealthComponent` lerem os stats.
 
 const PLAYER_SCENE := "res://scenes/player/player.tscn"
 
@@ -29,6 +31,7 @@ func _initialize() -> void:
 	_check_conta()
 	_check_piso()
 	_check_sinal()
+	_check_catalogo()
 
 	if not _build_player():
 		_report()
@@ -131,6 +134,131 @@ func _check_sinal() -> void:
 		_fail("Os avisos vieram com o stat errado: %s" % str(recebidos))
 
 	stats.free()
+
+
+# ----------------------------------------------------------------- catálogo --
+
+
+const CATALOGO := "res://resources/upgrades/"
+
+
+## As opções são dados, não código: cada uma é um `.tres` válido.
+func _check_recursos() -> Array[UpgradeData]:
+	var lista: Array[UpgradeData] = []
+	var dir := DirAccess.open(CATALOGO)
+	if dir == null:
+		_fail("Pasta de upgrades não encontrada em %s" % CATALOGO)
+		return lista
+
+	for arquivo in dir.get_files():
+		if not arquivo.ends_with(".tres"):
+			continue
+		var upgrade := load(CATALOGO + arquivo) as UpgradeData
+		if upgrade == null:
+			_fail("%s não carregou como UpgradeData" % arquivo)
+			continue
+		if not upgrade.is_valid():
+			_fail("%s é um UpgradeData inválido (sem id, sem efeito ou sem arma)" % arquivo)
+		lista.append(upgrade)
+
+	if lista.size() < 5:
+		_fail("Esperava ao menos 5 opções no catálogo, achei %d" % lista.size())
+	return lista
+
+
+## O catálogo não pode oferecer o que não muda nada (§13), nem repetir opção na
+## mesma tela.
+func _check_catalogo() -> void:
+	var lista := _check_recursos()
+	if lista.is_empty():
+		return
+
+	var ids := {}
+	for upgrade in lista:
+		if ids.has(upgrade.id):
+			_fail("Dois upgrades com o mesmo id: %s" % upgrade.id)
+		ids[upgrade.id] = true
+
+	var pool := UpgradePool.new()
+	pool.catalogo = lista
+	pool.set_seed(1234)
+	root.add_child(pool)
+
+	var stats := StatComponent.new()
+	root.add_child(stats)
+	var weapons := WeaponManager.new()
+	root.add_child(weapons)
+	pool.configure(stats, weapons)
+
+	var oferta := pool.sortear(3)
+	if oferta.size() != 3:
+		_fail("Com o catálogo cheio, a tela deveria oferecer 3 opções, ofereceu %d" % oferta.size())
+	var vistos := {}
+	for upgrade in oferta:
+		if vistos.has(upgrade.id):
+			_fail("A mesma opção apareceu duas vezes na mesma tela: %s" % upgrade.id)
+		vistos[upgrade.id] = true
+
+	var passiva: UpgradeData = null
+	var arma: UpgradeData = null
+	for upgrade in lista:
+		if passiva == null and upgrade.kind == UpgradeData.Kind.PASSIVA:
+			passiva = upgrade
+		if arma == null and upgrade.kind == UpgradeData.Kind.ARMA:
+			arma = upgrade
+
+	if passiva == null:
+		_fail("Nenhuma passiva no catálogo")
+	else:
+		var antes := stats.apply(passiva.stat, 100.0)
+		if not pool.apply(passiva.id):
+			_fail("Aplicar %s falhou" % passiva.id)
+		if is_equal_approx(stats.apply(passiva.stat, 100.0), antes):
+			_fail("%s não mexeu no stat: %.2f antes e depois" % [passiva.id, antes])
+		if pool.stacks(passiva.id) != 1:
+			_fail("Contador de repetição não subiu: %d" % pool.stacks(passiva.id))
+
+		# Guarda contra laço infinito: se o teto deixar de valer, este teste
+		# rodaria para sempre em vez de falhar. Mesmo princípio do
+		# `_MAX_NIVEIS_POR_GANHO` no `LevelComponent`.
+		var voltas := 0
+		while pool.stacks(passiva.id) < passiva.max_stacks and voltas < 100:
+			pool.apply(passiva.id)
+			voltas += 1
+		if voltas >= 100:
+			_fail("%s: 100 escolhas e o contador não chegou ao teto de %d (está em %d)"
+				% [passiva.id, passiva.max_stacks, pool.stacks(passiva.id)])
+		if pool.is_applicable(passiva):
+			_fail("%s continuou oferecível depois de %d escolhas" % [passiva.id, passiva.max_stacks])
+		if pool.apply(passiva.id):
+			_fail("%s foi aplicada acima do teto" % passiva.id)
+
+	if arma == null:
+		_fail("Nenhuma arma no catálogo")
+	else:
+		weapons.max_slots = 0
+		if pool.is_applicable(arma):
+			_fail("%s foi oferecida sem slot livre" % arma.id)
+		weapons.max_slots = 6
+		if not pool.is_applicable(arma):
+			_fail("%s deveria ser oferecível com slot livre" % arma.id)
+
+	# Catálogo esgotado: a tela não tem o que oferecer.
+	weapons.max_slots = 0
+	for upgrade in lista:
+		if upgrade.kind != UpgradeData.Kind.PASSIVA:
+			continue
+		var voltas := 0
+		while pool.apply(upgrade.id) and voltas < 100:
+			voltas += 1
+		if voltas >= 100:
+			_fail("%s aceitou 100 escolhas seguidas: o teto não está valendo" % upgrade.id)
+	if not pool.sortear(3).is_empty():
+		_fail("Com tudo no teto, o sorteio ainda devolveu opções")
+
+	pool.free()
+	stats.free()
+	weapons.free()
 
 
 # ------------------------------------------------------------------- player --
@@ -251,7 +379,7 @@ func _fail(message: String) -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("FASE 6 (parcial) OK — StatComponent soma bônus e velocidade, vida e coleta obedecem.")
+		print("FASE 6 (parcial) OK — stats somam, catálogo é dado e nada impossível é oferecido.")
 		return
 	printerr("FASE 6 FALHOU:")
 	for failure in _failures:

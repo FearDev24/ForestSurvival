@@ -1,12 +1,15 @@
 extends CanvasLayer
 ## Tela de escolha ao subir de nível (`docs/03_SYSTEMS.md` §13).
 ##
-## Faz o mínimo que a §13 exige: pausa, oferece opções **válidas**, aplica uma
-## só e volta ao jogo.
+## Pausa, oferece opções **válidas**, aplica uma só e volta ao jogo.
 ##
-## O que ela **não** faz ainda: passivas e novas armas. Hoje só existe melhorar
-## arma equipada, porque só existem armas. O sistema de upgrades completo é a
-## FASE 6 — e é lá que `UpgradeData` entra, no lugar do que aqui é montado à mão.
+## Não decide o que pode ser oferecido nem o que uma escolha faz: isso é do
+## `UpgradePool`, que trabalha sobre `UpgradeData` em `.tres`. Esta tela recebe
+## uma lista pronta e devolve o id escolhido.
+##
+## A separação existe porque as duas coisas mudam por motivos diferentes: a
+## regra do que é oferecível muda quando entra conteúdo, o desenho da tela muda
+## quando entra arte.
 ##
 ## Níveis acumulam: subir três de uma vez abre a tela três vezes, uma escolha
 ## por vez. Sem isso, dois níveis no mesmo instante dariam uma escolha só e o
@@ -21,16 +24,18 @@ signal closed
 ## Quantas opções mostrar, no máximo.
 const MAX_OPCOES := 3
 
-var _weapons: WeaponManager = null
+var _pool: UpgradePool = null
 var _pendentes := 0
+## As opções da tela aberta, para o botão saber o que aplicar.
+var _oferta: Array[UpgradeData] = []
 
 @onready var _opcoes: VBoxContainer = $Caixa/Opcoes
 @onready var _titulo: Label = $Caixa/Titulo
 
 
 ## Ligada pela raiz da partida.
-func configure(weapons: WeaponManager, level: LevelComponent) -> void:
-	_weapons = weapons
+func configure(pool: UpgradePool, level: LevelComponent) -> void:
+	_pool = pool
 	if level != null and not level.leveled_up.is_connected(_on_leveled_up):
 		level.leveled_up.connect(_on_leveled_up)
 
@@ -48,8 +53,8 @@ func _on_leveled_up(_level: int) -> void:
 
 
 func _abrir() -> void:
-	var opcoes := _montar_opcoes()
-	if opcoes.is_empty():
+	_oferta = _pool.sortear(MAX_OPCOES) if _pool != null else [] as Array[UpgradeData]
+	if _oferta.is_empty():
 		# Nada aplicável: não faz sentido pausar o jogo para não oferecer nada.
 		# Acontece quando todas as armas estão no nível máximo — até a FASE 6
 		# trazer passivas, é um beco sem saída legítimo.
@@ -59,12 +64,17 @@ func _abrir() -> void:
 	for antigo in _opcoes.get_children():
 		antigo.queue_free()
 
-	for opcao in opcoes:
+	for upgrade in _oferta:
 		var botao := Button.new()
-		botao.text = opcao["texto"]
+		botao.text = _rotulo(upgrade)
 		botao.custom_minimum_size = Vector2(0.0, 52.0)
 		botao.add_theme_font_size_override("font_size", 22)
-		botao.pressed.connect(_on_escolha.bind(opcao["id"]))
+		# Ícone e moldura entram quando a arte chegar. Enquanto não chega, o
+		# texto sozinho já deixa a escolha jogável (DEC-013).
+		if upgrade.icon != null:
+			botao.icon = upgrade.icon
+			botao.expand_icon = true
+		botao.pressed.connect(_on_escolha.bind(upgrade.id))
 		_opcoes.add_child(botao)
 
 	_titulo.text = "SUBIU DE NIVEL" if _pendentes <= 1 else "SUBIU DE NIVEL  (x%d)" % _pendentes
@@ -76,32 +86,26 @@ func _abrir() -> void:
 		(_opcoes.get_child(0) as Button).grab_focus()
 
 
-## Só entra na lista o que pode ser aplicado de verdade.
+## Nome, efeito e quantas vezes a opção já foi levada.
 ##
-## A §13 pede "evitar opções impossíveis": oferecer uma arma que já está no
-## nível máximo seria uma escolha que não faz nada.
-func _montar_opcoes() -> Array[Dictionary]:
-	var lista: Array[Dictionary] = []
-	if _weapons == null:
-		return lista
+## O contador só aparece a partir da segunda vez: "Casca de Carvalho II" diz ao
+## jogador que ele está empilhando, e some quando não há o que dizer.
+func _rotulo(upgrade: UpgradeData) -> String:
+	var nome := upgrade.display_name
+	var repetida := _pool.stacks(upgrade.id) if _pool != null else 0
+	if repetida > 0:
+		nome += "  %s" % "I".repeat(mini(repetida + 1, 5))
 
-	for filho in _weapons.get_children():
-		var arma := filho as Weapon
-		if arma == null or arma.level >= arma.data.max_level:
-			continue
-		lista.append({
-			"id": arma.data.id,
-			"texto": "%s  —  nivel %d" % [arma.data.display_name, arma.level + 1],
-		})
-		if lista.size() >= MAX_OPCOES:
-			break
-
-	return lista
+	var efeito := upgrade.description
+	if efeito.is_empty():
+		efeito = upgrade.resumo()
+	return nome if efeito.is_empty() else "%s
+%s" % [nome, efeito]
 
 
 func _on_escolha(id: StringName) -> void:
-	if _weapons != null:
-		_weapons.upgrade_weapon(id)
+	if _pool != null:
+		_pool.apply(id)
 	choice_made.emit(id)
 
 	_pendentes = maxi(0, _pendentes - 1)

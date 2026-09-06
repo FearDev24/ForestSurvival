@@ -23,6 +23,8 @@ extends Node2D
 @onready var _pickup_spawner: PickupSpawner = $PickupSpawner
 @onready var _level: LevelComponent = $Player/Level
 @onready var _player_health: HealthComponent = $Player/Health
+@onready var _stats: StatComponent = $Player/Stats
+@onready var _upgrade_pool: UpgradePool = $UpgradePool
 @onready var _pickup_area: PickupArea = $Player/PickupArea
 @onready var _hud: Hud = $Hud
 @onready var _level_up_menu: CanvasLayer = $LevelUpMenu
@@ -54,7 +56,8 @@ func _ready() -> void:
 	_weapons.configure(_player, _enemy_container, _effect_container)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
-	_level_up_menu.configure(_weapons, _level)
+	_upgrade_pool.configure(_stats, _weapons)
+	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)
 	_player.death_finished.connect(_on_player_death_finished)
 	_restart_button.pressed.connect(_on_restart_pressed)
