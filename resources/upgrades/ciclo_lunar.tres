@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3 uid="uid://bfsupgciclo"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"ciclo_lunar"
+display_name = "Ciclo Lunar"
+description = "Tempo entre ataques -8%."
+kind = 0
+stat = 4
+flat = 0.0
+mult = -0.08
+max_stacks = 5

@@ -38,6 +38,13 @@ enum Stat {
 	DURATION,
 	PROJECTILE_SPEED,
 	AMOUNT,
+	## Vida por segundo. Não está na lista da §14 — entrou porque a passiva
+	## Coração Verde do `docs/04_CONTENT_PLAN.md` precisa dela.
+	##
+	## Acrescentado **no fim** de propósito: os `.tres` guardam o stat como
+	## número, então inserir no meio remapearia silenciosamente as passivas já
+	## existentes.
+	REGEN,
 }
 
 ## Piso do fator percentual, contra passiva mal configurada.

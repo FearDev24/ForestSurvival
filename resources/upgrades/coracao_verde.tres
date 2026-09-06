@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3 uid="uid://bfsupgcoracao"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"coracao_verde"
+display_name = "Coração Verde"
+description = "Recupera 0,5 de vida por segundo."
+kind = 0
+stat = 9
+flat = 0.5
+mult = 0.00
+max_stacks = 5

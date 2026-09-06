@@ -8,8 +8,9 @@ extends SceneTree
 ## passam por ele — velocidade, vida máxima e alcance de coleta —, o catálogo
 ## de `UpgradeData` e a validação de opções da §13.
 ##
-## Falta ainda: passivas de área, cooldown e regeneração, que dependem de a
-## `Weapon` e o `HealthComponent` lerem os stats.
+## Cobre também as seis passivas da primeira lista do `docs/04_CONTENT_PLAN.md`:
+## as três do Player (vida, velocidade, coleta), as duas que passam pela arma
+## (dano/cooldown e área) e a regeneração no `HealthComponent`.
 
 const PLAYER_SCENE := "res://scenes/player/player.tscn"
 
@@ -31,6 +32,8 @@ func _initialize() -> void:
 	_check_conta()
 	_check_piso()
 	_check_sinal()
+	_check_arma()
+	_check_regeneracao()
 	_check_catalogo()
 
 	if not _build_player():
@@ -136,6 +139,117 @@ func _check_sinal() -> void:
 	stats.free()
 
 
+# --------------------------------------------------------------------- arma --
+
+
+## Dano, cooldown e área saem do `WeaponData` **passados pelo StatComponent**.
+##
+## Lidos a cada disparo, não guardados: uma passiva escolhida no meio da partida
+## precisa valer no tiro seguinte, sem ninguém avisar a arma.
+func _check_arma() -> void:
+	var data := load("res://resources/weapons/cajado_raio.tres") as WeaponData
+	if data == null:
+		_fail("cajado_raio.tres não carregou como WeaponData")
+		return
+
+	var arma := Weapon.new()
+	arma.data = data
+	arma.level = 1
+	root.add_child(arma)
+
+	# Sem StatComponent, a arma continua funcionando com os números crus.
+	if not is_equal_approx(arma.damage_efetivo(), data.damage_at(1)):
+		_fail("Sem stats, o dano deveria ser o do WeaponData: %.2f" % arma.damage_efetivo())
+	if not is_equal_approx(arma.area_efetiva(), 1.0):
+		_fail("Sem stats, a área deveria ser 1.0: %.2f" % arma.area_efetiva())
+
+	var stats := StatComponent.new()
+	root.add_child(stats)
+	arma.stats = stats
+
+	stats.add_mult(StatComponent.Stat.DAMAGE, 0.5)
+	if not is_equal_approx(arma.damage_efetivo(), data.damage_at(1) * 1.5):
+		_fail("+50%% de dano: esperado %.2f, veio %.2f"
+			% [data.damage_at(1) * 1.5, arma.damage_efetivo()])
+
+	stats.add_mult(StatComponent.Stat.COOLDOWN, -0.25)
+	if not is_equal_approx(arma.cooldown_efetivo(), data.cooldown_at(1) * 0.75):
+		_fail("-25%% de cooldown: esperado %.3f, veio %.3f"
+			% [data.cooldown_at(1) * 0.75, arma.cooldown_efetivo()])
+
+	stats.add_mult(StatComponent.Stat.AREA, 0.15)
+	if not is_equal_approx(arma.area_efetiva(), 1.15):
+		_fail("+15%% de área: esperado 1.15, veio %.3f" % arma.area_efetiva())
+
+	# Nível da arma e passiva se compõem, não se substituem.
+	arma.level = 3
+	var esperado := data.damage_at(3) * 1.5
+	if not is_equal_approx(arma.damage_efetivo(), esperado):
+		_fail("Nível 3 com +50%% de dano: esperado %.2f, veio %.2f" % [esperado, arma.damage_efetivo()])
+
+	arma.free()
+	stats.free()
+
+
+# ------------------------------------------------------------- regeneração --
+
+
+## O `HealthComponent` só processa quando tem o que regenerar. É o que impede
+## uma horda de duzentos inimigos de rodar duzentos `_process` inúteis.
+func _check_regeneracao() -> void:
+	var health := HealthComponent.new()
+	health.max_health = 100.0
+	root.add_child(health)
+
+	# Atribuir explicitamente, e não confiar no `_ready`: nó acrescentado à
+	# árvore de dentro de `SceneTree._initialize()` não dispara `_ready`, e a
+	# primeira versão deste teste passava sem verificar nada por causa disso.
+	health.regeneration = 0.0
+	if health.is_processing():
+		_fail("Vida sem regeneração não deveria processar nada")
+
+	health.damage(50.0)
+	health.regeneration = 30.0
+	if not health.is_processing():
+		_fail("Com regeneração, o componente deveria processar")
+
+	# Um passo curto não fecha um ponto de vida inteiro: nada muda ainda.
+	health._process(0.01)
+	if not is_equal_approx(health.current_health, 50.0):
+		_fail("0,3 de vida acumulada não deveria virar cura: %.2f" % health.current_health)
+
+	health._process(1.0)
+	if not is_equal_approx(health.current_health, 80.0):
+		_fail("Um segundo a 30/s deveria curar 30: %.2f" % health.current_health)
+
+	# Não passa do máximo.
+	health._process(5.0)
+	if health.current_health > health.max_health:
+		_fail("Regeneração passou do máximo: %.2f" % health.current_health)
+
+	# Zerar a regeneração desliga o processamento de volta.
+	health.regeneration = 0.0
+	if health.is_processing():
+		_fail("Zerar a regeneração deveria desligar o processamento")
+
+	# Morto não volta. Quem garante é o `heal()`, não o tique — vale testar
+	# pelo efeito, porque é o efeito que o jogo precisa.
+	var morto := HealthComponent.new()
+	morto.max_health = 10.0
+	root.add_child(morto)
+	morto.regeneration = 100.0
+	morto.damage(20.0)
+	morto._process(1.0)
+	morto.heal(50.0)
+	if morto.current_health > 0.0:
+		_fail("Quem morreu voltou a ganhar vida: %.2f" % morto.current_health)
+	if not morto.is_dead():
+		_fail("O componente deixou de se considerar morto")
+
+	health.free()
+	morto.free()
+
+
 # ----------------------------------------------------------------- catálogo --
 
 
@@ -161,8 +275,8 @@ func _check_recursos() -> Array[UpgradeData]:
 			_fail("%s é um UpgradeData inválido (sem id, sem efeito ou sem arma)" % arquivo)
 		lista.append(upgrade)
 
-	if lista.size() < 5:
-		_fail("Esperava ao menos 5 opções no catálogo, achei %d" % lista.size())
+	if lista.size() < 8:
+		_fail("Esperava ao menos 8 opções no catálogo, achei %d" % lista.size())
 	return lista
 
 
@@ -379,7 +493,7 @@ func _fail(message: String) -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("FASE 6 (parcial) OK — stats somam, catálogo é dado e nada impossível é oferecido.")
+		print("FASE 6 OK — seis passivas, catálogo em dados e nada impossível oferecido.")
 		return
 	printerr("FASE 6 FALHOU:")
 	for failure in _failures:

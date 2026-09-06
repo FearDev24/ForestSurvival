@@ -128,8 +128,19 @@ Observações:
 - [x] WeaponData — feito na FASE 4
 - [x] UpgradeData
 - [x] levels — feito na FASE 4, com teto por arma
-- [ ] passivas — 3 de 6
+- [x] passivas — as 6 da primeira lista
 - [x] validação das opções
+
+Critério:
+upgrades são dados, passivas mudam o jogo de verdade, nada impossível é
+oferecido. **Atingido.**
+
+Observações:
+- uma passiva é um stat mais um número: `stat`, `flat`, `mult` e `max_stacks`, e nada além disso. Campo próprio seria caso especial, que é o que o `StatComponent` existe para evitar;
+- armas convivem na mesma lista, com `kind = ARMA`. Escolher uma já equipada sobe o nível dela;
+- dano, cooldown e área são lidos **a cada disparo**, não guardados: passiva escolhida no meio da partida vale no tiro seguinte, sem avisar a arma;
+- `REGEN` não está na lista da §14 — entrou porque o Coração Verde precisa dela, e foi acrescentado no fim do enum porque os `.tres` guardam o stat como número;
+- validação automatizada: `tests/test_phase6.gd`.
 
 Fora da lista original, feito primeiro:
 

@@ -41,13 +41,17 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `tools/preparar_barras_hud.py` reescrito com os dois caminhos — par de peças para a vida, peça única com líquido pintado para o XP;
   - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
   - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
-- **FASE 6 — Sistema de upgrades (em andamento):**
+- **FASE 6 — Sistema de upgrades:**
   - `scripts/upgrades/upgrade_data.gd` — cada opção do level up vira um `.tres`. Uma passiva é um stat mais um número, e nada além disso;
   - `scripts/systems/upgrade_pool.gd` — catálogo: decide o que pode ser oferecido e o que a escolha faz. Sorteia sem repetir na mesma tela e nunca oferece o inaplicável (§13);
   - `resources/upgrades/` — três passivas (Casca de Carvalho, Passos do Cervo, Essência Viva) e as duas armas como opção;
   - `scripts/ui/level_up_menu.gd` deixa de montar as opções à mão: recebe a lista do catálogo e devolve o id;
   - nó `UpgradePool` em `game.tscn`;
-  - `tests/test_phase5.gd` passa a esgotar o **catálogo inteiro** para testar o caso "nada a oferecer" — encher só as armas deixou de ser beco sem saída.
+  - `tests/test_phase5.gd` passa a esgotar o **catálogo inteiro** para testar o caso "nada a oferecer" — encher só as armas deixou de ser beco sem saída;
+  - `Weapon` lê dano, cooldown e área do `StatComponent` **a cada disparo**, e a área vira escala do nó do efeito — a hitbox é filha, então cresce junto sem a cena saber que existe passiva;
+  - `HealthComponent` ganha `regeneration`, com o processamento desligado enquanto ela for zero, e cura em passos de 1 de vida para não emitir sessenta sinais por segundo;
+  - `StatComponent.Stat.REGEN`, acrescentado no **fim** do enum: os `.tres` guardam o stat como número, e inserir no meio remapearia as passivas existentes;
+  - as três passivas restantes: Semente Ancestral (área), Ciclo Lunar (cooldown) e Coração Verde (regeneração).
   - `scripts/components/stat_component.gd` — onde os bônus se somam (`03_SYSTEMS.md` §14). Guarda bônus, não bases: `efetivo = (base + plano) * (1 + percentual)`, com piso no fator para redução exagerada não zerar nem inverter um valor;
   - nó `Stats` no Player; `Player` recalcula velocidade, vida máxima e alcance de coleta quando o componente avisa;
   - `Player.get_move_speed()` — a velocidade depois das passivas, que é a que o movimento usa;

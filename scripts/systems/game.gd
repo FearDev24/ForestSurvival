@@ -53,7 +53,7 @@ func _ready() -> void:
 	# mapa; o spawn fica restrito ao jogável, para não nascer inimigo na parede.
 	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
-	_weapons.configure(_player, _enemy_container, _effect_container)
+	_weapons.configure(_player, _enemy_container, _effect_container, _stats)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
 	_upgrade_pool.configure(_stats, _weapons)

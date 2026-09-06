@@ -172,6 +172,10 @@ func _aplicar_stats() -> void:
 		if ganho > 0.0:
 			health.heal(ganho)
 
+		# Regeneração é o único stat cuja base é zero: sem passiva, o druida não
+		# regenera nada, e `(0 + plano) * fator` devolve exatamente isso.
+		health.regeneration = stats.apply(StatComponent.Stat.REGEN, 0.0)
+
 	var pickup := get_node_or_null("PickupArea") as PickupArea
 	if pickup != null:
 		pickup.set_radius(stats.apply(StatComponent.Stat.PICKUP_RADIUS, _base_pickup_radius))

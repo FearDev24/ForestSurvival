@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3 uid="uid://bfsupgsemente"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"semente_ancestral"
+display_name = "Semente Ancestral"
+description = "Área dos golpes +15%."
+kind = 0
+stat = 5
+flat = 0.0
+mult = 0.15
+max_stacks = 4

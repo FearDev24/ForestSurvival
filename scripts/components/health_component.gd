@@ -19,6 +19,20 @@ signal damaged(amount: float)
 ## Emitido no exato momento em que a vida chega a zero. Nunca mais de uma vez.
 signal died
 
+## Vida recuperada por segundo. Zero desliga o processamento por completo — o
+## que importa, porque todo inimigo tem um destes e nenhum regenera.
+##
+## Quem define é quem tem passiva: no Player, `_aplicar_stats()`.
+var regeneration: float = 0.0:
+	set(value):
+		regeneration = maxf(0.0, value)
+		set_process(regeneration > 0.0)
+
+## Sobra fracionária entre um ponto de vida e o próximo. Sem ela, curar
+## 0,008 por quadro emitiria `health_changed` sessenta vezes por segundo para
+## um ganho invisível, e o HUD redesenharia à toa.
+var _regen_acumulado := 0.0
+
 @export var max_health: float = 30.0:
 	set(value):
 		max_health = maxf(1.0, value)
@@ -37,6 +51,21 @@ var _started := false
 
 func _ready() -> void:
 	_start()
+	set_process(regeneration > 0.0)
+
+
+func _process(delta: float) -> void:
+	if _is_dead or current_health >= max_health:
+		_regen_acumulado = 0.0
+		return
+
+	_regen_acumulado += regeneration * delta
+	if _regen_acumulado < 1.0:
+		return
+
+	var inteiros := floorf(_regen_acumulado)
+	_regen_acumulado -= inteiros
+	heal(inteiros)
 
 
 ## Preenche a vida na primeira vez que o componente é usado ou entra na árvore.

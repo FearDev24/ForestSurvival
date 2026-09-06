@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 a FASE 5.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP e level up.
+**FASE 0 a FASE 6.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up e sistema de upgrades.
 
 Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
@@ -753,6 +753,37 @@ tela — isso gastaria uma das três escolhas sem dar alternativa.
 O sorteio é uniforme. Raridade e peso são conteúdo, não estrutura, e entram como
 campo do `UpgradeData` quando houver opções suficientes para isso importar.
 
+## Onde cada passiva bate
+
+| Passiva | Stat | Quem lê |
+|---|---|---|
+| Casca de Carvalho | `MAX_HEALTH` | `Player._aplicar_stats()` |
+| Passos do Cervo | `MOVE_SPEED` | `Player._aplicar_stats()` |
+| Essência Viva | `PICKUP_RADIUS` | `Player._aplicar_stats()` |
+| Semente Ancestral | `AREA` | `Weapon.area_efetiva()` |
+| Ciclo Lunar | `COOLDOWN` | `Weapon.cooldown_efetivo()` |
+| Coração Verde | `REGEN` | `HealthComponent._process()` |
+
+A arma lê **a cada disparo**, não guarda. É o que faz uma passiva escolhida no
+meio da partida valer no tiro seguinte, sem ninguém precisar avisar a arma de
+nada.
+
+Área vira **escala do nó do efeito**. A hitbox é filha dele, então cresce junto
+com o desenho e a cena do golpe não precisa saber que existe passiva. Escala
+uniforme e positiva de propósito: negativa inverteria a colisão, e a Godot
+reclama de forma com escala negativa.
+
+`REGEN` não está entre os nove stats da §14 — entrou porque o Coração Verde
+precisa dela. Foi acrescentada **no fim do enum**: os `.tres` guardam o stat
+como número, e inserir no meio remapearia silenciosamente as passivas já
+escritas.
+
+O tique de regeneração fica desligado enquanto `regeneration` for zero, o que
+importa porque todo inimigo tem um `HealthComponent` e nenhum regenera — sem
+isso seriam duzentos `_process` inúteis numa horda cheia. E cura em passos de
+**1 de vida**, guardando a sobra: curar 0,008 por quadro emitiria
+`health_changed` sessenta vezes por segundo para um ganho invisível.
+
 ## Um teste da FASE 5 teve de mudar
 
 `tests/test_phase5.gd` afirmava que, **com todas as armas no teto**, a tela não
@@ -1294,6 +1325,9 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 50 | Quatro erros injetados no catálogo | teto ignorado, arma sem slot, sorteio repetindo e passiva sem efeito; os quatro foram pegos |
 | 51 | Partida real, level up com render | tela pausou e ofereceu duas passivas e uma arma, com descrição |
 | 52 | Suíte completa depois do catálogo | oito suítes, exit 0 em todas |
+| 53 | Quatro erros injetados na arma e na regeneração | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
+| 54 | Partida real com as seis passivas | tela ofereceu Essência Viva, Coração Verde e Passos do Cervo |
+| 55 | Suíte completa ao fim da FASE 6 | `FASE 0/1/2/3/4/5/6 OK` mais o HUD |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1535,6 +1569,34 @@ Em execução: dano e XP movem as barras na proporção certa, o rótulo de nív
 acompanha, e o relógio **congela** enquanto a tela de level up mantém o jogo
 pausado.
 
+## Verificação de que a FASE 6 não passa vazia
+
+Oito erros injetados ao todo, em duas rodadas.
+
+Na primeira, sobre o `StatComponent` e o catálogo, os seis foram pegos de
+primeira: percentual multiplicando antes do plano, percentuais compondo em vez
+de somando, piso removido, base relida a cada recálculo, Player sem escutar
+`stat_changed`, e ganho de vida máxima sem curar. Mais quatro no catálogo: teto
+de repetição ignorado, arma oferecida sem slot, sorteio repetindo na mesma tela
+e passiva sem efeito.
+
+Na segunda, sobre a arma e a regeneração, **dois dos quatro passaram**:
+
+1. **"a vida processa sempre" passava** porque o teste lia `is_processing()`
+   logo depois de `add_child()`, e `_ready` não dispara em nó acrescentado de
+   dentro de `SceneTree._initialize()` — a mesma armadilha do `Hud`, de novo.
+   O teste passou a atribuir `regeneration` explicitamente, e ganhou o caso
+   inverso: zerar desliga o processamento de volta;
+2. **"morto continua regenerando" passava** por um motivo diferente e mais
+   interessante: não era bug. Quem impede o morto de voltar é o `heal()`, e a
+   guarda no tique é só defensiva. O teste afirmava o que outra guarda já
+   garantia. Passou a testar o efeito — morto que recebe cura continua morto —,
+   que é o que o jogo precisa, e injetar a remoção da guarda no `heal()` agora
+   falha.
+
+A segunda vale como padrão: **um teste que não distingue duas implementações
+não está testando aquela linha.**
+
 ## Verificação de que o teste do HUD não passa vazio
 
 Quatro erros injetados e revertidos. **Dois passaram na primeira tentativa**, e
@@ -1570,8 +1632,7 @@ tropeçou.
 # Limitações e pendências
 
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
-- **Seis dos nove stats da §14 não têm leitor.** `MAX_HEALTH`, `MOVE_SPEED` e `PICKUP_RADIUS` são aplicados pelo Player; dano, cooldown, área, duração, velocidade de projétil e quantidade estão declarados e ninguém pergunta por eles. Quem vai perguntar é `Weapon`.
-- **Só 3 das 6 passivas da primeira lista existem.** Área, cooldown e regeneração dependem daqueles leitores.
+- **Três stats continuam sem leitor**: `DURATION`, `PROJECTILE_SPEED` e `AMOUNT`. Estão declarados e ninguém pergunta por eles — duração pede que o efeito saiba encurtar ou esticar a animação, e quantidade pede que a arma dispare em vários alvos.
 - **Nenhum `UpgradeData` tem ícone.** O campo existe e a tela usa quando houver; enquanto não há, ela desenha só o texto (DEC-013).
 - **O sorteio é uniforme.** Não há raridade nem peso: toda opção aplicável tem a mesma chance.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
@@ -1601,34 +1662,34 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 6 — Sistema de upgrades.** Em andamento. O `StatComponent` e o catálogo
-de `UpgradeData` estão feitos; a tela de level up já oferece passivas e armas
-vindas de `.tres`. Falta metade das passivas.
+**FASE 7 — Três famílias de arma.** Não iniciada.
 
-Itens restantes:
+A FASE 6 fechou: upgrades são dados, as seis passivas da primeira lista existem
+e nada impossível é oferecido.
 
-1. **`Weapon` lendo os stats.** Hoje `damage_at()` e `cooldown_at()` só olham o nível da arma; precisam passar por `StatComponent` com `DAMAGE`, `COOLDOWN` e `AREA`. É o que destrava três passivas de uma vez;
-2. **as três passivas que faltam** da primeira lista do `docs/04_CONTENT_PLAN.md`: Semente Ancestral (área), Ciclo Lunar (cooldown) e Coração Verde (regeneração). A de regeneração pede um tique no `HealthComponent`, as outras duas caem prontas assim que o item 1 existir;
-4. oferecer **arma nova** além de melhorar equipada, respeitando `max_slots`;
-5. validação das opções: nada impossível, nada repetido na mesma tela;
-6. criar `tests/test_phase6.gd`; manter as cinco suítes anteriores passando;
-7. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
+`docs/ROADMAP.md` pede três famílias de arma. Hoje existem duas armas, ambas da
+mesma família — golpe curto que nasce, dá dano e some.
 
-O `LevelUpMenu` já tem a forma certa — fila de níveis, opções filtradas, uma
-escolha por vez. O que muda é de onde vem a lista: hoje sai de um laço sobre as
-armas equipadas, e passa a sair de um catálogo de `UpgradeData`.
+Itens:
 
-Dois ganchos já existem: `WeaponManager.has_upgradable_weapon()` e
-`PickupArea.set_radius()` — este último foi feito exatamente para a passiva de
-alcance de coleta.
+1. escolher as três famílias a partir do `docs/04_CONTENT_PLAN.md`. O **Corvo Espiritual** já tem sheet de efeito gerado e é a terceira arma planejada;
+2. ver o que `WeaponData` ainda não cobre. Um projétil que viaja precisa de velocidade e de alcance de voo, e nenhum dos dois existe hoje — mas `PROJECTILE_SPEED` e `DURATION` já estão no `StatComponent` esperando leitor;
+3. `amount` já existe no `WeaponData` e a arma já sabe atacar vários alvos, mas nada usa: `AMOUNT` é o terceiro stat sem leitor;
+4. um `.tres` por arma, sem código novo — se alguma família exigir código, o acoplamento é defeito de arquitetura e vem antes (DEC-009);
+5. `tests/test_phase7.gd`; manter as oito suítes passando;
+6. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
-## Critério de aceite da FASE 6
+## O que já está pronto para receber a fase
 
-- upgrades são dados, não código;
-- passivas mudam o jogo de verdade, com efeito observável;
-- nenhuma opção impossível ou repetida é oferecida;
-- arma nova pode ser oferecida enquanto houver slot;
-- as cinco suítes anteriores continuam passando.
+- **o catálogo aceita arma nova sem código**: basta um `UpgradeData` com `kind = ARMA` apontando o `WeaponData`, e o slot livre já é verificado;
+- **a arma já lê os stats** a cada disparo, então uma família nova nasce respeitando passiva;
+- **`AbilityEffect` já serve a duas habilidades diferentes** com dois campos de posicionamento e mira (DEC-021, DEC-022). A pergunta da fase é se ele serve a uma terceira, ou se projétil que viaja pede outro tipo de nó.
+
+## Critério de aceite da FASE 7
+
+- três famílias de arma jogáveis, sensivelmente diferentes entre si;
+- arma nova continua sendo `.tres`, não código;
+- as oito suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

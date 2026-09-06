@@ -8,6 +8,7 @@ FASE 2 — Primeiro inimigo.
 FASE 3 — Spawn e horda.
 FASE 4 — Primeira arma.
 FASE 5 — XP e Level Up.
+FASE 6 — Sistema de upgrades.
 HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
@@ -15,7 +16,9 @@ Detalhes em `docs/HANDOFF.md`.
 # Agora — FASE 6 (sistema de upgrades)
 
 - [x] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
-- [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` — **3 de 6 feitas** (vida, velocidade, coleta). Faltam área, cooldown e regeneração, que dependem de a `Weapon` e o `HealthComponent` lerem os stats
+- [x] passivas da primeira lista do `04_CONTENT_PLAN.md` — as 6
+- [x] `Weapon` lê dano, cooldown e área do `StatComponent`
+- [x] regeneração no `HealthComponent`, com tique só quando há o que regenerar
 - [x] oferecer arma nova além de melhorar equipada, respeitando os slots
 - [x] validar opções: nada impossível, nada repetido na mesma tela
 - [x] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14) — velocidade, vida máxima e alcance de coleta já passam por ele
