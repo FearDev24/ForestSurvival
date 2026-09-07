@@ -1,4 +1,4 @@
-"""Prepara o painel do level up e as placas de opcao.
+"""Prepara o painel do level up, as placas de opcao e a palavra do titulo.
 
 O painel ja veio com o miolo escuro e vazio, como pedido: so precisa do corte.
 
@@ -73,6 +73,10 @@ def salvar(a, destino):
 
 
 def main():
+    titulo = recortar(ORIGEM + "subir nivel.png")
+    w, h = salvar(titulo, "assets/ui/titulo_subiu_de_nivel.png")
+    print("titulo        %dx%d  proporcao %.2f:1" % (w, h, w / h))
+
     painel = recortar(ORIGEM + "Painel da tela de escolha — 720 × 520.png")
     w, h = salvar(painel, "assets/ui/painel_escolha.png")
     print("painel        %dx%d  proporcao %.2f:1" % (w, h, w / h))

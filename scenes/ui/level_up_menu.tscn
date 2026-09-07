@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://bfslevelup0fs"]
+[gd_scene load_steps=6 format=3 uid="uid://bfslevelup0fs"]
 
 [ext_resource type="Script" path="res://scripts/ui/level_up_menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" path="res://assets/ui/painel_escolha.png" id="2_painel"]
 [ext_resource type="Texture2D" path="res://assets/ui/opcao_normal.png" id="3_normal"]
 [ext_resource type="Texture2D" path="res://assets/ui/opcao_destaque.png" id="4_destaque"]
+[ext_resource type="Texture2D" path="res://assets/ui/titulo_subiu_de_nivel.png" id="5_titulo"]
 
 [node name="LevelUpMenu" type="CanvasLayer"]
 process_mode = 3
@@ -53,10 +54,10 @@ theme_override_constants/separation = 12
 
 [node name="TituloArte" type="TextureRect" parent="Caixa"]
 editor_description = "Fica no lugar do rotulo quando houver arte da palavra. Some sozinho enquanto a textura for nula, e o Label assume - nenhuma das duas depende da outra existir (DEC-013)."
-visible = false
-custom_minimum_size = Vector2(0, 76)
+custom_minimum_size = Vector2(0, 85)
 texture_filter = 2
 layout_mode = 2
+texture = ExtResource("5_titulo")
 expand_mode = 1
 stretch_mode = 5
 

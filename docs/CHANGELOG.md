@@ -42,6 +42,8 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
   - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
 - **Tela de level up com arte:**
+  - a palavra `SUBIU DE NIVEL` vira imagem: `assets/ui/titulo_subiu_de_nivel.png`. O rótulo escrito continua na cena e assume sozinho se a textura sumir;
+  - a moldura do ícone sai de dentro do botão e passa a ficar ao lado dele;
   - `tools/preparar_icones_ui.py` — compõe os nove ícones: assunto dentro da moldura comum, gema para arma e folha para passiva. As molduras chegaram com a janela interna no **mesmo lugar nas duas, ao pixel**, o que permitiu a mesma conta para os dois conjuntos;
   - `tools/preparar_painel_ui.py` — painel e as duas placas de opção, com o miolo das placas escurecido poupando musgo e gemas: escurecê-los apagaria a diferença entre normal e destacado;
   - `assets/ui/icones/` com nove ícones de 256x256, mais `painel_escolha.png`, `opcao_normal.png` e `opcao_destaque.png`;
