@@ -6,8 +6,11 @@ de ser razoavel -- e, mais importante, escrever a mao nao confere nada.
 Este script confere tres coisas que so aparecem em jogo se ninguem olhar antes:
 
 **A altura do corpo bate entre as quatro direcoes.** E o erro que o cao de
-inferno trouxe: as folhas de perfil vieram com 36 px de corpo contra 96 das de
+inferno trouxe: as folhas de perfil vieram com 35 px de corpo contra 92 das de
 frente e de costas, o que faria a criatura encolher ao virar de lado.
+
+Com `normalizar` ligado o script conserta em vez de recusar -- ver `normalizar()`
+para o porque de reduzir e nunca ampliar.
 
 **Os pes ficam na mesma linha.** A origem do inimigo esta nos pes e o Y-sort
 depende disso; um quadro com o corpo alguns pixels mais alto faz o bicho flutuar
@@ -37,6 +40,10 @@ TOLERANCIA_ALTURA = 0.25
 ## Quanto os pes podem variar dentro de uma mesma folha, em pixels.
 TOLERANCIA_BASE = 8
 
+## Escala do no `Visual` em `enemy.tscn`. Entra na conta da `visual_scale`
+## recomendada quando as folhas precisam ser normalizadas.
+ESCALA_DA_CENA = 0.5
+
 ## Quadros por segundo de cada animacao de caminhada.
 VELOCIDADE = 12.0
 
@@ -56,13 +63,18 @@ INIMIGOS = {
     "cao": {
         "uid": "bfscaoframes",
         "saida": "cao_sprite_frames.tres",
+        # As folhas de perfil chegaram com um terco da altura das de frente.
+        "normalizar": True,
+        "prefixo": "cao",
+        # Tamanho pretendido em tela: 80% do diabrete, que ocupa 48 px.
+        "altura_em_tela": 38.0,
         # O sufixo do nome contradiz o prefixo nas folhas de perfil. Vale o que
         # se ve na arte: em `caoinfeast-...` o cao olha para a direita.
         "folhas": {
-            "south": "caoinfsouth-walk-south.png",
-            "north": "caoinfnorth-walk-north.png",
-            "west": "caoinfwest-walk-east.png",
-            "east": "caoinfeast-walk-west.png",
+            "south": "_raw/caoinfsouth-walk-south.png",
+            "north": "_raw/caoinfnorth-walk-north.png",
+            "west": "_raw/caoinfwest-walk-east.png",
+            "east": "_raw/caoinfeast-walk-west.png",
         },
     },
 }
@@ -95,6 +107,69 @@ def ler_quadros(caminho_png):
         altura = int(d.get("frameHeight", altura))
     im = Image.open(caminho_png)
     return largura, altura, im.size
+
+
+def normalizar(config, dados):
+    """Reduz todas as direcoes ate a menor e escreve folhas novas.
+
+    **Reduz, nunca amplia.** O inimigo aparece com cerca de 38 px em tela e a
+    folha de perfil ja tem 35 px nativos; ampliar ate 92 para o motor reduzir de
+    volta perderia definicao duas vezes, sem ganhar nada.
+
+    O preco e que a `visual_scale` do `EnemyData` deixa de significar "relativo
+    ao diabrete" e passa a compensar a arte menor. O valor a usar sai impresso.
+
+    Os pes ficam na borda de baixo do quadro e o corpo, centrado na horizontal.
+    A altura do quadro nao muda: e ela que faz o pe cair na origem do no, com o
+    `Sprite` em (0,-48) dentro do `Visual`.
+    """
+    import numpy as np
+
+    alvo = min(d["altura"] for d in dados.values())
+    novas = {}
+
+    for direcao, d in dados.items():
+        fator = alvo / d["altura"]
+        origem = np.array(Image.open(PASTA + d["arquivo"]).convert("RGBA"))
+
+        recortes = []
+        for i in range(d["quadros"]):
+            cel = origem[:, i * d["lq"]:(i + 1) * d["lq"]]
+            ys, xs = np.where(cel[:, :, 3] > 16)
+            if len(ys) == 0:
+                continue
+            corpo = Image.fromarray(cel[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+            recortes.append(corpo.resize((
+                max(1, int(round(corpo.size[0] * fator))),
+                max(1, int(round(corpo.size[1] * fator))),
+            ), Image.LANCZOS))
+
+        largura_quadro = max(max(r.size[0] for r in recortes), 8)
+        # Par: quadro impar deixa o corpo meio pixel fora do centro.
+        largura_quadro += largura_quadro % 2
+
+        folha = Image.new("RGBA", (largura_quadro * len(recortes), d["aq"]), (0, 0, 0, 0))
+        for i, r in enumerate(recortes):
+            folha.alpha_composite(r, (
+                i * largura_quadro + (largura_quadro - r.size[0]) // 2,
+                d["aq"] - r.size[1],
+            ))
+
+        saida = "%s-%s.png" % (config["prefixo"], direcao)
+        folha.save(PASTA + saida)
+        novas[direcao] = {
+            "arquivo": saida, "quadros": len(recortes),
+            "lq": largura_quadro, "aq": d["aq"],
+            "altura": alvo, "alturas": (int(alvo), int(alvo)),
+        }
+        print("  %-6s %-24s fator %.2f -> quadro %dx%d"
+              % (direcao, saida, fator, largura_quadro, d["aq"]))
+
+    escala = config["altura_em_tela"] / (alvo * ESCALA_DA_CENA)
+    print("\n  corpo normalizado: %.0f px" % alvo)
+    print("  para %.0f px em tela, use visual_scale = %.2f no EnemyData"
+          % (config["altura_em_tela"], escala))
+    return novas
 
 
 def montar(nome):
@@ -142,11 +217,15 @@ def montar(nome):
         print("  %-6s %-30s %2d quadros | corpo %d-%d px"
               % (direcao, d["arquivo"], d["quadros"], d["alturas"][0], d["alturas"][1]))
 
-    if avisos:
+    if avisos and not config.get("normalizar"):
         print("\n  PROBLEMAS:")
         for a in avisos:
             print("   - " + a)
         return False
+
+    if config.get("normalizar"):
+        print("\n  normalizando:")
+        dados = normalizar(config, dados)
 
     escrever(config, dados)
     print("\n  %s escrito" % config["saida"])

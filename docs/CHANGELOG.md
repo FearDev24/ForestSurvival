@@ -50,6 +50,13 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Cão de Inferno, primeiro inimigo com arte própria:**
+  - `tools/preparar_inimigo.py` — monta o `SpriteFrames` a partir das quatro folhas e confere altura de corpo entre direções, pés na mesma linha e folha múltipla do quadro;
+  - as folhas de perfil chegaram com 35 px de corpo contra 92 das de frente. O script **reduz todas à menor** em vez de ampliar: o inimigo aparece com 38 px em tela, e ampliar até 92 para o motor reduzir de volta perderia definição duas vezes;
+  - `EnemyData` ganha `sprite_frames`; **nulo mantém as da cena**, que é o que permite um tipo existir antes de ter arte;
+  - a troca passa por `enemy_visual.set_frames()` — `enemy.gd` não sabe o que é um `SpriteFrames` (DEC-013);
+  - as folhas brutas vão para `assets/characters/inimigos/_raw/`, as normalizadas ficam ao lado do `.tres`;
+  - o `.tres` do diabrete passa a ser gerado pela mesma ferramenta.
 - **FASE 8 — Waves:**
   - `scripts/enemies/enemy_data.gd` — tipo de inimigo em `Resource`: vida, dano, velocidade, XP, escala, raio de corpo e tinta;
   - `scripts/systems/wave_data.gd` — uma fase da partida: quem nasce, a partir de quando, em que ritmo, com que teto, mais elite e boss;

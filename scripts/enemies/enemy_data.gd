@@ -31,6 +31,10 @@ extends Resource
 @export var xp_value: float = 1.0
 
 @export_group("Apresentação")
+## Animações deste tipo. **Nulo mantém as da cena** — é o que permite um tipo
+## novo existir antes de ter arte, distinguido só por número, tamanho e tinta.
+@export var sprite_frames: SpriteFrames
+
 ## Multiplica a escala do nó `Visual`. Só a arte: colisão é dado de gameplay e
 ## se ajusta por `body_radius` (`docs/ASSET_WORKFLOW.md`, regra 7).
 @export var visual_scale: float = 1.0

@@ -1,0 +1,246 @@
+{
+  "generator": {
+    "name": "SpriteForge AI",
+    "version": "0.1.0",
+    "pipeline": 1
+  },
+  "sheet": "caoinfeast-walk-west.png",
+  "frameWidth": 64,
+  "frameHeight": 96,
+  "frames": 25,
+  "layout": "horizontal",
+  "columns": 25,
+  "rows": 1,
+  "padding": 0,
+  "spacing": 0,
+  "margin": 0,
+  "pivot": {
+    "x": 0.5,
+    "y": 1.0
+  },
+  "frameList": [
+    {
+      "id": "walk_01",
+      "index": 0,
+      "x": 0,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_02",
+      "index": 1,
+      "x": 64,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_03",
+      "index": 2,
+      "x": 128,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_04",
+      "index": 3,
+      "x": 192,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_05",
+      "index": 4,
+      "x": 256,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_06",
+      "index": 5,
+      "x": 320,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_07",
+      "index": 6,
+      "x": 384,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_08",
+      "index": 7,
+      "x": 448,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_09",
+      "index": 8,
+      "x": 512,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_10",
+      "index": 9,
+      "x": 576,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_11",
+      "index": 10,
+      "x": 640,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_12",
+      "index": 11,
+      "x": 704,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_13",
+      "index": 12,
+      "x": 768,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_14",
+      "index": 13,
+      "x": 832,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_15",
+      "index": 14,
+      "x": 896,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_16",
+      "index": 15,
+      "x": 960,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_17",
+      "index": 16,
+      "x": 1024,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_18",
+      "index": 17,
+      "x": 1088,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_19",
+      "index": 18,
+      "x": 1152,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_20",
+      "index": 19,
+      "x": 1216,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_21",
+      "index": 20,
+      "x": 1280,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_22",
+      "index": 21,
+      "x": 1344,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_23",
+      "index": 22,
+      "x": 1408,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_24",
+      "index": 23,
+      "x": 1472,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    },
+    {
+      "id": "walk_25",
+      "index": 24,
+      "x": 1536,
+      "y": 0,
+      "width": 64,
+      "height": 96
+    }
+  ],
+  "settings": {
+    "frame_width": 64,
+    "frame_height": 96,
+    "background_mode": "keep_alpha",
+    "despill": {
+      "hex": "#1ADD28"
+    },
+    "alignment": {
+      "anchor": "bottom_center",
+      "center_x": true,
+      "mode": "batch"
+    },
+    "crop_frames": false,
+    "resize_method": "auto",
+    "export": {
+      "sheet_layout": "horizontal",
+      "columns": 0,
+      "padding": 0,
+      "spacing": 0,
+      "margin": 0,
+      "transparent": true
+    }
+  }
+}

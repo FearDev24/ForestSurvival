@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://bfsinimigocao"]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3 uid="uid://bfsinimigocao"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_data"]
+[ext_resource type="SpriteFrames" uid="uid://bfscaoframes" path="res://assets/characters/inimigos/cao_sprite_frames.tres" id="2_frames"]
 
 [resource]
 script = ExtResource("1_data")
@@ -10,6 +11,7 @@ max_health = 18.0
 contact_damage = 8.0
 move_speed = 190.0
 xp_value = 1.0
-visual_scale = 0.80
+sprite_frames = ExtResource("2_frames")
+visual_scale = 2.19
 body_radius = 11.0
-tint = Color(1, 0.72, 0.55, 1)
+tint = Color(1, 1, 1, 1)

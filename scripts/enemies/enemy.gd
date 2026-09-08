@@ -84,8 +84,11 @@ func apply_data(enemy_data: EnemyData) -> void:
 	# Só a arte. Colisão é dado de gameplay e se ajusta à parte
 	# (`docs/ASSET_WORKFLOW.md`, regra 7).
 	var visual := get_node_or_null("Visual") as Node2D
-	if visual != null and not is_equal_approx(enemy_data.visual_scale, 1.0):
-		visual.scale *= enemy_data.visual_scale
+	if visual != null:
+		if enemy_data.sprite_frames != null and visual.has_method("set_frames"):
+			visual.call("set_frames", enemy_data.sprite_frames)
+		if not is_equal_approx(enemy_data.visual_scale, 1.0):
+			visual.scale *= enemy_data.visual_scale
 
 	if enemy_data.body_radius > 0.0:
 		_redimensionar_corpo(enemy_data.body_radius)

@@ -34,10 +34,35 @@ const _FALLBACK_SUFFIX := "south"
 var _facing: Enemy.Facing = Enemy.Facing.SOUTH
 var _moving := false
 
-@onready var _sprite: AnimatedSprite2D = $Sprite
+## Procurado na primeira vez que faz falta, não em `@onready`: `set_frames()` é
+## chamado **antes** de o nó entrar na árvore, e `_ready` também não dispara em
+## nó acrescentado de dentro de `SceneTree._initialize()`. Mesma inicialização
+## preguiçosa do `HealthComponent` e do `Hud`.
+var _sprite: AnimatedSprite2D = null
 
 
 func _ready() -> void:
+	_apply()
+
+
+func _resolver() -> AnimatedSprite2D:
+	if _sprite == null:
+		_sprite = get_node_or_null("Sprite") as AnimatedSprite2D
+	return _sprite
+
+
+## Troca as animações deste inimigo.
+##
+## É o único ponto por onde a arte entra: `enemy.gd` passa o que o `EnemyData`
+## traz e não sabe o que é um `SpriteFrames`. Trocar a arte de um tipo é trocar
+## o `.tres`, não mexer em lógica (DEC-013).
+func set_frames(frames: SpriteFrames) -> void:
+	if frames == null:
+		return
+	var sprite := _resolver()
+	if sprite == null:
+		return
+	sprite.sprite_frames = frames
 	_apply()
 
 
@@ -58,7 +83,7 @@ func set_moving(moving: bool) -> void:
 
 
 func _apply() -> void:
-	if _sprite == null or _sprite.sprite_frames == null:
+	if _resolver() == null or _sprite.sprite_frames == null:
 		return
 
 	var animation := _pick_animation()
