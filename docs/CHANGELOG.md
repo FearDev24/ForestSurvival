@@ -52,7 +52,9 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
 - **Cão de Inferno, primeiro inimigo com arte própria:**
   - `tools/preparar_inimigo.py` — monta o `SpriteFrames` a partir das quatro folhas e confere altura de corpo entre direções, pés na mesma linha e folha múltipla do quadro;
-  - as folhas de perfil chegaram com 35 px de corpo contra 92 das de frente. O script **reduz todas à menor** em vez de ampliar: o inimigo aparece com 38 px em tela, e ampliar até 92 para o motor reduzir de volta perderia definição duas vezes;
+  - `tools/extrair_inimigo_video.py` — as folhas passam a sair do **vídeo de movimentação**, não das folhas estáticas. Nele as quatro vistas são a mesma animação de ângulos diferentes, então já estão na mesma escala de mundo; nas folhas soltas o perfil vinha com um terço da altura da frente;
+  - o script acha o ciclo por autocorrelação de silhueta (24 quadros a 24 fps, um segundo exato), tira 12 espalhados por um ciclo inteiro, usa **uma escala só** para as quatro direções e alinha pela pata mais baixa;
+  - o vídeo rotula dois trechos como leste e oeste, mas os dois mostram o cão olhando para a esquerda — 3,8% de diferença como estão contra 20,5% espelhados. Um trecho serve de perfil e o outro lado sai espelhado (regra 9 do `ASSET_WORKFLOW`);
   - `EnemyData` ganha `sprite_frames`; **nulo mantém as da cena**, que é o que permite um tipo existir antes de ter arte;
   - a troca passa por `enemy_visual.set_frames()` — `enemy.gd` não sabe o que é um `SpriteFrames` (DEC-013);
   - as folhas brutas vão para `assets/characters/inimigos/_raw/`, as normalizadas ficam ao lado do `.tres`;

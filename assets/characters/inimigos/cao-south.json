@@ -1,0 +1,17 @@
+{
+ "generator": {
+  "name": "extrair_inimigo_video.py",
+  "version": "1"
+ },
+ "sheet": "cao-south.png",
+ "frameWidth": 60,
+ "frameHeight": 96,
+ "frames": 12,
+ "layout": "horizontal",
+ "columns": 12,
+ "rows": 1,
+ "pivot": {
+  "x": 0.5,
+  "y": 1.0
+ }
+}

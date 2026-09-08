@@ -63,18 +63,16 @@ INIMIGOS = {
     "cao": {
         "uid": "bfscaoframes",
         "saida": "cao_sprite_frames.tres",
-        # As folhas de perfil chegaram com um terco da altura das de frente.
-        "normalizar": True,
-        "prefixo": "cao",
-        # Tamanho pretendido em tela: 80% do diabrete, que ocupa 48 px.
-        "altura_em_tela": 38.0,
-        # O sufixo do nome contradiz o prefixo nas folhas de perfil. Vale o que
-        # se ve na arte: em `caoinfeast-...` o cao olha para a direita.
+        # Estas folhas saem de `tools/extrair_inimigo_video.py`, que tira os
+        # quadros do video de movimentacao. As folhas estaticas que vieram
+        # antes ficaram em `_raw/`: nelas o perfil tinha um terco da altura da
+        # frente, e o video nao tem esse problema porque as quatro vistas sao a
+        # mesma animacao de angulos diferentes.
         "folhas": {
-            "south": "_raw/caoinfsouth-walk-south.png",
-            "north": "_raw/caoinfnorth-walk-north.png",
-            "west": "_raw/caoinfwest-walk-east.png",
-            "east": "_raw/caoinfeast-walk-west.png",
+            "south": "cao-south.png",
+            "north": "cao-north.png",
+            "west": "cao-west.png",
+            "east": "cao-east.png",
         },
     },
 }
