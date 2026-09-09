@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=31 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
@@ -15,6 +15,9 @@
 [ext_resource type="PackedScene" uid="uid://bfsxporb0forest" path="res://scenes/pickups/xp_orb.tscn" id="7_orb"]
 [ext_resource type="PackedScene" uid="uid://bfslevelup0fs" path="res://scenes/ui/level_up_menu.tscn" id="9_levelup"]
 [ext_resource type="PackedScene" uid="uid://bfshud0forest" path="res://scenes/ui/hud.tscn" id="10_hud"]
+[ext_resource type="Script" path="res://scripts/systems/game_manager.gd" id="29_manager"]
+[ext_resource type="PackedScene" uid="uid://bfspausa0fs" path="res://scenes/ui/pause_menu.tscn" id="30_pausa"]
+[ext_resource type="PackedScene" uid="uid://bfsresultado0fs" path="res://scenes/ui/result_screen.tscn" id="31_resultado"]
 [ext_resource type="Script" path="res://scripts/systems/upgrade_pool.gd" id="11_pool"]
 [ext_resource type="Resource" uid="uid://bfsupgcasca" path="res://resources/upgrades/casca_de_carvalho.tres" id="12_casca"]
 [ext_resource type="Resource" uid="uid://bfsupgcervo" path="res://resources/upgrades/passos_do_cervo.tres" id="13_cervo"]
@@ -27,7 +30,6 @@
 [ext_resource type="Resource" uid="uid://bfsupgvagalume" path="res://resources/upgrades/arma_vagalumes_guardioes.tres" id="22_vagalume"]
 [ext_resource type="Resource" uid="uid://bfsupgraio" path="res://resources/upgrades/arma_cajado_raio.tres" id="15_raio"]
 [ext_resource type="Resource" uid="uid://bfsupgvinha" path="res://resources/upgrades/arma_vinha_espinhosa.tres" id="16_vinha"]
-[ext_resource type="Texture2D" path="res://assets/ui/gameover.png" id="8_gameover"]
 
 [node name="Game" type="Node2D"]
 y_sort_enabled = true
@@ -73,32 +75,17 @@ editor_description = "Catalogo do level up. Decide o que pode ser oferecido e o 
 script = ExtResource("11_pool")
 catalogo = Array[Resource]([ExtResource("12_casca"), ExtResource("13_cervo"), ExtResource("14_essencia"), ExtResource("17_semente"), ExtResource("18_ciclo"), ExtResource("19_coracao"), ExtResource("15_raio"), ExtResource("16_vinha"), ExtResource("20_corvo"), ExtResource("21_esporo"), ExtResource("22_vagalume")])
 
+[node name="GameManager" type="Node" parent="."]
+editor_description = "Estado da partida (docs/03_SYSTEMS.md secao 16 e 17). Antes desta fase o estado morava em quatro lugares que precisavam concordar sozinhos: _running na raiz e um enabled no spawn, no wave e nas armas. process_mode ALWAYS porque ele precisa ouvir a tecla de pausa enquanto a arvore esta parada."
+process_mode = 3
+script = ExtResource("29_manager")
+
 [node name="Hud" parent="." instance=ExtResource("10_hud")]
 
 [node name="LevelUpMenu" parent="." instance=ExtResource("9_levelup")]
 
-[node name="GameOver" type="Sprite2D" parent="."]
-editor_description = "Aparece no lugar onde o druida morreu, depois que a animacao de morte termina. z_index alto para ficar acima de tudo, fora da ordenacao por Y. Tela de game over de verdade, com botoes e restart, e da FASE 9."
-visible = false
-z_index = 100
-scale = Vector2(0.28, 0.28)
-texture = ExtResource("8_gameover")
+[node name="PauseMenu" parent="." instance=ExtResource("30_pausa")]
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="ResultScreen" parent="." instance=ExtResource("31_resultado")]
 
-[node name="RestartButton" type="Button" parent="CanvasLayer"]
-editor_description = "Aparece junto com o game over. Recarrega a cena da partida. A tela de resultado completa - tempo, level, voltar ao menu - e da FASE 9."
-visible = false
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -150.0
-offset_right = 120.0
-offset_bottom = -80.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_font_sizes/font_size = 30
-text = "REINICIAR"
 

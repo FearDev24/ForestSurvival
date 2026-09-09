@@ -11,21 +11,19 @@ FASE 5 — XP e Level Up.
 FASE 6 — Sistema de upgrades.
 FASE 7 — Famílias de arma: golpe, projétil, zona e orbital.
 FASE 8 — Waves, tipos de inimigo, elite e boss.
+FASE 9 — Loop completo: estado da partida, pausa, derrota e vitória.
 HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 9 (loop completo)
+# Agora — FASE 10 (performance)
 
-- [x] HP HUD, XP HUD, timer, level — adiantados
-- [ ] `GameManager` com os estados de partida (`03_SYSTEMS.md` §16)
-- [ ] pausa de verdade, com tecla e botão
-- [ ] tela de game over: tempo, nível alcançado, reiniciar, voltar ao menu
-- [ ] vitória ao derrubar o Guardião Profanado
-- [ ] criar `tests/test_phase9.gd`
+- [ ] medir de novo com as quatro famílias de arma e os cinco tipos de inimigo em cena
+- [ ] object pool para efeitos e fragmentos, se a medição pedir
+- [ ] revisar o teto por wave contra a medição nova
 
-O gancho da vitória já existe: `WaveManager.boss_spawned`. Falta escutar a morte
-dele e decidir o que acontece.
+O teto de 200 é de antes das famílias de arma e dos tipos de inimigo. Vale
+remedir antes de otimizar qualquer coisa.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

@@ -7,8 +7,10 @@ extends Node2D
 ##
 ## Não é um manager e não guarda estado de jogo: só liga as pontas. O
 ## `SpawnManager` recebe daqui o alvo, o container e os limites do mundo, em vez
-## de procurar qualquer um dos três sozinho. GameManager e WaveManager entram nas
-## fases previstas em `docs/ROADMAP.md`.
+## de procurar qualquer um dos três sozinho.
+##
+## Desde a FASE 9 o estado da partida — e o relógio — moram no `GameManager`.
+## Esta cena voltou a ser só o ponto de composição que sempre quis ser.
 
 @onready var _test_world: TestWorld = $World/TestWorld
 @onready var _player: Player = $Player
@@ -29,21 +31,9 @@ extends Node2D
 @onready var _pickup_area: PickupArea = $Player/PickupArea
 @onready var _hud: Hud = $Hud
 @onready var _level_up_menu: CanvasLayer = $LevelUpMenu
-@onready var _game_over: Sprite2D = $GameOver
-@onready var _restart_button: Button = $CanvasLayer/RestartButton
-
-## Tempo decorrido de partida, em segundos.
-##
-## Mora aqui, e não no HUD, porque é estado de partida: quando a FASE 9 trouxer
-## o `GameManager`, o tempo vem junto e o HUD continua só exibindo. O relógio
-## para sozinho na tela de level up — o passo de física desta cena é pausável, o
-## da tela de escolha não.
-##
-## Conta em `_physics_process`, e não em `_process`, porque o passo de física é
-## fixo: o relógio não depende de quantos quadros a máquina consegue desenhar, e
-## um teste sabe exatamente quanto tempo passou depois de N passos.
-var _elapsed := 0.0
-var _running := true
+@onready var _game_manager: GameManager = $GameManager
+@onready var _pause_menu: CanvasLayer = $PauseMenu
+@onready var _result_screen: CanvasLayer = $ResultScreen
 
 
 func _ready() -> void:
@@ -61,48 +51,14 @@ func _ready() -> void:
 	_upgrade_pool.configure(_stats, _weapons)
 	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)
-	_player.death_finished.connect(_on_player_death_finished)
-	_restart_button.pressed.connect(_on_restart_pressed)
+	_game_manager.configure(_player, _spawn_manager, _wave_manager, _weapons,
+		_level, _level_up_menu)
+	_pause_menu.configure(_game_manager)
+	_result_screen.configure(_game_manager)
 
 
-## Mostra o game over no lugar exato onde o druida caiu.
+## O relógio é do `GameManager`; esta cena só o repassa ao HUD.
 ##
-## Fica em coordenada de mundo, não na `CanvasLayer`: a ideia é marcar o ponto
-## da morte, e a câmera já está parada ali junto com o corpo.
-##
-## Isto é o mínimo para ver a sequência morte -> game over funcionando. A tela
-## de verdade — tempo de partida, level alcançado, reiniciar, voltar ao menu —
-## é da FASE 9, com o `GameManager` e o estado `GAME_OVER`
-## (`docs/03_SYSTEMS.md` §16).
-func _physics_process(delta: float) -> void:
-	if not _running:
-		return
-	_elapsed += delta
-	_hud.set_time(_elapsed)
-
-
-func _on_player_death_finished() -> void:
-	_running = false
-	_spawn_manager.enabled = false
-	_wave_manager.enabled = false
-	_weapons.set_weapons_enabled(false)
-
-	# O sprite do druida tem 96 px e a origem fica nos pés: subir meia altura
-	# centraliza a arte sobre o corpo, em vez de sobre o chão.
-	_game_over.global_position = _player.global_position + Vector2(0.0, -48.0)
-	_game_over.visible = true
-
-	# O botão fica na `CanvasLayer`, em coordenada de tela: um botão no mundo
-	# sairia de vista se a câmera se mexesse, e clicar nele dependeria do zoom.
-	_restart_button.visible = true
-	_restart_button.grab_focus()
-
-
-## Recomeça a partida do zero.
-##
-## `reload_current_scene()` recria `game.tscn` inteira: Player com vida cheia,
-## nenhum inimigo, spawn zerado. Serve enquanto não há nada para preservar entre
-## partidas — meta-progressão é FASE 13, e o `GameManager` com os estados de
-## partida é FASE 9.
-func _on_restart_pressed() -> void:
-	get_tree().reload_current_scene()
+## O HUD continua sem saber o que é uma partida: ele recebe segundos e desenha.
+func _physics_process(_delta: float) -> void:
+	_hud.set_time(_game_manager.get_elapsed())

@@ -15,6 +15,14 @@ extends CanvasLayer
 ## por vez. Sem isso, dois níveis no mesmo instante dariam uma escolha só e o
 ## jogador perderia o que ganhou.
 
+## Emitido quando a tela realmente abre — ela pode decidir não abrir, quando
+## não há nada aplicável a oferecer.
+##
+## Quem pausa a partida é o `GameManager`, não esta tela: ela avisa que abriu e
+## que fechou, e ele decide o que isso significa. Dois lugares mexendo em
+## `get_tree().paused` foi o que a FASE 9 veio desfazer.
+signal opened
+
 ## Emitido quando uma escolha é aplicada.
 signal choice_made(id: StringName)
 
@@ -101,7 +109,7 @@ func _abrir() -> void:
 	_titulo.visible = not com_arte
 	_titulo.text = "SUBIU DE NIVEL" if _pendentes <= 1 else "SUBIU DE NIVEL  (x%d)" % _pendentes
 	visible = true
-	get_tree().paused = true
+	opened.emit()
 
 	# **Sem** foco inicial: a tela abre com nada aceso.
 	#
@@ -287,5 +295,4 @@ func _on_escolha(id: StringName) -> void:
 		return
 
 	visible = false
-	get_tree().paused = false
 	closed.emit()

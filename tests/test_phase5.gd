@@ -63,8 +63,19 @@ func _physics_process(_delta: float) -> bool:
 			_frames_left -= 1
 			if _frames_left <= 0:
 				_check_level_up()
-				_start_sem_opcao()
+				# Um estágio só para a despausa: desde a FASE 9 quem pausa é o
+				# `GameManager`, e ele mexe no estado da árvore **adiado** —
+				# mexer nisso de dentro de um retorno de física é proibido. No
+				# mesmo quadro em que a tela fecha o jogo ainda está parado, e
+				# estaria certo assim.
+				_frames_left = 2
+				_stage = 4
 		4:
+			_frames_left -= 1
+			if _frames_left <= 0:
+				_check_despausou()
+				_start_sem_opcao()
+		5:
 			_frames_left -= 1
 			if _frames_left <= 0:
 				_check_sem_opcao()
@@ -320,10 +331,12 @@ func _check_level_up() -> void:
 
 	if _menu.visible:
 		_fail("A tela não fechou depois de esvaziar a fila")
-	if paused:
-		_fail("O jogo continuou pausado depois de fechar a tela")
-	paused = false
 
+	# A despausa é conferida no próximo estágio, e não aqui: desde a FASE 9 quem
+	# pausa é o `GameManager`, e ele mexe no estado da árvore **adiado** — pelo
+	# mesmo motivo do orbe de XP, porque mexer nisso de dentro de um retorno de
+	# física é proibido. No mesmo quadro o jogo ainda está parado, e estaria
+	# certo assim.
 	print("  nível %d, %d escolhas atendidas" % [_level.level, guarda + 1])
 
 
@@ -335,6 +348,11 @@ func _check_level_up() -> void:
 ## Até a FASE 6, bastava encher as armas: elas eram a única opção que existia.
 ## Com passivas no catálogo isso deixou de ser um beco sem saída, e o teste
 ## passou a esgotar o **catálogo inteiro** — que é a condição de verdade.
+func _check_despausou() -> void:
+	if paused:
+		_fail("O jogo continuou pausado depois de fechar a tela")
+
+
 func _start_sem_opcao() -> void:
 	if _weapons == null:
 		_frames_left = 1
@@ -365,7 +383,7 @@ func _start_sem_opcao() -> void:
 
 	_level.add_xp(_level.xp_to_next() * 2.0)
 	_frames_left = 4
-	_stage = 4
+	_stage = 5
 
 
 ## O nome da opção mora num rótulo dentro da placa, não no `text` do botão —

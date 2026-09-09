@@ -1,0 +1,87 @@
+[gd_scene load_steps=5 format=3 uid="uid://bfsresultado0fs"]
+
+[ext_resource type="Script" path="res://scripts/ui/result_screen.gd" id="1_res"]
+[ext_resource type="Texture2D" path="res://assets/ui/painel_escolha.png" id="2_painel"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_normal.png" id="3_normal"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_destaque.png" id="4_destaque"]
+
+[node name="ResultScreen" type="CanvasLayer"]
+editor_description = "layer 7: acima de tudo. A mesma tela serve a vitoria e a derrota - o que muda e o titulo e a cor dele. Duas cenas quase iguais divergiriam na primeira mexida."
+process_mode = 3
+layer = 7
+visible = false
+script = ExtResource("1_res")
+textura_placa = ExtResource("3_normal")
+textura_placa_destaque = ExtResource("4_destaque")
+
+[node name="Fundo" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="Painel" type="TextureRect" parent="."]
+texture_filter = 2
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -240.0
+offset_right = 400.0
+offset_bottom = 239.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_painel")
+expand_mode = 1
+
+[node name="Caixa" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -336.0
+offset_top = -176.0
+offset_right = 336.0
+offset_bottom = 182.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Titulo" type="Label" parent="Caixa"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.87, 0.96, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 34
+text = "A FLORESTA CAIU"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Tempo" type="Label" parent="Caixa"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "Tempo   00:00"
+horizontal_alignment = 1
+
+[node name="Nivel" type="Label" parent="Caixa"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "Nivel   1"
+horizontal_alignment = 1
+
+[node name="Opcoes" type="VBoxContainer" parent="Caixa"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1

@@ -133,7 +133,7 @@ func _physics_process(_delta: float) -> bool:
 		8:
 			_frames_since_death += 1
 			_frames_left -= 1
-			var game_over := _game.get_node_or_null("GameOver") as CanvasItem
+			var game_over := _game.get_node_or_null("ResultScreen") as CanvasLayer
 			if _game_over_frame < 0 and game_over != null and game_over.visible:
 				_game_over_frame = _frames_since_death
 			if _game_over_frame >= 0 or _frames_left <= 0:
@@ -357,26 +357,20 @@ func _check_death_presentation() -> void:
 	if not ResourceLoader.exists(GAME_SCENE):
 		return
 
+	# Desde a FASE 9 a imagem de game over solta no mundo e o botão avulso deram
+	# lugar à tela de resultado, que serve tanto à derrota quanto à vitória e
+	# mostra tempo e nível (`docs/03_SYSTEMS.md` §16 e §17). O que esta suíte
+	# ainda garante é o mesmo de antes: que a morte leva a **alguma** tela, e
+	# que ela nasce escondida.
 	var game: Node = (load(GAME_SCENE) as PackedScene).instantiate()
-	var game_over := game.get_node_or_null("GameOver") as Sprite2D
-	if game_over == null:
-		_fail("game.tscn sem o nó GameOver")
-	else:
-		if game_over.visible:
-			_fail("GameOver deveria começar invisível")
-		if game_over.texture == null:
-			_fail("GameOver sem textura")
-		if game_over.z_index <= 0:
-			_fail("GameOver precisa de z_index positivo para ficar acima de tudo")
+	var resultado := game.get_node_or_null("ResultScreen") as CanvasLayer
+	if resultado == null:
+		_fail("game.tscn sem o nó ResultScreen")
+	elif resultado.visible:
+		_fail("A tela de resultado deveria começar escondida")
 
-	var restart := game.get_node_or_null("CanvasLayer/RestartButton") as Button
-	if restart == null:
-		_fail("game.tscn sem o botão de reiniciar em CanvasLayer/RestartButton")
-	else:
-		if restart.visible:
-			_fail("O botão de reiniciar deveria começar invisível")
-		if restart.text.strip_edges().is_empty():
-			_fail("Botão de reiniciar sem texto")
+	if game.get_node_or_null("GameManager") as GameManager == null:
+		_fail("game.tscn sem GameManager: o estado da partida não tem dono")
 
 	game.free()
 
@@ -625,34 +619,45 @@ func _start_game_over_watch() -> void:
 
 
 func _check_game_over() -> void:
-	var game_over := _game.get_node_or_null("GameOver") as Sprite2D
-	if game_over == null:
-		_fail("game.tscn sem o nó GameOver na cena em execução")
+	var resultado := _game.get_node_or_null("ResultScreen") as CanvasLayer
+	if resultado == null:
+		_fail("game.tscn sem o nó ResultScreen na cena em execução")
 		return
 
 	if _game_over_frame < 0:
-		_fail("Game over não apareceu em %d frames depois da morte" % GAME_OVER_TIMEOUT_FRAMES)
+		_fail("A tela de resultado não apareceu em %d frames depois da morte"
+			% GAME_OVER_TIMEOUT_FRAMES)
 		return
 
 	# 60 frames já haviam corrido antes desta etapa; a animação tem 108.
 	if _game_over_frame <= 5:
-		_fail("Game over apareceu cedo demais: %d frames, antes de a morte terminar" % _game_over_frame)
+		_fail("A tela apareceu cedo demais: %d frames, antes de a morte terminar"
+			% _game_over_frame)
 
-	var offset := game_over.global_position.distance_to(_death_position)
-	if offset > 96.0:
-		_fail("Game over apareceu a %.0f px de onde o druida morreu" % offset)
+	# A posição não é mais conferida: a tela deixou de marcar o ponto da morte
+	# no mundo e passou a ser um painel de tela cheia.
+	var manager := _game.get_node_or_null("GameManager") as GameManager
+	if manager == null:
+		_fail("GameManager ausente na cena em execução")
+	elif manager.estado != GameManager.Estado.DERROTA:
+		_fail("A partida deveria estar em DERROTA, está em %d" % manager.estado)
 
-	var restart := _game.get_node_or_null("CanvasLayer/RestartButton") as Button
-	if restart == null:
-		_fail("Botão de reiniciar ausente na cena em execução")
-	elif not restart.visible:
-		_fail("Botão de reiniciar não apareceu junto com o game over")
-	elif restart.pressed.get_connections().is_empty():
-		_fail("Botão de reiniciar não está ligado a nada")
+	var botoes: Array[Button] = resultado.botoes()
+	if botoes.is_empty():
+		_fail("A tela de resultado não ofereceu nenhum botão")
+	else:
+		for botao in botoes:
+			if botao.pressed.get_connections().is_empty():
+				_fail("Botão '%s' da tela de resultado não está ligado a nada" % botao.text)
 
 
 ## Último caso: o alvo deixa de existir. O inimigo tem de parar, não estourar.
+##
+## Despausa antes: desde a FASE 9 a derrota para a árvore inteira, e este caso
+## é sobre o inimigo continuar sensato sem alvo — o que só dá para observar com
+## o mundo andando.
 func _start_target_removal() -> void:
+	paused = false
 	_player.queue_free()
 	_player = null
 	_frames_left = 30
