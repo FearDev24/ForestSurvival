@@ -16,7 +16,7 @@ Uso: python tools/preparar_corvo.py (a partir da raiz do projeto)
 from PIL import Image
 import numpy as np
 
-ORIGEM = "hablidades forestsurvival/Corvo Espiritual — sprite do efeito.png"
+ORIGEM = "assets/_raw/ui/Corvo Espiritual — sprite do efeito.png"
 FRAMES = 6
 ## Largura de cada quadro no arquivo final. A altura sai da proporcao.
 LARGURA_FINAL = 96

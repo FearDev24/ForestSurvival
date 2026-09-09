@@ -16,7 +16,7 @@ from PIL import Image
 import numpy as np
 from scipy import ndimage as nd
 
-ORIGEM = "hablidades forestsurvival/"
+ORIGEM = "assets/_raw/ui/"
 
 ## Quanto do centro da placa escurece, e quanto.
 FAIXA_CENTRAL = 0.86

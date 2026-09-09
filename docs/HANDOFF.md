@@ -2009,7 +2009,6 @@ ponto de partida:
 - **animação de morte de inimigo** — nem o diabrete nem o cão têm; somem no ar;
 - **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
 - **ícones do Anel de Esporos e dos Vagalumes** — a tela de escolha reserva a coluna e desenha só o texto;
-- **a pasta `hablidades forestsurvival/`** continua na raiz do projeto, fora do controle de versão. Pelo `ASSET_WORKFLOW` ela deveria estar em `assets/_raw/`.
 
 ## Critério de aceite da FASE 10
 

@@ -22,7 +22,7 @@ from PIL import Image
 import numpy as np
 import os
 
-ORIGEM = "hablidades forestsurvival/"
+ORIGEM = "assets/_raw/ui/"
 DESTINO = "assets/ui/icones/"
 
 ## Lado do arquivo final. O painel exibe a 104 px; sobra folga para o HUD da
