@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgsemente"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+[ext_resource type="Texture2D" path="res://assets/ui/icones/semente_ancestral.png" id="2_icone"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"semente_ancestral"
+display_name = "Semente Ancestral"
+description = "Área dos golpes +15%."
+icon = ExtResource("2_icone")
+kind = 0
+stat = 5
+flat = 0.0
+mult = 0.15
+max_stacks = 4

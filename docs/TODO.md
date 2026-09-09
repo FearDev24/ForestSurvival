@@ -8,21 +8,24 @@ FASE 2 — Primeiro inimigo.
 FASE 3 — Spawn e horda.
 FASE 4 — Primeira arma.
 FASE 5 — XP e Level Up.
+FASE 6 — Sistema de upgrades.
+FASE 7 — Famílias de arma: golpe, projétil, zona e orbital.
+FASE 8 — Waves, tipos de inimigo, elite e boss.
 HUD da partida (FASE 9, adiantado): vida, XP, nível e cronômetro.
 
 Detalhes em `docs/HANDOFF.md`.
 
-# Agora — FASE 6 (sistema de upgrades)
+# Agora — FASE 9 (loop completo)
 
-- [ ] `UpgradeData` em `Resource`, no lugar das opções montadas à mão pelo menu
-- [ ] passivas da primeira lista do `04_CONTENT_PLAN.md` (vida, velocidade, área, cooldown, alcance de coleta)
-- [ ] oferecer arma nova além de melhorar equipada, respeitando os slots
-- [ ] validar opções: nada impossível, nada repetido na mesma tela
-- [ ] `StatComponent` para as passivas terem onde somar (`03_SYSTEMS.md` §14)
-- [ ] criar `tests/test_phase6.gd`
+- [x] HP HUD, XP HUD, timer, level — adiantados
+- [ ] `GameManager` com os estados de partida (`03_SYSTEMS.md` §16)
+- [ ] pausa de verdade, com tecla e botão
+- [ ] tela de game over: tempo, nível alcançado, reiniciar, voltar ao menu
+- [ ] vitória ao derrubar o Guardião Profanado
+- [ ] criar `tests/test_phase9.gd`
 
-Com o HUD no lugar, dá para julgar cada passiva olhando a tela em vez de ler
-número em log — que era o motivo de adiantá-lo.
+O gancho da vitória já existe: `WaveManager.boss_spawned`. Falta escutar a morte
+dele e decidir o que acontece.
 
 # Pendências de arte (não bloqueiam programação — DEC-013)
 

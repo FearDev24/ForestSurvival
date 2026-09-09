@@ -96,6 +96,13 @@ func _check_texturas() -> void:
 				% [nome, fundo.x, fundo.y, largura_tela, altura_tela])
 		if barra.fill_mode != TextureProgressBar.FILL_LEFT_TO_RIGHT:
 			_fail("%s deveria esvaziar da direita para a esquerda" % nome)
+		# O retângulo do nó precisa bater com a textura. Maior, a arte estica e
+		# a moldura deforma; menor não acontece, porque a textura é o mínimo.
+		var caixa := Vector2(barra.offset_right - barra.offset_left,
+			barra.offset_bottom - barra.offset_top)
+		if not (is_equal_approx(caixa.x, fundo.x) and is_equal_approx(caixa.y, fundo.y)):
+			_fail("%s: o nó mede %.0fx%.0f e a textura %.0fx%.0f — a arte sairia esticada"
+				% [nome, caixa.x, caixa.y, fundo.x, fundo.y])
 		# A arte do HUD não é pixel art: reduzida com NEAREST, serrilha.
 		if barra.texture_filter != CanvasItem.TEXTURE_FILTER_LINEAR:
 			_fail("%s deveria usar filtro LINEAR, usa %d" % [nome, barra.texture_filter])

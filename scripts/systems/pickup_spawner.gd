@@ -14,7 +14,11 @@ signal dropped(orb: Node2D)
 
 @export var orb_scene: PackedScene
 
-## Quanto vale cada fragmento. A FASE 8 dará valores por tipo de inimigo.
+## Quanto vale o fragmento de quem não declara valor próprio.
+##
+## Inimigo criado a partir de um `EnemyData` traz o dele em `xp_value`, e é
+## assim que o elite larga mais que o diabrete — sem que este nó precise
+## conhecer tipo de inimigo nenhum.
 @export var xp_value: float = 1.0
 
 ## Chance de largar, de 0 a 100. Em 100 todo inimigo larga — que é o certo para
@@ -61,7 +65,7 @@ func _on_enemy_died(enemy: Node) -> void:
 		return
 	orbe.global_position = corpo.global_position
 	if "value" in orbe:
-		orbe.value = xp_value
+		orbe.value = corpo.xp_value if "xp_value" in corpo else xp_value
 
 	# Entra na cena **adiado**. A morte chega de dentro da detecção de área que
 	# matou o inimigo, e o orbe é uma `Area2D`: registrar a forma dela ali faz a

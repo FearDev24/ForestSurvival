@@ -1,0 +1,410 @@
+[gd_resource type="SpriteFrames" load_steps=53 format=3 uid="uid://bfscaoframes"]
+
+[ext_resource type="Texture2D" path="res://assets/characters/inimigos/cao-south.png" id="1_walk_south"]
+[ext_resource type="Texture2D" path="res://assets/characters/inimigos/cao-north.png" id="2_walk_north"]
+[ext_resource type="Texture2D" path="res://assets/characters/inimigos/cao-west.png" id="3_walk_west"]
+[ext_resource type="Texture2D" path="res://assets/characters/inimigos/cao-east.png" id="4_walk_east"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_00"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(0, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_01"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(60, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_02"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(120, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_03"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(180, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_04"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(240, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_05"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(300, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_06"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(360, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_07"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(420, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_08"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(480, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_09"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(540, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_10"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(600, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_11"]
+atlas = ExtResource("1_walk_south")
+region = Rect2(660, 0, 60, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_00"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(0, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_01"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(44, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_02"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(88, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_03"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(132, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_04"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(176, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_05"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(220, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_06"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(264, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_07"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(308, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_08"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(352, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_09"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(396, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_10"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(440, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_11"]
+atlas = ExtResource("2_walk_north")
+region = Rect2(484, 0, 44, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_00"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(0, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_01"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(138, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_02"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(276, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_03"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(414, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_04"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(552, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_05"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(690, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_06"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(828, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_07"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(966, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_08"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(1104, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_09"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(1242, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_10"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(1380, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_11"]
+atlas = ExtResource("3_walk_west")
+region = Rect2(1518, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_00"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(0, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_01"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(138, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_02"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(276, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_03"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(414, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_04"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(552, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_05"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(690, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_06"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(828, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_07"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(966, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_08"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(1104, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_09"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(1242, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_10"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(1380, 0, 138, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_11"]
+atlas = ExtResource("4_walk_east")
+region = Rect2(1518, 0, 138, 96)
+
+[resource]
+animations = [
+{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_00")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_01")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_02")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_03")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_04")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_05")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_06")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_07")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_08")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_09")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_10")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_south_11")
+}],
+"loop": true,
+"name": &"walk_south",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_00")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_01")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_02")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_03")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_04")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_05")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_06")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_07")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_08")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_09")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_10")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_north_11")
+}],
+"loop": true,
+"name": &"walk_north",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_00")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_01")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_02")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_03")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_04")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_05")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_06")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_07")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_08")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_09")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_10")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_west_11")
+}],
+"loop": true,
+"name": &"walk_west",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_00")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_01")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_02")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_03")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_04")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_05")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_06")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_07")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_08")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_09")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_10")
+},
+{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk_east_11")
+}],
+"loop": true,
+"name": &"walk_east",
+"speed": 12.0
+}]

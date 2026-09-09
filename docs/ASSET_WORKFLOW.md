@@ -26,6 +26,46 @@ Nenhuma fase do `docs/ROADMAP.md` pode ser adiada, marcada como bloqueada ou con
 10. **Um asset só é considerado oficial após aprovação** do responsável pelo projeto.
 11. **Quando um asset aprovado entrar, deve ser possível integrá-lo sem reescrever sistemas de gameplay.** Se a integração exigir alterar lógica, o acoplamento é um defeito de arquitetura e deve ser corrigido antes.
 
+# Como um asset é pedido
+
+**Regra de trabalho, definida em 2026-09-05 pelo responsável pelo projeto.**
+
+Quando o Claude precisar de qualquer asset — ícone, moldura de UI, sprite,
+sheet de animação, tile, efeito —, ele **não produz a arte**. Ele entrega um
+**prompt de geração** para o responsável, que gera a imagem e ajusta no Aseprite.
+
+Isso vale inclusive para sprite e sheet de animação, não só para UI.
+
+Duas exigências:
+
+1. **Pedir em pacote.** Nunca um asset de cada vez. Agrupar tudo que pertence ao
+   mesmo conjunto num pedido só, para poderem ser gerados na mesma sessão e
+   saírem coerentes entre si.
+2. **Bloco de estilo comum.** Todo pacote começa por um bloco de estilo
+   compartilhado — paleta, material, iluminação, fundo —, seguido de um trecho
+   curto por peça, só com o assunto. É o que faz doze imagens lerem como um
+   conjunto em vez de doze desenhos avulsos.
+
+Convenções que já se provaram no projeto:
+
+- **fundo magenta sólido (`#FF00FF`)**, nunca verde: a paleta inteira é verde, e fundo verde deixa franja que come o musgo. Aconteceu nas barras do HUD;
+- **pedir grande e reduzir depois.** Ícone gerado em 1024 e reduzido para 128 com Lanczos sai limpo; gerado em 128 sai borrado;
+- **margem vazia em volta do assunto**, senão a arte encosta na borda e fica claustrofóbica ao lado de uma moldura;
+- **o miolo de um painel precisa ser pedido vazio e escuro** de forma explícita, ou o gerador o enche de detalhe e o texto fica ilegível por cima;
+- **sheet de animação é onde o gerador mais erra** — frame cortado, tamanho oscilando, dois assuntos no mesmo quadro. Vem como vier; o recorte frame a frame é trabalho do Claude;
+- **para criatura com quatro direções, vídeo bate folha estática.** As quatro vistas do cão de inferno vieram primeiro como folhas soltas, e o perfil tinha um terço da altura da frente — cada folha foi desenhada sem referência das outras. No vídeo as quatro são a mesma animação de ângulos diferentes, então a escala já vem coerente, e ainda dá para achar o ciclo por autocorrelação em vez de adivinhar. Fundo verde chapado; `tools/extrair_inimigo_video.py` faz o resto;
+- **assunto com referente fotográfico precisa de âncora de estilo reforçada.** Um corvo espiritual ou um coração de folhas não existem no mundo, e o gerador é obrigado a inventar dentro do estilo pedido. "Placa de pedra com um sulco" existe aos milhares em foto, e ele vai para lá. Nesses casos: estilo no começo **e** repetido no fim, e uma lista explícita de negativas (`NOT photorealistic. NOT a 3D render. NOT a photograph.`). Evitar vocabulário de material e iluminação física — "inner shadow", "carved into stone" — e descrever a profundidade como traço: "uma linha de pixel mais escura na aresta de cima";
+- **fundo chapado tem que ser pedido de frente.** Peça com brilho ilumina o fundo e cria um halo que desbota o magenta até quase branco; esse halo escapa de qualquer limiar de cor que não coma a arte junto. A frase é `The background is a completely FLAT uniform solid magenta rectangle. No glow, no halo, no light spilling onto the background, no gradient.` O script hoje corta por cor **e** conexão com a borda, o que salva boa parte dos casos, mas não substitui a frase;
+- **peça que precisa de duas versões — vazia e cheia — deve vir de uma só.** Pedir o par produz duas peças com geometria diferente, e alinhamento não conserta isso. Quando a segunda versão puder ser derivada da primeira, peça só a primeira: é o caso da barra de XP (DEC-023).
+
+O responsável entrega a arte bruta; o Claude recorta, limpa, alinha e integra.
+A arte bruta fica em `assets/_raw/`, fora do que a Godot importa, e o que entra
+em `assets/` é derivado dela.
+
+Isto não afasta a regra 3 acima: continua proibido inventar ou redesenhar arte
+final por iniciativa própria. Escrever o prompt **é** a solicitação; gerar a
+imagem é do responsável.
+
 # Estados de um asset
 
 Todo asset percorre quatro estados.

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-04
+Última atualização: 2026-09-06
 
 # Projeto
 
@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 a FASE 5.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP e level up.
+**FASE 0 a FASE 8.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up, sistema de upgrades, famílias de arma e waves.
 
 Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
@@ -702,6 +702,397 @@ das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem e
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
 
+# Tela de level up com arte
+
+| O quê | Caminho |
+|---|---|
+| Ícones | `tools/preparar_icones_ui.py` → `assets/ui/icones/` |
+| Painel e placas | `tools/preparar_painel_ui.py` → `assets/ui/` |
+| Tela | `res://scenes/ui/level_up_menu.tscn` |
+
+## A moldura comum é o que faz os nove lerem como conjunto
+
+Sem ela, um escudo de casca marrom e um corvo etéreo não parecem do mesmo jogo.
+Gema marca arma, folha marca passiva.
+
+As duas molduras chegaram com **alfa de verdade em vez de fundo magenta**, e com
+a janela interna em `813x781` na posição `(221,224)` — **idêntica nas duas, ao
+pixel**. Isso permitiu compor os dois conjuntos com a mesma conta, sem registro
+manual.
+
+## Assunto que não é ícone
+
+O cajado e a vinha vieram em proporção 1:2,6 e, encaixados inteiros num
+quadrado, viravam um fio de 28 px. Para eles há recorte declarado em `RECORTES`,
+que fica com a parte que identifica a habilidade: a coroa do cajado, o botão da
+rosa. A rosa virou o **único vermelho do conjunto**, o que ajuda a achá-la de
+relance.
+
+## O layout saiu de medição, não de palpite
+
+O miolo escuro do painel foi medido na própria arte: `1223x627` dentro de
+`1374x821`. Em tela, com o painel a 1000x598, isso dá **890x456** de área útil.
+Daí saem os 62 px de título — a gema do topo desce para dentro do miolo, e o
+rótulo escreve na base do espaço para passar por baixo dela — e as linhas de
+`704x118`, que é a proporção exata da placa desenhada.
+
+Deixar o container esticar a linha até a largura toda deformaria as pedras das
+pontas. Por isso o tamanho é fixo e o container encolhe em volta.
+
+## O botão continua sendo um botão
+
+Foco pelo teclado, `pressed`, estados. O conteúdo entra como filho, e os filhos
+usam `MOUSE_FILTER_IGNORE` para o clique chegar ao botão em vez de parar no
+rótulo. `hover`, `focus` e `pressed` usam a mesma placa acesa: quem navega no
+teclado precisa ver onde está tanto quanto quem usa o mouse.
+
+E a coluna do ícone existe **mesmo sem ícone**. Sem ela, uma opção ainda sem
+arte empurraria o texto para a esquerda e a fileira perderia o alinhamento.
+
+# Waves (FASE 8)
+
+| O quê | Caminho |
+|---|---|
+| Tipo de inimigo | `res://scripts/enemies/enemy_data.gd`, `resources/enemies/*.tres` |
+| Fase da partida | `res://scripts/systems/wave_data.gd`, `resources/waves/*.tres` |
+| Tabela em funcionamento | `res://scripts/systems/wave_manager.gd`, nó em `game.tscn` |
+
+## A divisão de trabalho
+
+| Quem | Decide |
+|---|---|
+| `WaveManager` | **quem** nasce e **quando** |
+| `SpawnManager` | **onde** nasce e **se cabe** |
+
+É a divisão que a `docs/03_SYSTEMS.md` §6 e §7 já descreviam. A escolha do ponto
+continua no `SpawnManager` porque é lá que se conhece a câmera e as paredes; o
+teto de população vem da wave, mas quem conta os vivos é o `SpawnManager`, com
+`get_child_count()` — O(1) (DEC-011).
+
+## A rampa antiga não foi apagada
+
+O `SpawnManager` mantém a rampa linear como **modo sem waves**, e ela se cala
+enquanto a tabela manda (`driven_by_waves`). Serve para uma cena de teste, e é o
+que a suíte da FASE 3 mede — aquela suíte é sobre o spawn, não sobre a tabela.
+
+Desligar o `WaveManager` **devolve** a rampa em vez de calar os dois. Sem isso,
+um wave desligado deixaria a partida sem inimigo nenhum, que é pior que qualquer
+um dos dois mandando sozinho.
+
+## Os tipos se distinguem por número enquanto não há arte
+
+Cinco `EnemyData`: imp, cão, bruto, elite e o boss Guardião Profanado. Como só
+existe a arte do diabrete, eles diferem em vida, dano, velocidade, XP, escala do
+`Visual`, raio de corpo e **tinta**.
+
+Isso é PLACEHOLDER declarado (DEC-013): quando a arte de cada um chegar, `scene`
+deixa de ser nula e `tint` volta a branco, sem tocar em código. A escala é só da
+arte; colisão se ajusta por `body_radius`, porque colisão é dado de gameplay e
+não consequência do sprite (`docs/ASSET_WORKFLOW.md`, regra 7).
+
+## A armadilha do sub-recurso compartilhado
+
+`Enemy.apply_data()` **duplica a forma de colisão antes de mexer no raio**.
+
+As `CircleShape2D` moram como sub-recurso de `enemy.tscn`, e sub-recurso é
+compartilhado entre todas as instâncias da cena. Engordar o boss sem duplicar
+engordaria **todo diabrete em tela**, silenciosamente. O teste da fase confere
+os dois lados: o raio do boss foi aplicado, e o raio do imp continua pequeno.
+
+## O elite larga mais sem que ninguém saiba o que é um elite
+
+`PickupSpawner` lê `xp_value` do próprio inimigo, com o `@export` do nó como
+valor de reserva para quem não declara. O elite larga 12 vezes o do imp porque
+o `.tres` dele diz isso — não porque exista um `if elite` em lugar nenhum.
+
+## O que `tests/test_phase8.gd` cobre
+
+Tipos: cada `.tres` é válido, os ids não repetem, **as vidas não repetem** — três
+arquivos com os mesmos números não seriam três inimigos —, e o elite e o boss
+justificam o nome (elite acima de 3× o comum em vida e XP, boss acima de 3× o
+elite).
+
+Tabela: a primeira wave começa em 0 s, duas waves não começam no mesmo instante,
+o teto de população cresce ao longo da partida, nenhuma wave passa dos 200
+medidos, e exatamente uma wave tem boss.
+
+Progressão isolada: `configure()` ordena a tabela mesmo recebendo-a ao contrário,
+assume o ritmo do `SpawnManager`, e um salto de 300 s cai na wave certa — o
+percurso da tabela existe porque somar um perderia uma wave num salto grande.
+
+Em partida: a primeira wave só produz imp, e a vida e o XP do tipo chegam ao
+inimigo; um salto para 430 s traz o boss **uma vez**, com a vida e o raio dele,
+sem engordar os imps.
+
+## Verificação de que a FASE 8 não passa vazia
+
+Cinco erros injetados. **Um passou**, pelo mesmo motivo já visto na FASE 6: não
+era bug. O boss só nasce na virada de wave, então a guarda de `_bosses_criados`
+protege uma reentrada que o fluxo normal nunca provoca — o teste não tinha como
+distinguir. Passou a **forçar a reentrada**, e agora remover a guarda falha.
+
+Os outros quatro foram pegos de primeira: progressão somando um em vez de
+percorrer a tabela, forma de colisão redimensionada sem duplicar, tipo não
+chegando ao inimigo, e elite com vida de inimigo comum.
+
+# Famílias de arma (FASE 7)
+
+| Família | Script | Armas |
+|---|---|---|
+| golpe | `res://scripts/effects/ability_effect.gd` | Cajado Tempestade, Vinha Espinhosa |
+| projétil | `res://scripts/effects/projectile_effect.gd` | Corvo Espiritual |
+| zona | `res://scripts/effects/zone_effect.gd` | Anel de Esporos |
+| orbital | `res://scripts/effects/orbit_effect.gd` | Vagalumes Guardiões |
+
+## O que separa uma família da outra
+
+**Como o ataque termina.** É a única diferença que não cabe num campo:
+
+- o golpe morre quando a animação acaba;
+- o projétil morre ao atravessar N inimigos **ou** ao esgotar o tempo de voo;
+- a zona morre quando a duração acaba, e enquanto vive bate repetido;
+- o orbital morre pela duração também, mas acompanha o druida enquanto existe.
+
+Empilhar as quatro regras num script só faria cada uma carregar a condição das
+outras três. Por isso são scripts diferentes — e por isso a arma continua sendo
+só um `.tres`: quem escolhe a família é o `effect_scene`, que já era um campo.
+
+## Campos opcionais, e por quê
+
+`WeaponData` ganhou `projectile_speed`, `projectile_pierce` e `effect_duration`.
+Nos três, **zero quer dizer "usa o valor da cena"**, e não zero.
+
+Sem isso, acrescentar velocidade de voo obrigaria o raio e a vinha — que não
+voam — a preencher um número que não lhes diz respeito, e cada família nova
+somaria campos mortos a todas as armas já escritas.
+
+## O orbital é temporário de propósito
+
+Ele nasce no cooldown da arma, gira por alguns segundos e some — não fica para
+sempre. Não é limitação: é o que permite a família caber no mesmo modelo das
+outras três (arma dispara, efeito vive, efeito morre) em vez de exigir um
+segundo modelo só para ela.
+
+Ele acompanha o druida por coordenada de mundo, não sendo filho dele. Ser filho
+resolveria o acompanhamento de graça, mas colocaria um ataque dentro do Player
+— e o Player não conhece arma nem efeito (`docs/02_ARCHITECTURE.md`).
+
+## O pareamento do roadmap ficou para trás
+
+`docs/ROADMAP.md` listava *Cajado — projétil, Espinhos — AoE, Corvo — orbital*.
+Essa lista é anterior à FASE 4, e a FASE 4 decidiu outra coisa: o cajado virou
+raio que cai sobre o alvo, a vinha virou golpe que brota do chão (DEC-021,
+DEC-022). Os dois ficaram na mesma família.
+
+Respeitar o pareamento antigo significaria refazer duas armas já aprovadas em
+jogo. Em vez disso entraram armas novas para as famílias que faltavam, e a
+orbital — única da lista sem representante — foi construída. São quatro
+famílias onde o roadmap pedia três.
+
+## Três stats ganharam leitor
+
+`PROJECTILE_SPEED`, `DURATION` e `AMOUNT` estavam declarados desde a FASE 6 sem
+ninguém perguntar por eles. Agora a arma pergunta: velocidade de voo, duração da
+zona e do orbital, e quantos alvos um disparo atende.
+
+## O que `tests/test_phase7.gd` cobre
+
+Estrutura: cada arma aponta o script de família certo, existem quatro famílias
+distintas, e toda hitbox de cena traz o dano-marcador 1.0 — se sair 1 de dano em
+jogo, alguém esqueceu de chamar `set_damage()`.
+
+A zona é a única com `hit_interval` maior que zero; golpe e projétil batem uma
+vez por alvo. No projétil isso é o que faz a perfuração contar direito — sem
+isso o mesmo inimigo gastaria todas as perfurações sozinho.
+
+Isolado: o projétil anda 30 px em 0,3 s a 100 px/s e some ao esgotar o voo; o
+orbital nasce sobre quem acompanha, espalha três orbes no raio certo, vai junto
+quando o druida anda, gira, e some na duração.
+
+Em partida: o corvo cria projétil, ele se desloca, e a cena esvazia sozinha.
+
+## Verificação de que a FASE 7 não passa vazia
+
+Oito erros injetados, **os oito pegos de primeira**: projétil parado, projétil
+sem prazo de validade, zona que não some, zona com golpe único, corvo apontando
+para a cena do raio, orbital que não acompanha, orbes empilhados no centro e
+`set_damage()` alcançando só o primeiro orbe.
+
+Duas armadilhas velhas reapareceram durante o desenvolvimento, e valem registro
+porque foram erros **do teste**, não do código:
+
+1. **`_ready` não dispara** em nó acrescentado de dentro de
+   `SceneTree._initialize()` — quarta aparição. O `OrbitEffect` posicionava os
+   orbes no `_ready`, e o teste via os três empilhados na origem. Virou
+   inicialização preguiçosa, como no `HealthComponent`, na `PickupArea` e no
+   `Hud`;
+2. **medir no mesmo quadro em que se anota** não mede nada. A primeira versão
+   anotava a posição do projétil e comparava na linha seguinte: a distância era
+   zero por construção, e o teste não tinha como falhar nem como passar por
+   mérito. Passou a comparar seis quadros depois.
+
+# Catálogo de upgrades (FASE 6)
+
+| O quê | Caminho |
+|---|---|
+| Opção | `res://scripts/upgrades/upgrade_data.gd` |
+| Catálogo | `res://scripts/systems/upgrade_pool.gd`, nó `UpgradePool` em `game.tscn` |
+| Conteúdo | `res://resources/upgrades/*.tres` |
+| Tela | `res://scripts/ui/level_up_menu.gd` |
+
+## Quem decide o quê
+
+```text
+LevelComponent.leveled_up
+        |
+   LevelUpMenu pede a lista       ->  UpgradePool.sortear()
+        |                                    |
+   desenha os botões              aplicáveis, sem repetir na tela
+        |
+   devolve o id escolhido         ->  UpgradePool.apply()
+                                             |
+                              StatComponent  ou  WeaponManager
+```
+
+A tela não sabe o que é uma passiva. O catálogo não sabe desenhar. A separação
+existe porque os dois mudam por motivos diferentes: a regra do que é oferecível
+muda quando entra conteúdo, o desenho muda quando entra arte.
+
+## Uma passiva é um stat mais um número
+
+`UpgradeData` tem `stat`, `flat`, `mult` e `max_stacks`. Nada além disso — e é
+proposital: se alguma passiva precisar de campo próprio, virou caso especial, e
+era exatamente isso que o `StatComponent` existia para evitar.
+
+Armas convivem na mesma lista, com `kind = ARMA` e um `WeaponData` apontado.
+Escolher uma arma que já está equipada sobe o nível dela, porque
+`WeaponManager.add_weapon()` já fazia isso desde a FASE 4.
+
+## O que "opção impossível" quer dizer (§13)
+
+| Caso | Regra |
+|---|---|
+| passiva no teto | `stacks < max_stacks` |
+| arma equipada | `level < max_level` |
+| arma nova | há slot livre |
+
+E o sorteio tira sem reposição: a mesma opção não aparece duas vezes na mesma
+tela — isso gastaria uma das três escolhas sem dar alternativa.
+
+O sorteio é uniforme. Raridade e peso são conteúdo, não estrutura, e entram como
+campo do `UpgradeData` quando houver opções suficientes para isso importar.
+
+## Onde cada passiva bate
+
+| Passiva | Stat | Quem lê |
+|---|---|---|
+| Casca de Carvalho | `MAX_HEALTH` | `Player._aplicar_stats()` |
+| Passos do Cervo | `MOVE_SPEED` | `Player._aplicar_stats()` |
+| Essência Viva | `PICKUP_RADIUS` | `Player._aplicar_stats()` |
+| Semente Ancestral | `AREA` | `Weapon.area_efetiva()` |
+| Ciclo Lunar | `COOLDOWN` | `Weapon.cooldown_efetivo()` |
+| Coração Verde | `REGEN` | `HealthComponent._process()` |
+
+A arma lê **a cada disparo**, não guarda. É o que faz uma passiva escolhida no
+meio da partida valer no tiro seguinte, sem ninguém precisar avisar a arma de
+nada.
+
+Área vira **escala do nó do efeito**. A hitbox é filha dele, então cresce junto
+com o desenho e a cena do golpe não precisa saber que existe passiva. Escala
+uniforme e positiva de propósito: negativa inverteria a colisão, e a Godot
+reclama de forma com escala negativa.
+
+`REGEN` não está entre os nove stats da §14 — entrou porque o Coração Verde
+precisa dela. Foi acrescentada **no fim do enum**: os `.tres` guardam o stat
+como número, e inserir no meio remapearia silenciosamente as passivas já
+escritas.
+
+O tique de regeneração fica desligado enquanto `regeneration` for zero, o que
+importa porque todo inimigo tem um `HealthComponent` e nenhum regenera — sem
+isso seriam duzentos `_process` inúteis numa horda cheia. E cura em passos de
+**1 de vida**, guardando a sobra: curar 0,008 por quadro emitiria
+`health_changed` sessenta vezes por segundo para um ganho invisível.
+
+## Um teste da FASE 5 teve de mudar
+
+`tests/test_phase5.gd` afirmava que, **com todas as armas no teto**, a tela não
+abre. Isso era verdade quando armas eram a única opção que existia. Com passivas
+no catálogo deixou de ser, e o teste passou a falhar — corretamente.
+
+A regra sob teste continua a mesma, mas a condição virou a de verdade: esgotar o
+**catálogo inteiro**. É a fase seguinte corrigindo uma premissa da anterior, e o
+teste antigo cumpriu o papel dele ao acusar a mudança.
+
+# Stats (FASE 6, primeiro item)
+
+| O quê | Caminho |
+|---|---|
+| Componente | `res://scripts/components/stat_component.gd`, nó `Stats` no Player |
+| Quem aplica | `res://scripts/player/player.gd`, `_aplicar_stats()` |
+
+## A conta
+
+```text
+efetivo = (base + plano) * (1 + percentual)
+```
+
+O plano soma antes, o percentual multiplica depois. É a ordem que faz "+20 de
+vida" e "+10% de vida" se comportarem como o jogador espera com as duas
+equipadas. Percentuais **somam entre si**: +10% e +10% dão +20%, não +21% — é a
+regra do gênero e a única que o jogador consegue prever de cabeça olhando a tela
+de escolha.
+
+Um stat multiplicador — dano, cooldown, área — é só um stat cuja base é 1.0.
+Não precisou de tratamento próprio.
+
+## O componente não guarda as bases
+
+A velocidade base continua em `Player.move_speed`, a vida base em
+`HealthComponent.max_health`, o alcance no raio da forma da `PickupArea`. Cada
+um desses valores já estava documentado e ajustado onde vive; copiá-los para o
+`StatComponent` criaria duas fontes de verdade, e "qual das duas vale?" não tem
+resposta boa.
+
+Quem guarda base é o **Player**, e só as que ele precisa reescrever: aplicar um
+stat **escreve por cima** do valor do componente, então se
+`HealthComponent.max_health` virasse a base da conta seguinte, cada recálculo
+somaria em composto. Duas passivas de +50 dariam +150.
+
+## Piso no fator percentual
+
+`_FATOR_MINIMO := 0.05`. Sem ele, redução de cooldown somando -100% zeraria o
+intervalo entre ataques e a arma dispararia todo frame; -120% deixaria o
+cooldown negativo. O piso troca um bug de travar o jogo por um teto de poder.
+
+## Vida máxima ganha também cura
+
+Decisão de conteúdo, não de arquitetura, e mora no aplicador do Player: sem ela
+a passiva de vida só levantaria o teto e o jogador não sentiria nada no momento
+em que escolheu — o efeito apareceria minutos depois.
+
+## O que `tests/test_phase6.gd` cobre
+
+A conta isolada, sem cena: base pura, plano, ordem entre plano e percentual,
+percentuais somando entre si, bônus zerado não sendo bônus, um stat não sujando
+o outro, e o piso segurando uma redução de -300%.
+
+O sinal: `stat_changed` sai uma vez por mudança real, com o stat certo.
+
+No Player montado: sem passiva nada muda de valor; com passiva, velocidade, vida
+máxima e raio de coleta obedecem; ganhar vida máxima cura o mesmo tanto; e dois
+bônus de +50 dão base+100, não base+150.
+
+A velocidade é lida por `Player.get_move_speed()`, não recalculada dentro do
+teste — refazer a conta ali provaria só que o `StatComponent` sabe multiplicar,
+não que o Player chegou a perguntar.
+
+## Verificação de que a FASE 6 não passa vazia
+
+Seis erros injetados e revertidos, **todos pegos de primeira**: percentual
+multiplicando antes do plano somar, percentuais compondo em vez de somando,
+piso removido, base relida a cada recálculo, Player sem escutar `stat_changed`,
+e ganho de vida máxima sem curar.
+
 # HUD da partida (FASE 9, adiantado)
 
 | O quê | Caminho |
@@ -1156,6 +1547,25 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 43 | Quatro erros injetados no HUD | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
 | 44 | Render de verdade a 1280x720, vida em 62% e XP em 63% | as quatro peças na tela, moldura inteira e líquido no vão |
 | 45 | Suíte completa depois do HUD | sete suítes, exit 0 em todas |
+| 46 | `--headless --script res://tests/test_phase6.gd` | `FASE 6 (parcial) OK`, exit 0 |
+| 47 | Seis erros injetados no `StatComponent` e no aplicador do Player | os seis foram pegos de primeira |
+| 48 | Suíte completa depois do `StatComponent` | oito suítes, exit 0 em todas |
+| 49 | `--headless --script res://tests/test_phase6.gd` com catálogo | `FASE 6 (parcial) OK`, exit 0 |
+| 50 | Quatro erros injetados no catálogo | teto ignorado, arma sem slot, sorteio repetindo e passiva sem efeito; os quatro foram pegos |
+| 51 | Partida real, level up com render | tela pausou e ofereceu duas passivas e uma arma, com descrição |
+| 52 | Suíte completa depois do catálogo | oito suítes, exit 0 em todas |
+| 53 | Quatro erros injetados na arma e na regeneração | dois passaram na primeira tentativa; o teste foi reforçado e os quatro passaram a ser pegos |
+| 54 | Partida real com as seis passivas | tela ofereceu Essência Viva, Coração Verde e Passos do Cervo |
+| 55 | Suíte completa ao fim da FASE 6 | `FASE 0/1/2/3/4/5/6 OK` mais o HUD |
+| 56 | `--headless --script res://tests/test_phase7.gd` | `FASE 7 OK`, exit 0 |
+| 57 | Oito erros injetados nas famílias | os oito foram pegos de primeira |
+| 58 | Partida real com as quatro famílias, com render | raio, corvo, zona e vagalumes na tela juntos; cinco de sete inimigos mortos em 5 s |
+| 59 | Suíte completa ao fim da FASE 7 | nove suítes, exit 0 em todas |
+| 60 | `--headless --script res://tests/test_phase8.gd` | `FASE 8 OK`, exit 0 |
+| 61 | Cinco erros injetados nas waves | um passou por não ser bug; o teste passou a forçar a reentrada e os cinco passaram a ser pegos |
+| 62 | Partida saltada para 430 s, com render | wave 5 valendo, 9 imps, 10 cães, 9 brutos, 2 elites e 1 boss em cena |
+| 63 | Os cinco tipos lado a lado, com render | tamanhos e tintas distintos, do cão ao boss |
+| 64 | Suíte completa ao fim da FASE 8 | dez suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1397,6 +1807,34 @@ Em execução: dano e XP movem as barras na proporção certa, o rótulo de nív
 acompanha, e o relógio **congela** enquanto a tela de level up mantém o jogo
 pausado.
 
+## Verificação de que a FASE 6 não passa vazia
+
+Oito erros injetados ao todo, em duas rodadas.
+
+Na primeira, sobre o `StatComponent` e o catálogo, os seis foram pegos de
+primeira: percentual multiplicando antes do plano, percentuais compondo em vez
+de somando, piso removido, base relida a cada recálculo, Player sem escutar
+`stat_changed`, e ganho de vida máxima sem curar. Mais quatro no catálogo: teto
+de repetição ignorado, arma oferecida sem slot, sorteio repetindo na mesma tela
+e passiva sem efeito.
+
+Na segunda, sobre a arma e a regeneração, **dois dos quatro passaram**:
+
+1. **"a vida processa sempre" passava** porque o teste lia `is_processing()`
+   logo depois de `add_child()`, e `_ready` não dispara em nó acrescentado de
+   dentro de `SceneTree._initialize()` — a mesma armadilha do `Hud`, de novo.
+   O teste passou a atribuir `regeneration` explicitamente, e ganhou o caso
+   inverso: zerar desliga o processamento de volta;
+2. **"morto continua regenerando" passava** por um motivo diferente e mais
+   interessante: não era bug. Quem impede o morto de voltar é o `heal()`, e a
+   guarda no tique é só defensiva. O teste afirmava o que outra guarda já
+   garantia. Passou a testar o efeito — morto que recebe cura continua morto —,
+   que é o que o jogo precisa, e injetar a remoção da guarda no `heal()` agora
+   falha.
+
+A segunda vale como padrão: **um teste que não distingue duas implementações
+não está testando aquela linha.**
+
 ## Verificação de que o teste do HUD não passa vazio
 
 Quatro erros injetados e revertidos. **Dois passaram na primeira tentativa**, e
@@ -1432,6 +1870,13 @@ tropeçou.
 # Limitações e pendências
 
 - **Só existe um tipo de escolha no level up**: melhorar arma equipada. Passivas e armas novas são a FASE 6.
+- **A zona e o orbital são PLACEHOLDER desenhados em código** (DEC-013): círculo de esporos e três luzes com halo. Só o corvo tem arte de verdade.
+- **Nenhuma passiva aumenta a quantidade de orbes.** O orbital tem três, definidos na cena; `AMOUNT` hoje só decide quantos alvos um disparo atende.
+- **Os tipos de inimigo não têm arte própria.** Todos usam a sprite do diabrete, diferindo em escala e tinta. É PLACEHOLDER declarado, não pendência de código.
+- **O boss não tem comportamento próprio**: persegue igual aos outros, só com muito mais vida. Padrão de ataque de boss não está no roadmap do MVP.
+- **Nada acontece quando o boss morre.** `WaveManager.boss_spawned` é o gancho, e a condição de vitória é da FASE 9.
+- **Duas das onze opções ainda não têm ícone**: Anel de Esporos e Vagalumes Guardiões. A tela reserva a coluna e desenha só o texto (DEC-013).
+- **O sorteio é uniforme.** Não há raridade nem peso: toda opção aplicável tem a mesma chance.
 - **Com todas as armas no nível máximo, subir de nível não oferece nada** e a tela nem abre. É beco sem saída até haver passivas.
 - **O orbe de XP é PLACEHOLDER** desenhado em código, e não tem atração: coleta só por encostar, no raio de 48 px.
 - **Nenhuma arma é escolhida pelo jogador.** As duas vêm equipadas desde o começo, por `starting_weapons`. Escolher personagem e armas iniciais é FASE 13.
@@ -1459,39 +1904,29 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 6 — Sistema de upgrades.** Não iniciada.
+**FASE 9 — Loop completo.** Parcialmente feita: HP, XP, nível e cronômetro já
+estão na tela desde que o HUD foi adiantado. Falta o resto.
 
-Hoje a tela de level up monta as opções à mão e só sabe oferecer uma coisa:
-melhorar arma equipada. A fase troca isso por dados.
+Itens:
 
-O HUD já está no lugar, o que era o pré-requisito prático: cada passiva pode ser
-julgada olhando a tela, e não lendo número em log.
+1. **`GameManager` com os estados de partida** (`docs/03_SYSTEMS.md` §16). Hoje o estado da partida está espalhado: `_running` em `game.gd`, `enabled` no spawn, no wave e nas armas. Um lugar só;
+2. **pausa de verdade**, com tecla e botão. Existe pausa hoje, mas só a que a tela de level up provoca;
+3. **tela de game over**: tempo de partida, nível alcançado, reiniciar, voltar ao menu. Hoje há uma imagem e um botão;
+4. **vitória** ao derrubar o Guardião Profanado. O gancho é `WaveManager.boss_spawned` — falta escutar a morte dele;
+5. `tests/test_phase9.gd`; manter as dez suítes passando;
+6. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
 
-Itens, na ordem do `docs/ROADMAP.md`:
+## O que já está pronto para receber a fase
 
-1. `UpgradeData` em `Resource` — cada opção vira um `.tres`, como as armas (DEC-010);
-2. passivas da primeira lista do `docs/04_CONTENT_PLAN.md`: vida máxima, velocidade, regeneração, área, cooldown e alcance de coleta;
-3. `StatComponent` para as passivas terem onde somar (`docs/03_SYSTEMS.md` §14) — hoje os números vivem espalhados em `move_speed`, `max_health` e no raio da `PickupArea`;
-4. oferecer **arma nova** além de melhorar equipada, respeitando `max_slots`;
-5. validação das opções: nada impossível, nada repetido na mesma tela;
-6. criar `tests/test_phase6.gd`; manter as cinco suítes anteriores passando;
-7. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
+- **o HUD existe e é só apresentação**: recebe os componentes em `configure()` e não guarda regra. Um `GameManager` não muda nada nele;
+- **o tempo de partida já é estado da raiz**, contado em passo de física, e vai junto para o `GameManager` sem mudar o HUD;
+- **`WaveManager.boss_spawned` entrega o nó do boss**, e o `HealthComponent` dele já emite `died` — a vitória é uma conexão, não um sistema.
 
-O `LevelUpMenu` já tem a forma certa — fila de níveis, opções filtradas, uma
-escolha por vez. O que muda é de onde vem a lista: hoje sai de um laço sobre as
-armas equipadas, e passa a sair de um catálogo de `UpgradeData`.
+## Critério de aceite da FASE 9
 
-Dois ganchos já existem: `WeaponManager.has_upgradable_weapon()` e
-`PickupArea.set_radius()` — este último foi feito exatamente para a passiva de
-alcance de coleta.
-
-## Critério de aceite da FASE 6
-
-- upgrades são dados, não código;
-- passivas mudam o jogo de verdade, com efeito observável;
-- nenhuma opção impossível ou repetida é oferecida;
-- arma nova pode ser oferecida enquanto houver slot;
-- as cinco suítes anteriores continuam passando.
+- há um estado de partida único e legível, em vez de três `enabled` espalhados;
+- dá para pausar, perder e vencer, e cada um leva a uma tela;
+- as dez suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

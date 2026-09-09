@@ -175,6 +175,17 @@ func _build_running_scene() -> bool:
 	if armas != null:
 		armas.set_weapons_enabled(false)
 
+	# Desde a FASE 8 quem manda no ritmo é o `WaveManager`, e ele desliga a
+	# rampa própria do `SpawnManager`. Esta suíte mede **a rampa**, que continua
+	# existindo como modo sem waves — então a tabela sai de cena aqui.
+	# Desde a FASE 8 quem manda no ritmo é o `WaveManager`. Esta suíte mede **a
+	# rampa**, que continua existindo como modo sem waves — então a tabela sai
+	# de cena. Desligá-la devolve a rampa ao `SpawnManager`, inclusive quando o
+	# `configure()` da raiz da partida rodar depois deste ponto.
+	var waves := _game.get_node_or_null("WaveManager") as WaveManager
+	if waves != null:
+		waves.enabled = false
+
 	_spawner.enemy_spawned.connect(_on_enemy_spawned)
 	return true
 

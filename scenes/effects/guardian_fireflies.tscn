@@ -1,0 +1,49 @@
+[gd_scene load_steps=3 format=3 uid="uid://bfsvagalume0fs"]
+
+[ext_resource type="Script" path="res://scripts/effects/orbit_effect.gd" id="1_efeito"]
+[ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orbe"]
+radius = 18.0
+
+[node name="GuardianFireflies" type="Node2D"]
+editor_description = "Quarta familia: ataque que acompanha o druida. Tres orbes, definidos aqui e nao no WeaponData: quantidade de orbe e forma da cena, os numeros do golpe e que sao dado. Visual PLACEHOLDER desenhado em codigo (DEC-013)."
+z_index = 45
+script = ExtResource("1_efeito")
+duration = 4.0
+radius = 96.0
+angular_speed = 2.2
+
+[node name="Orbe0" type="Area2D" parent="."]
+editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox. hit_interval 0.6 - o orbe passa raspando muitas vezes no mesmo inimigo, e golpe unico faria cada orbe machucar cada alvo so uma vez na vida. O dano 1.0 e marcador; quem manda e o WeaponData."
+collision_layer = 16
+collision_mask = 8
+monitorable = false
+script = ExtResource("2_hitbox")
+damage = 1.0
+hit_interval = 0.6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Orbe0"]
+shape = SubResource("CircleShape2D_orbe")
+
+[node name="Orbe1" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 8
+monitorable = false
+script = ExtResource("2_hitbox")
+damage = 1.0
+hit_interval = 0.6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Orbe1"]
+shape = SubResource("CircleShape2D_orbe")
+
+[node name="Orbe2" type="Area2D" parent="."]
+collision_layer = 16
+collision_mask = 8
+monitorable = false
+script = ExtResource("2_hitbox")
+damage = 1.0
+hit_interval = 0.6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Orbe2"]
+shape = SubResource("CircleShape2D_orbe")

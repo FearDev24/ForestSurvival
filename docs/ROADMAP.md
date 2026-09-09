@@ -125,26 +125,76 @@ Observações:
 
 # FASE 6 — Sistema de upgrades
 
-- [ ] WeaponData
-- [ ] UpgradeData
-- [ ] levels
-- [ ] passivas
-- [ ] validação das opções
+- [x] WeaponData — feito na FASE 4
+- [x] UpgradeData
+- [x] levels — feito na FASE 4, com teto por arma
+- [x] passivas — as 6 da primeira lista
+- [x] validação das opções
+
+Critério:
+upgrades são dados, passivas mudam o jogo de verdade, nada impossível é
+oferecido. **Atingido.**
+
+Observações:
+- uma passiva é um stat mais um número: `stat`, `flat`, `mult` e `max_stacks`, e nada além disso. Campo próprio seria caso especial, que é o que o `StatComponent` existe para evitar;
+- armas convivem na mesma lista, com `kind = ARMA`. Escolher uma já equipada sobe o nível dela;
+- dano, cooldown e área são lidos **a cada disparo**, não guardados: passiva escolhida no meio da partida vale no tiro seguinte, sem avisar a arma;
+- `REGEN` não está na lista da §14 — entrou porque o Coração Verde precisa dela, e foi acrescentado no fim do enum porque os `.tres` guardam o stat como número;
+- validação automatizada: `tests/test_phase6.gd`.
+
+Fora da lista original, feito primeiro:
+
+- [x] `StatComponent` (`docs/03_SYSTEMS.md` §14), com velocidade, vida máxima e alcance de coleta migrados
+
+A ordem foi invertida de propósito. Sem um lugar onde os bônus se somem, toda
+passiva viraria um caso especial escrito à mão e o `UpgradeData` nasceria tendo
+que conhecer cada um deles. Com o `StatComponent` no lugar, uma passiva é um
+bônus somado a um stat e mais nada.
 
 # FASE 7 — Três famílias de arma
 
-- [ ] Cajado — projétil
-- [ ] Espinhos — AoE
-- [ ] Corvo — orbital
+- [x] golpe — `AbilityEffect` (Cajado Tempestade, Vinha Espinhosa)
+- [x] projétil — `ProjectileEffect` (Corvo Espiritual)
+- [x] zona — `ZoneEffect` (Anel de Esporos)
+- [x] orbital — `OrbitEffect` (Vagalumes Guardiões)
+
+Critério:
+famílias sensivelmente diferentes, e arma nova continua sendo `.tres`.
+**Atingido** — com quatro famílias, não três.
+
+A lista original pareava arma e família assim: *Cajado — projétil, Espinhos —
+AoE, Corvo — orbital*. Foi escrita antes da FASE 4, e a FASE 4 decidiu outra
+coisa: o cajado virou raio que cai **sobre** o alvo e a vinha virou golpe que
+brota do chão (DEC-021, DEC-022). Os dois acabaram na mesma família. Manter o
+pareamento antigo significaria refazer duas armas já aprovadas em jogo; em vez
+disso entraram duas armas novas, e a orbital — que era a única família da lista
+sem representante — foi construída.
+
+Observações:
+- o que separa as famílias é **como o ataque termina**: animação, alvos atravessados, duração no chão, duração acompanhando. É por isso que são scripts diferentes e não campos do mesmo;
+- `WeaponData` ganhou `projectile_speed`, `projectile_pierce` e `effect_duration`, todos com **zero = usa o valor da cena** — assim uma família nova não obriga arma antiga a preencher número alheio;
+- `DURATION`, `PROJECTILE_SPEED` e `AMOUNT` deixaram de ser stats sem leitor;
+- validação automatizada: `tests/test_phase7.gd`.
 
 # FASE 8 — Waves
 
-- [ ] WaveData
-- [ ] cronômetro
-- [ ] 3 tipos de inimigo
-- [ ] progressão
-- [ ] elite
-- [ ] boss
+- [x] WaveData
+- [x] cronômetro
+- [x] 3 tipos de inimigo
+- [x] progressão
+- [x] elite
+- [x] boss
+
+Critério:
+quem nasce e quando é dado, não fórmula; elite e boss existem e são
+sensivelmente diferentes; a partida tem um arco legível. **Atingido.**
+
+Observações:
+- a divisão é a que a §6 e a §7 já pediam — o `WaveManager` decide **quem e quando**, o `SpawnManager` decide **onde e se cabe**;
+- a rampa linear do `SpawnManager` continua existindo como modo sem waves, e se cala enquanto a tabela manda. Desligar o `WaveManager` devolve a rampa, em vez de calar os dois;
+- os tipos se distinguem por número, tamanho e cor enquanto só há a arte do diabrete. É PLACEHOLDER declarado (DEC-013): quando cada arte chegar, `scene` deixa de ser nula e `tint` volta a branco, sem tocar em código;
+- nenhuma wave passa de 200 inimigos, que é o teto medido: 250 já custam 14,03 ms de física contra 16,6 de orçamento por quadro;
+- validação automatizada: `tests/test_phase8.gd`.
 
 # FASE 9 — Loop completo
 

@@ -35,6 +35,65 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scripts/systems/game.gd` — composição da partida: liga os limites do mundo à câmera do Player;
   - `tests/test_phase1.gd` — validação headless de estrutura, diagonal, independência de FPS, limites de câmera e paredes;
   - `DEC-016 — Layer 8: WorldStatic`.
+- **Barra de XP refeita:**
+  - a arte antiga era um quadro vazado — dois trilhos finos com um buraco no meio —, e escurecer o buraco no processamento não criava corpo. A nova é uma placa maciça com sulco, como a de vida sempre foi;
+  - a barra passa a vir em **uma peça só**: o líquido é pintado dentro da fenda, porque o verde não se distingue do musgo por cor (DEC-023);
+  - `tools/preparar_barras_hud.py` reescrito com os dois caminhos — par de peças para a vida, peça única com líquido pintado para o XP;
+  - corte de fundo agora por cor **e** conexão com a borda, para pegar o halo que desbota o magenta;
+  - `tests/test_hud.gd` passa a exigir que o retângulo do nó seja igual ao da textura, senão a moldura sai esticada.
+- **Tela de level up com arte:**
+  - a palavra `SUBIU DE NIVEL` vira imagem: `assets/ui/titulo_subiu_de_nivel.png`. O rótulo escrito continua na cena e assume sozinho se a textura sumir;
+  - a moldura do ícone sai de dentro do botão e passa a ficar ao lado dele;
+  - `tools/preparar_icones_ui.py` — compõe os nove ícones: assunto dentro da moldura comum, gema para arma e folha para passiva. As molduras chegaram com a janela interna no **mesmo lugar nas duas, ao pixel**, o que permitiu a mesma conta para os dois conjuntos;
+  - `tools/preparar_painel_ui.py` — painel e as duas placas de opção, com o miolo das placas escurecido poupando musgo e gemas: escurecê-los apagaria a diferença entre normal e destacado;
+  - `assets/ui/icones/` com nove ícones de 256x256, mais `painel_escolha.png`, `opcao_normal.png` e `opcao_destaque.png`;
+  - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
+  - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
+  - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Cão de Inferno, primeiro inimigo com arte própria:**
+  - `tools/preparar_inimigo.py` — monta o `SpriteFrames` a partir das quatro folhas e confere altura de corpo entre direções, pés na mesma linha e folha múltipla do quadro;
+  - `tools/extrair_inimigo_video.py` — as folhas passam a sair do **vídeo de movimentação**, não das folhas estáticas. Nele as quatro vistas são a mesma animação de ângulos diferentes, então já estão na mesma escala de mundo; nas folhas soltas o perfil vinha com um terço da altura da frente;
+  - o script acha o ciclo por autocorrelação de silhueta (24 quadros a 24 fps, um segundo exato), tira 12 espalhados por um ciclo inteiro, usa **uma escala só** para as quatro direções e alinha pela pata mais baixa;
+  - o vídeo rotula dois trechos como leste e oeste, mas os dois mostram o cão olhando para a esquerda — 3,8% de diferença como estão contra 20,5% espelhados. Um trecho serve de perfil e o outro lado sai espelhado (regra 9 do `ASSET_WORKFLOW`);
+  - `EnemyData` ganha `sprite_frames`; **nulo mantém as da cena**, que é o que permite um tipo existir antes de ter arte;
+  - a troca passa por `enemy_visual.set_frames()` — `enemy.gd` não sabe o que é um `SpriteFrames` (DEC-013);
+  - as folhas brutas vão para `assets/characters/inimigos/_raw/`, as normalizadas ficam ao lado do `.tres`;
+  - o `.tres` do diabrete passa a ser gerado pela mesma ferramenta.
+- **FASE 8 — Waves:**
+  - `scripts/enemies/enemy_data.gd` — tipo de inimigo em `Resource`: vida, dano, velocidade, XP, escala, raio de corpo e tinta;
+  - `scripts/systems/wave_data.gd` — uma fase da partida: quem nasce, a partir de quando, em que ritmo, com que teto, mais elite e boss;
+  - `scripts/systems/wave_manager.gd` — a tabela em funcionamento, com sinais `wave_started`, `elite_spawned` e `boss_spawned`;
+  - `Enemy.apply_data()` — aplica o tipo antes de o nó entrar na árvore, e **duplica a forma de colisão** antes de redimensionar: as `CircleShape2D` são sub-recurso compartilhado da cena, e engordar o boss engordaria todo diabrete em tela;
+  - `SpawnManager.spawn_data()` e `driven_by_waves` — a rampa linear vira modo sem waves e se cala enquanto a tabela manda;
+  - `PickupSpawner` lê o XP do próprio inimigo: é assim que o elite larga mais, sem que ele conheça tipo nenhum;
+  - `resources/enemies/` com imp, cão, bruto, elite e o boss Guardião Profanado; `resources/waves/` com as cinco waves da partida;
+  - nó `WaveManager` em `game.tscn`;
+  - `tests/test_phase8.gd`.
+- **FASE 7 — Famílias de arma:**
+  - `scripts/effects/projectile_effect.gd` — ataque que viaja; some ao atravessar N inimigos ou ao esgotar o voo;
+  - `scripts/effects/zone_effect.gd` — ataque que fica no chão e bate repetido enquanto dura;
+  - `scripts/effects/orbit_effect.gd` — ataque que gira em volta do druida e o acompanha;
+  - armas novas: Corvo Espiritual (projétil), Anel de Esporos (zona) e Vagalumes Guardiões (orbital), com as entradas de catálogo correspondentes;
+  - `assets/effects/corvo.png` mais `tools/preparar_corvo.py` — recorta o sheet gerado e recentraliza os seis quadros numa tela comum, senão o projétil pularia de posição a cada frame;
+  - `WeaponData` ganha `projectile_speed`, `projectile_pierce` e `effect_duration`, com **zero = usa o valor da cena**: acrescentar campo de família nova não obriga arma antiga a preencher número alheio;
+  - `Weapon` passa a ler `AMOUNT`, `PROJECTILE_SPEED` e `DURATION` — os três stats que estavam declarados sem leitor;
+  - `tests/test_phase7.gd`.
+- **FASE 6 — Sistema de upgrades:**
+  - `scripts/upgrades/upgrade_data.gd` — cada opção do level up vira um `.tres`. Uma passiva é um stat mais um número, e nada além disso;
+  - `scripts/systems/upgrade_pool.gd` — catálogo: decide o que pode ser oferecido e o que a escolha faz. Sorteia sem repetir na mesma tela e nunca oferece o inaplicável (§13);
+  - `resources/upgrades/` — três passivas (Casca de Carvalho, Passos do Cervo, Essência Viva) e as duas armas como opção;
+  - `scripts/ui/level_up_menu.gd` deixa de montar as opções à mão: recebe a lista do catálogo e devolve o id;
+  - nó `UpgradePool` em `game.tscn`;
+  - `tests/test_phase5.gd` passa a esgotar o **catálogo inteiro** para testar o caso "nada a oferecer" — encher só as armas deixou de ser beco sem saída;
+  - `Weapon` lê dano, cooldown e área do `StatComponent` **a cada disparo**, e a área vira escala do nó do efeito — a hitbox é filha, então cresce junto sem a cena saber que existe passiva;
+  - `HealthComponent` ganha `regeneration`, com o processamento desligado enquanto ela for zero, e cura em passos de 1 de vida para não emitir sessenta sinais por segundo;
+  - `StatComponent.Stat.REGEN`, acrescentado no **fim** do enum: os `.tres` guardam o stat como número, e inserir no meio remapearia as passivas existentes;
+  - as três passivas restantes: Semente Ancestral (área), Ciclo Lunar (cooldown) e Coração Verde (regeneração).
+  - `scripts/components/stat_component.gd` — onde os bônus se somam (`03_SYSTEMS.md` §14). Guarda bônus, não bases: `efetivo = (base + plano) * (1 + percentual)`, com piso no fator para redução exagerada não zerar nem inverter um valor;
+  - nó `Stats` no Player; `Player` recalcula velocidade, vida máxima e alcance de coleta quando o componente avisa;
+  - `Player.get_move_speed()` — a velocidade depois das passivas, que é a que o movimento usa;
+  - ganhar vida máxima também cura o mesmo tanto, para a passiva ter efeito na hora da escolha;
+  - `tests/test_phase6.gd`.
 - **HUD da partida (FASE 9, adiantado):**
   - `scripts/ui/hud.gd` + `scenes/ui/hud.tscn` — barras de vida e de XP, nível e cronômetro; só apresentação, ligado por `configure()` aos componentes que já existiam;
   - `tools/preparar_barras_hud.py` — prepara a arte bruta das barras: encaixa o par, escurece o vão, separa o líquido da moldura e limpa restos de chroma;

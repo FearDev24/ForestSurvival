@@ -15,6 +15,7 @@ extends Node2D
 @onready var _enemy_container: Node2D = $EnemyContainer
 @onready var _effect_container: Node2D = $EffectContainer
 @onready var _spawn_manager: SpawnManager = $SpawnManager
+@onready var _wave_manager: WaveManager = $WaveManager
 ## As armas moram dentro do Player (`docs/02_ARCHITECTURE.md`), mas quem as liga
 ## ao mundo é esta cena: o Player não conhece o container de inimigos nem o de
 ## efeitos, e não deve conhecer.
@@ -23,6 +24,8 @@ extends Node2D
 @onready var _pickup_spawner: PickupSpawner = $PickupSpawner
 @onready var _level: LevelComponent = $Player/Level
 @onready var _player_health: HealthComponent = $Player/Health
+@onready var _stats: StatComponent = $Player/Stats
+@onready var _upgrade_pool: UpgradePool = $UpgradePool
 @onready var _pickup_area: PickupArea = $Player/PickupArea
 @onready var _hud: Hud = $Hud
 @onready var _level_up_menu: CanvasLayer = $LevelUpMenu
@@ -51,10 +54,12 @@ func _ready() -> void:
 	# mapa; o spawn fica restrito ao jogável, para não nascer inimigo na parede.
 	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
-	_weapons.configure(_player, _enemy_container, _effect_container)
+	_wave_manager.configure(_spawn_manager)
+	_weapons.configure(_player, _enemy_container, _effect_container, _stats)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
-	_level_up_menu.configure(_weapons, _level)
+	_upgrade_pool.configure(_stats, _weapons)
+	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)
 	_player.death_finished.connect(_on_player_death_finished)
 	_restart_button.pressed.connect(_on_restart_pressed)
@@ -79,6 +84,7 @@ func _physics_process(delta: float) -> void:
 func _on_player_death_finished() -> void:
 	_running = false
 	_spawn_manager.enabled = false
+	_wave_manager.enabled = false
 	_weapons.set_weapons_enabled(false)
 
 	# O sprite do druida tem 96 px e a origem fica nos pés: subir meia altura

@@ -273,24 +273,27 @@ func _check_level_up() -> void:
 	if not paused:
 		_fail("A tela de level up não pausou o jogo")
 
-	var opcoes := _menu.get_node_or_null("Caixa/Opcoes")
-	if opcoes == null or opcoes.get_child_count() == 0:
+	# `botoes()` em vez de descer na árvore: desde que a moldura do ícone saiu
+	# de dentro do botão, a linha tem duas peças, e um teste que conhece a
+	# estrutura por dentro quebra a cada mexida no layout.
+	var lista_botoes: Array[Button] = _menu.botoes()
+	if lista_botoes.is_empty():
 		_fail("A tela abriu sem nenhuma opção")
 		paused = false
 		return
 
 	# Nenhuma opção pode ser impossível de aplicar (§13).
-	for filho in opcoes.get_children():
-		var botao := filho as Button
-		if botao == null or botao.pressed.get_connections().is_empty():
-			_fail("Opção sem ação ligada: '%s'" % (botao.text if botao else "?"))
+	for botao in lista_botoes:
+		if botao.pressed.get_connections().is_empty():
+			_fail("Opção sem ação ligada")
 
-	var primeira := opcoes.get_child(0) as Button
+	var primeira := lista_botoes[0]
 	var arma_antes := 0
 	var id_alvo := &""
+	var nome_primeira := _nome_da_opcao(primeira)
 	for filho in _weapons.get_children():
 		var arma := filho as Weapon
-		if arma != null and primeira.text.begins_with(arma.data.display_name):
+		if arma != null and nome_primeira.begins_with(arma.data.display_name):
 			id_alvo = arma.data.id
 			arma_antes = arma.level
 
@@ -309,10 +312,10 @@ func _check_level_up() -> void:
 	# Escolhe o resto da fila até esvaziar.
 	var guarda := 0
 	while _menu.visible and guarda < 20:
-		var lista := _menu.get_node_or_null("Caixa/Opcoes")
-		if lista == null or lista.get_child_count() == 0:
+		var restantes: Array[Button] = _menu.botoes()
+		if restantes.is_empty():
 			break
-		(lista.get_child(0) as Button).pressed.emit()
+		restantes[0].pressed.emit()
 		guarda += 1
 
 	if _menu.visible:
@@ -324,11 +327,14 @@ func _check_level_up() -> void:
 	print("  nível %d, %d escolhas atendidas" % [_level.level, guarda + 1])
 
 
-## Todas as armas no teto: subir de nível não tem o que oferecer.
+## Catálogo esgotado: subir de nível não tem o que oferecer.
 ##
-## A §13 pede "evitar opções impossíveis". Oferecer uma arma que já está no
-## nível máximo seria uma escolha que não faz nada — e pausar o jogo para isso é
-## pior ainda.
+## A §13 pede "evitar opções impossíveis" — e pausar o jogo para não oferecer
+## nada é pior ainda.
+##
+## Até a FASE 6, bastava encher as armas: elas eram a única opção que existia.
+## Com passivas no catálogo isso deixou de ser um beco sem saída, e o teste
+## passou a esgotar o **catálogo inteiro** — que é a condição de verdade.
 func _start_sem_opcao() -> void:
 	if _weapons == null:
 		_frames_left = 1
@@ -340,16 +346,44 @@ func _start_sem_opcao() -> void:
 		if arma != null:
 			arma.level = arma.data.max_level
 
+	# Fechar os slots também. Desde a FASE 7 o catálogo tem mais armas do que o
+	# druida começa carregando, e uma arma que ainda caberia é opção legítima —
+	# "nada a oferecer" exige que nem arma nova entre.
+	_weapons.max_slots = _weapons.get_weapon_count()
+
+	var pool := _game.get_node_or_null("UpgradePool") as UpgradePool
+	if pool == null:
+		_fail("game.tscn sem UpgradePool")
+	else:
+		for upgrade in pool.catalogo:
+			if upgrade != null and upgrade.kind == UpgradeData.Kind.PASSIVA:
+				for _i in range(upgrade.max_stacks):
+					pool.apply(upgrade.id)
+		if not pool.aplicaveis().is_empty():
+			_fail("O catálogo deveria estar esgotado, ainda sobram %d opções"
+				% pool.aplicaveis().size())
+
 	_level.add_xp(_level.xp_to_next() * 2.0)
 	_frames_left = 4
 	_stage = 4
 
 
+## O nome da opção mora num rótulo dentro da placa, não no `text` do botão —
+## que fica vazio, porque o texto e o efeito são dois rótulos com tamanhos
+## diferentes.
+func _nome_da_opcao(botao: Button) -> String:
+	for filho in botao.get_children():
+		for neto in filho.get_children():
+			var rotulo := neto as Label
+			if rotulo != null:
+				return rotulo.text
+	return botao.text
+
+
 func _check_sem_opcao() -> void:
 	if _menu.visible:
-		var lista := _menu.get_node_or_null("Caixa/Opcoes")
-		var quantas := lista.get_child_count() if lista != null else 0
-		_fail("A tela abriu com todas as armas no teto, oferecendo %d opção(ões)" % quantas)
+		_fail("A tela abriu com o catálogo esgotado, oferecendo %d opção(ões)"
+			% _menu.botoes().size())
 	if paused:
 		_fail("O jogo pausou para uma escolha que não existia")
 	paused = false

@@ -41,6 +41,9 @@ var enabled: bool = true:
 var _target: Node2D = null
 var _enemies: Node = null
 var _effects: Node = null
+## Passivas do jogador, repassadas a cada arma. O manager não lê stat nenhum:
+## quem pergunta é a arma, no instante do disparo.
+var _stats: StatComponent = null
 ## Arma por id. Também é a fonte da contagem de slots.
 var _weapons: Dictionary = {}
 
@@ -49,17 +52,19 @@ var _weapons: Dictionary = {}
 ##
 ## As armas só começam a atirar aqui: antes disso não existe alvo, nem lugar
 ## onde pôr os ataques.
-func configure(target: Node2D, enemy_container: Node, effect_container: Node) -> void:
+func configure(target: Node2D, enemy_container: Node, effect_container: Node,
+		stats: StatComponent = null) -> void:
 	_target = target
 	_enemies = enemy_container
 	_effects = effect_container
+	_stats = stats
 
 	for data in starting_weapons:
 		if data != null:
 			add_weapon(data)
 
 	for arma in _weapons.values():
-		(arma as Weapon).configure(_target, _enemies, _effects)
+		(arma as Weapon).configure(_target, _enemies, _effects, _stats)
 
 	_apply_enabled()
 
@@ -89,7 +94,7 @@ func add_weapon(data: WeaponData) -> bool:
 	add_child(arma)
 
 	if _target != null:
-		arma.configure(_target, _enemies, _effects)
+		arma.configure(_target, _enemies, _effects, _stats)
 	arma.set_physics_process(enabled and _target != null)
 
 	weapon_added.emit(data)

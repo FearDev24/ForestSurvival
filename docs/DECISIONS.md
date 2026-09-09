@@ -424,3 +424,18 @@ na descrição dos nós.
 **Consequência:** a arte bruta fica em `assets/_raw/`, fora do que a Godot
 importa, e é a única cópia com a resolução original. O que está em `assets/ui/` é
 derivado e pode ser regerado.
+
+**Emenda de 2026-09-06 — o líquido da barra de XP é pintado, não desenhado.**
+
+A barra de vida chega em duas peças, vazia e cheia, e o script extrai o líquido
+da cheia. Na de XP isso não funciona: o verde do líquido é indistinguível do
+musgo e do brilho da moldura, então a máscara por cor pega a barra inteira. O
+vermelho da vida não tem esse problema por ser a única cor quente da arte.
+
+Então a barra de XP passa a vir em **uma peça só**, e o script acha a fenda e
+pinta uma rampa verde dentro dela, na paleta de `docs/05_ART_DIRECTION.md`.
+
+Dois ganhos além de resolver a detecção:
+
+- **alinhamento garantido por construção.** Some o risco de as duas peças não serem a mesma barra — que foi exatamente o que aconteceu quando se tentou gerar o par: a fenda da vazia ficou em cima e o canal da cheia, centrado;
+- **o musgo continua na frente.** A máscara do líquido exige o pixel escuro, então a hera que cai dentro do sulco não é encoberta pela energia.

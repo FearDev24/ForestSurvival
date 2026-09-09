@@ -56,6 +56,23 @@ enum Spawn { NO_ALVO, NO_DRUIDA, EM_VOLTA }
 enum Aim { NENHUMA, PARA_O_ALVO, HORIZONTAL }
 @export var aim_mode: Aim = Aim.NENHUMA
 
+@export_group("Família")
+## Campos que só algumas famílias de ataque usam (`docs/ROADMAP.md`, FASE 7).
+##
+## **Zero significa "usa o que está na cena"**, e não "zero". É o que permite
+## acrescentar campos de uma família nova sem obrigar toda arma já escrita a
+## preencher número que não lhe diz respeito — o raio não tem velocidade de voo,
+## e continuar com o `.tres` de antes tem de funcionar.
+
+## Velocidade de voo, para ataque que viaja.
+@export var projectile_speed: float = 0.0
+
+## Quantos inimigos o ataque atravessa antes de sumir.
+@export var projectile_pierce: int = 0
+
+## Segundos que o ataque permanece, para ataque que fica no chão.
+@export var effect_duration: float = 0.0
+
 @export_group("Progressão")
 ## Teto de nível. A FASE 6 decide como os níveis são oferecidos; aqui só existe
 ## o limite.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bfsplayer0forest"]
+[gd_scene load_steps=14 format=3 uid="uid://bfsplayer0forest"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/player_visual.gd" id="2_visual"]
@@ -10,6 +10,7 @@
 [ext_resource type="Resource" uid="uid://bfsarmavinha" path="res://resources/weapons/vinha_espinhosa.tres" id="8_vinha"]
 [ext_resource type="Script" path="res://scripts/components/level_component.gd" id="9_level"]
 [ext_resource type="Script" path="res://scripts/player/pickup_area.gd" id="10_pickup"]
+[ext_resource type="Script" path="res://scripts/components/stat_component.gd" id="11_stats"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
 radius = 14.0
@@ -59,6 +60,10 @@ shape = SubResource("CircleShape2D_hurt")
 [node name="Level" type="Node" parent="."]
 editor_description = "Experiencia e nivel. Componente puro: nao conhece Player, HUD nem menu. XP excedente nunca se perde (docs/03_SYSTEMS.md secao 12)."
 script = ExtResource("9_level")
+
+[node name="Stats" type="Node" parent="."]
+editor_description = "Onde as passivas se somam (docs/03_SYSTEMS.md secao 14). Nao guarda as bases: velocidade base fica no Player, vida base no Health, alcance base no raio da PickupArea. Guarda so o que foi somado por cima, e o Player recalcula quando este componente avisa."
+script = ExtResource("11_stats")
 
 [node name="PickupArea" type="Area2D" parent="." groups=["pickup_area"]]
 editor_description = "Coleta o que esta no chao. Mask 7 Pickup, layer 0: quem procura e esta area, porque o Player e um so e os fragmentos sao muitos. O raio e o alcance de coleta que a FASE 6 vai aumentar por passiva."

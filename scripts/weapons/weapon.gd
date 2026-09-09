@@ -14,6 +14,10 @@ signal attacked(effect: Node2D, target: Node2D)
 var data: WeaponData = null
 var level: int = 1
 
+## Passivas do jogador. Pode faltar — uma arma num teste solto funciona sem
+## nenhuma, com os números crus do `WeaponData`.
+var stats: StatComponent = null
+
 var _target: Node2D = null
 var _enemies: Node = null
 var _effects: Node = null
@@ -25,10 +29,12 @@ func _ready() -> void:
 
 
 ## Ligada pelo `WeaponManager`, que por sua vez é ligado pela raiz da partida.
-func configure(target: Node2D, enemy_container: Node, effect_container: Node) -> void:
+func configure(target: Node2D, enemy_container: Node, effect_container: Node,
+		stat_component: StatComponent = null) -> void:
 	_target = target
 	_enemies = enemy_container
 	_effects = effect_container
+	stats = stat_component
 	set_physics_process(data != null and data.is_valid() and _enemies != null and _effects != null)
 
 
@@ -37,7 +43,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_time_since_attack += delta
-	if _time_since_attack < data.cooldown_at(level):
+	if _time_since_attack < cooldown_efetivo():
 		return
 
 	var alvos := _find_targets()
@@ -47,6 +53,36 @@ func _physics_process(delta: float) -> void:
 	_time_since_attack = 0.0
 	for alvo in alvos:
 		_attack(alvo)
+
+
+## Dano deste disparo, já com as passivas.
+##
+## Lido a cada tiro, não guardado: assim uma passiva escolhida no meio da
+## partida vale no disparo seguinte, sem ninguém precisar avisar a arma.
+func damage_efetivo() -> float:
+	var base := data.damage_at(level)
+	return stats.apply(StatComponent.Stat.DAMAGE, base) if stats != null else base
+
+
+## Intervalo entre disparos, já com as passivas.
+func cooldown_efetivo() -> float:
+	var base := data.cooldown_at(level)
+	return stats.apply(StatComponent.Stat.COOLDOWN, base) if stats != null else base
+
+
+## Fator de tamanho do golpe. 1.0 é o tamanho desenhado.
+func area_efetiva() -> float:
+	return stats.apply(StatComponent.Stat.AREA, 1.0) if stats != null else 1.0
+
+
+## Quantos alvos este disparo atende.
+##
+## Arredonda para baixo e nunca desce de 1: uma passiva de quantidade que
+## deixasse a arma sem alvo nenhum a desligaria em vez de enfraquecê-la.
+func amount_efetivo() -> int:
+	var base := float(maxi(1, data.amount))
+	var total := stats.apply(StatComponent.Stat.AMOUNT, base) if stats != null else base
+	return maxi(1, int(floorf(total)))
 
 
 ## Os `amount` inimigos mais próximos dentro do alcance.
@@ -73,7 +109,7 @@ func _find_targets() -> Array[Node2D]:
 	candidatos.sort_custom(func(a, b): return a[0] < b[0])
 
 	var escolhidos: Array[Node2D] = []
-	for i in mini(maxi(1, data.amount), candidatos.size()):
+	for i in mini(amount_efetivo(), candidatos.size()):
 		escolhidos.append(candidatos[i][1])
 	return escolhidos
 
@@ -86,12 +122,43 @@ func _attack(alvo: Node2D) -> void:
 
 	var origem := _spawn_position(alvo)
 	efeito.global_position = origem
+	# Área é escala do nó inteiro: a hitbox é filha do efeito, então cresce
+	# junto com o desenho sem que a cena precise saber que existe passiva.
+	# Escala uniforme e positiva de propósito — negativa inverteria a colisão e
+	# a Godot reclama de forma com escala negativa.
+	var area := area_efetiva()
+	if not is_equal_approx(area, 1.0):
+		efeito.scale = Vector2(area, area)
 	_effects.add_child(efeito)
 
 	# O dano vem do nível, não da cena: a mesma cena serve a arma nível 1 e
 	# nível 5.
 	if efeito.has_method("set_damage"):
-		efeito.call("set_damage", data.damage_at(level))
+		efeito.call("set_damage", damage_efetivo())
+
+	# Campos de família. Cada efeito atende só o que lhe diz respeito, e o
+	# `WeaponData` usa zero para dizer "fica com o valor da cena" — assim uma
+	# família nova não obriga as armas antigas a preencher nada.
+	if data.projectile_speed > 0.0 and efeito.has_method("set_speed"):
+		var velocidade := data.projectile_speed
+		if stats != null:
+			velocidade = stats.apply(StatComponent.Stat.PROJECTILE_SPEED, velocidade)
+		efeito.call("set_speed", velocidade)
+
+	if data.projectile_pierce > 0 and efeito.has_method("set_pierce"):
+		efeito.call("set_pierce", data.projectile_pierce)
+
+	if data.effect_duration > 0.0 and efeito.has_method("set_duration"):
+		var duracao := data.effect_duration
+		if stats != null:
+			duracao = stats.apply(StatComponent.Stat.DURATION, duracao)
+		efeito.call("set_duration", duracao)
+
+	# Ataque que acompanha precisa saber quem seguir. É o único que recebe uma
+	# referência de nó, e não um número — por isso vale a guarda: nenhuma outra
+	# família responde a este método.
+	if efeito.has_method("set_follow"):
+		efeito.call("set_follow", _target)
 
 	var direcao := _aim_direction(alvo, origem)
 	if direcao != Vector2.ZERO and efeito.has_method("aim"):

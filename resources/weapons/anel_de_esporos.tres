@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://bfsarmaesporo"]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://bfsesporo0forest" path="res://scenes/effects/spore_ring.tscn" id="2_efeito"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"anel_de_esporos"
+display_name = "Anel de Esporos"
+base_damage = 7.0
+cooldown = 2.6
+attack_range = 320.0
+amount = 1
+spawn_mode = 0
+spawn_radius = 0.0
+aim_mode = 0
+projectile_speed = 0.0
+projectile_pierce = 0
+effect_duration = 3.5
+max_level = 5
+damage_per_level = 2.0
+cooldown_multiplier_per_level = 0.94
+effect_scene = ExtResource("2_efeito")
