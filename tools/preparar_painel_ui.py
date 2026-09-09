@@ -23,12 +23,59 @@ FAIXA_CENTRAL = 0.86
 ESCURECER = 0.42
 
 
+## Um bolsao de fundo que nao encosta na borda so conta como fundo se for
+## magenta **quase puro**. E o que separa o miolo de um "A" -- rgb(249,2,247),
+## chapado -- das particulas de cinza que caem sob a palavra CAIU, que sao roxo
+## fosco e assimetrico, rgb(170,53,120). Um limiar de cor cego comeria as duas.
+VERDE_DE_FUNDO = 20
+MINIMO_DE_FUNDO = 150
+DESVIO_DE_FUNDO = 25
+
+
+def _tirar_respingo(a):
+    """Tira o rosa que sobra nas bordas do desenho.
+
+    O contorno foi antisserrilhado contra o magenta, entao a beirada de cada
+    letra guarda uma mistura rosada -- o mesmo efeito que virou contorno roxo
+    nos props de cenario (ver docs/ASSET_WORKFLOW.md). Sao poucos pixels, 0,1%
+    da tinta, mas rosa num quadro escuro salta.
+
+    A troca e por cinza de mesma luminancia, e nao por transparencia: parte
+    desses pixels sao as particulas de cinza que caem sob a palavra CAIU, que
+    devem continuar existindo -- so que cinzentas, como cinza de verdade.
+
+    E seguro varrer tudo porque a paleta do jogo nao tem rosa nem roxo: verde,
+    marrom, cinza e o laranja de brasa. Nada legitimo cai neste teste.
+    """
+    r, g, b, al = (a[:, :, i] for i in range(4))
+    alvo = (r > g + 20) & (b > g + 20) & (al > 16)
+    if not alvo.any():
+        return a, 0
+    luz = (0.299 * r + 0.587 * g + 0.114 * b).astype(int)
+    saida = a.copy()
+    for c in range(3):
+        saida[:, :, c][alvo] = luz[alvo]
+    return saida, int(alvo.sum())
+
+
+def _e_fundo_chapado(a, bolsao):
+    """Diz se um bolsao ilhado tem a cor chapada do fundo da geracao."""
+    r, g, b = (a[:, :, i][bolsao].mean() for i in range(3))
+    return (g < VERDE_DE_FUNDO and min(r, b) > MINIMO_DE_FUNDO
+            and abs(r - b) < DESVIO_DE_FUNDO)
+
+
 def recortar(caminho):
     """Tira o fundo da geracao e recorta no desenho.
 
     Corte por cor **e** conexao com a borda: as pecas brilham e desbotam o
     magenta em volta ate um rosa palido que escapa de qualquer limiar de cor
     que nao coma a arte junto (ver tools/preparar_barras_hud.py).
+
+    Conexao com a borda sozinha nao basta quando a peca e uma palavra: o miolo
+    de um A, de um O ou de um R e fundo cercado de tinta por todos os lados, e
+    sobrevivia como um triangulo magenta dentro da letra. Esses bolsoes ilhados
+    entram pelo teste de cor chapada acima.
     """
     a = np.array(Image.open(caminho).convert("RGBA")).astype(int)
     r, g, b, al = (a[:, :, i] for i in range(4))
@@ -38,8 +85,14 @@ def recortar(caminho):
     da_borda = set(np.unique(rot[0, :])) | set(np.unique(rot[-1, :])) \
              | set(np.unique(rot[:, 0])) | set(np.unique(rot[:, -1]))
     da_borda.discard(0)
-    fundo = np.isin(rot, list(da_borda)) if da_borda else np.zeros_like(familia)
+    fundo = np.zeros_like(familia)
+    for i in range(1, n + 1):
+        bolsao = rot == i
+        if i in da_borda or _e_fundo_chapado(a, bolsao):
+            fundo |= bolsao
     a[fundo | (al < 16)] = 0
+
+    a, _ = _tirar_respingo(a)
 
     ys, xs = np.where(a[:, :, 3] > 16)
     return a[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
@@ -77,6 +130,15 @@ def main():
     w, h = salvar(titulo, "assets/ui/titulo_subiu_de_nivel.png")
     print("titulo        %dx%d  proporcao %.2f:1" % (w, h, w / h))
 
+    # Os dois desfechos saem da mesma tela, e por isso vieram da mesma sessao
+    # de geracao: altura de letra igual nas duas, so a palavra de baixo muda.
+    for arquivo, destino, rotulo in [
+        ("floresta caiu.png", "assets/ui/titulo_floresta_caiu.png", "derrota"),
+        ("floresta resistiu.png", "assets/ui/titulo_floresta_resistiu.png", "vitoria"),
+    ]:
+        w, h = salvar(recortar(ORIGEM + arquivo), destino)
+        print("%-13s %dx%d  proporcao %.2f:1" % (rotulo, w, h, w / h))
+
     painel = recortar(ORIGEM + "Painel da tela de escolha — 720 × 520.png")
     w, h = salvar(painel, "assets/ui/painel_escolha.png")
     print("painel        %dx%d  proporcao %.2f:1" % (w, h, w / h))
@@ -92,4 +154,5 @@ def main():
               % (rotulo, w, h, w / h, escurecidos))
 
 
-main()
+if __name__ == "__main__":
+    main()

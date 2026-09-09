@@ -739,6 +739,24 @@ tela de resultado mostra tempo e nível, como a §16 pede, e serve também à
 vitória (§17) — o que muda entre os dois desfechos é o título e a cor. Duas
 cenas quase iguais divergiriam na primeira mexida.
 
+## A palavra de fim: duas peças, uma escala
+
+As duas frases — `titulo_floresta_caiu.png` e `titulo_floresta_resistiu.png` —
+vieram da mesma sessão de geração, com o mesmo canvas e o mesmo corpo de letra.
+Por isso os recortes saíram com a **mesma largura**, 1152 px, e alturas
+diferentes: 559 na derrota, 531 na vitória, porque as partículas de cinza
+esticam a peça de baixo.
+
+Daí a construção do `TituloArte`: um slot de 385x187 com aspecto preservado.
+Como as duas têm a mesma largura, as duas ficam limitadas pela largura e caem
+na mesma escala, 0,3342. Encaixar por **altura** — o reflexo — daria escalas
+diferentes e a letra mudaria de tamanho entre um desfecho e outro.
+
+A caixa da tela **não é centrada no painel**, porque o interior do painel não
+é: medido em `assets/ui/painel_escolha.png`, a borda de cima ocupa 0,227 da
+altura e a de baixo 0,119. Centrada, a palavra encavalava a pedra — foi o que
+a primeira captura mostrou.
+
 ## A vitória é uma conexão, não um sistema
 
 O `WaveManager` já entregava o nó do boss em `boss_spawned`, e o

@@ -8,14 +8,23 @@ extends CanvasLayer
 ## Substitui a imagem de game over solta no mundo, que marcava o ponto da morte
 ## mas não dizia nada sobre a partida.
 
-const TAMANHO_BOTAO := Vector2(400.0, 67.0)
+## Menor que o do menu de pausa: aqui a palavra de fim ocupa a parte de cima
+## do painel, e botao grande empurrava tudo para fora do interior dele.
+## A proporcao e a da placa desenhada, 5,97:1 -- esticar deformaria as pedras.
+const TAMANHO_BOTAO := Vector2(330.0, 55.0)
 
 @export var textura_placa: Texture2D
 @export var textura_placa_destaque: Texture2D
 
+## A palavra desenhada de cada desfecho. Podem ser nulas: aí o rótulo escrito
+## assume e a tela continua inteira (DEC-013).
+@export var titulo_derrota: Texture2D
+@export var titulo_vitoria: Texture2D
+
 var _manager: GameManager = null
 
 @onready var _titulo: Label = $Caixa/Titulo
+@onready var _titulo_arte: TextureRect = $Caixa/TituloArte
 @onready var _tempo: Label = $Caixa/Tempo
 @onready var _nivel: Label = $Caixa/Nivel
 @onready var _opcoes: VBoxContainer = $Caixa/Opcoes
@@ -56,9 +65,16 @@ func _relogio(segundos: float) -> String:
 
 
 func _on_ended(vitoria: bool, tempo: float, nivel: int) -> void:
+	# O rótulo é preenchido sempre, mesmo escondido: é ele que responde se a
+	# arte faltar, e um rótulo em branco por baixo seria uma falha silenciosa.
 	_titulo.text = "A FLORESTA RESISTIU" if vitoria else "A FLORESTA CAIU"
 	_titulo.add_theme_color_override("font_color",
 		Color(0.65, 1.0, 0.6) if vitoria else Color(1.0, 0.55, 0.5))
+
+	var arte: Texture2D = titulo_vitoria if vitoria else titulo_derrota
+	_titulo_arte.texture = arte
+	_titulo_arte.visible = arte != null
+	_titulo.visible = arte == null
 	_tempo.text = "Tempo   %s" % _relogio(tempo)
 	_nivel.text = "Nivel   %d" % nivel
 

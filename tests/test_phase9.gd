@@ -250,6 +250,8 @@ func _check_vitoria() -> void:
 		if not rotulo.contains(":"):
 			_fail("A tela de resultado não mostrou o tempo: '%s'" % rotulo)
 
+	_check_titulo(true)
+
 	# Um segundo boss morrendo não pode reabrir nem reanunciar nada.
 	var antes := _fins.size()
 	_manager._on_boss_morreu()
@@ -257,6 +259,47 @@ func _check_vitoria() -> void:
 		_fail("A vitória foi anunciada duas vezes")
 
 	paused = false
+
+
+## A palavra desenhada tem de ser a do desfecho.
+##
+## Trocar as duas texturas mostraria "A FLORESTA CAIU" na vitória, e nada mais
+## no jogo notaria: os botões, o tempo e o nível continuariam certos. Só quem
+## jogasse até o fim veria.
+##
+## O teste **não** exige que a arte exista — pela DEC-013 ela pode faltar e a
+## tela continua inteira pelo rótulo escrito. O que ele exige é coerência: com
+## arte, o rótulo se cala; sem arte, o rótulo fala.
+func _check_titulo(vitoria: bool) -> void:
+	var arte := _resultado.get_node_or_null("Caixa/TituloArte") as TextureRect
+	var rotulo := _resultado.get_node_or_null("Caixa/Titulo") as Label
+	if arte == null or rotulo == null:
+		_fail("A tela de resultado perdeu o título (TituloArte/Titulo)")
+		return
+
+	var esperada: Texture2D = _resultado.titulo_vitoria if vitoria else _resultado.titulo_derrota
+	if esperada == null:
+		if arte.visible:
+			_fail("Sem arte do título, a moldura dele não deveria aparecer")
+		if not rotulo.visible:
+			_fail("Sem arte do título, o rótulo escrito tinha de assumir (DEC-013)")
+		return
+
+	# A conferência é pelo **nome do arquivo**, e não pela propriedade exportada.
+	#
+	# Comparar `arte.texture` com `_resultado.titulo_vitoria` não testa nada: é
+	# a mesma propriedade que o script leu para decidir. Trocar as duas na cena
+	# deixa os dois lados errados de forma consistente, e o teste passa — foi o
+	# que aconteceu na primeira versão desta função.
+	var palavra := "resistiu" if vitoria else "caiu"
+	var caminho := "" if arte.texture == null else arte.texture.resource_path
+	if not caminho.to_lower().contains(palavra):
+		_fail("A tela de %s está mostrando '%s', que não é a palavra do desfecho"
+			% ["vitória" if vitoria else "derrota", caminho.get_file()])
+	if not arte.visible:
+		_fail("A arte do título existe e não apareceu")
+	if rotulo.visible:
+		_fail("O rótulo escrito ficou por baixo da arte, os dois visíveis")
 
 
 # ------------------------------------------------------------------ relato --

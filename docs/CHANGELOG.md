@@ -50,6 +50,15 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Palavra desenhada no fim da partida:**
+  - `assets/ui/titulo_floresta_caiu.png` e `titulo_floresta_resistiu.png` — as duas frases da tela de resultado, geradas na mesma sessão e por isso com a mesma altura de letra;
+  - `result_screen.tscn` ganha `TituloArte`, um slot de 385x187 com aspecto preservado. Como os dois recortes têm a **mesma largura** (1152), os dois ficam limitados pela largura e caem na mesma escala — a letra não muda de tamanho entre derrota e vitória;
+  - o painel da tela cresce para 1040x624 e a caixa **deixa de ser centrada**: o interior do painel não é (borda de cima 0,227 da altura contra 0,119 embaixo, medido na arte). Centrada, a palavra encavalava a pedra;
+  - o botão da tela de resultado encolhe para 330x55, na proporção da placa (5,97:1);
+  - `recortar()` passa a matar bolsões de fundo ilhados que tenham a cor chapada do magenta — o miolo de um A não encosta na borda e sobrevivia como triângulo rosa dentro da letra;
+  - o rosa que sobra da beirada antisserrilhada vira cinza de mesma luminância, e não buraco: parte desses pixels são as partículas de cinza da arte;
+  - `tools/preparar_painel_ui.py` ganha a guarda `__main__` que faltava — importar o módulo rodava o `main()`;
+  - `tests/test_phase9.gd` confere que a palavra mostrada é a do desfecho. A primeira versão comparava com a propriedade exportada, que é a mesma que o script lê: trocar as duas texturas na cena passava no teste. A conferência é pelo nome do arquivo.
 - **FASE 9 — Loop completo:**
   - `scripts/systems/game_manager.gd` — um estado só para a partida, com `JOGANDO`, `ESCOLHENDO`, `PAUSADO`, `DERROTA` e `VITORIA`. Ligar e desligar spawn, waves e armas virou consequência da transição;
   - `scripts/ui/pause_menu.gd` e `scripts/ui/result_screen.gd`, mais as cenas — as duas escutam o manager e se mostram; nenhuma decide nada;
