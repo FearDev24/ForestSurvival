@@ -18,3 +18,7 @@ Thumbs.db
 
 # Logs/local
 logs/
+
+# Subproduto de importar as ferramentas em tools/
+__pycache__/
+*.pyc
