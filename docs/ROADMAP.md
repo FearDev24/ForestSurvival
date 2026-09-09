@@ -202,19 +202,29 @@ Observações:
 - [x] XP HUD
 - [x] timer
 - [x] level
-- [ ] pause
-- [ ] game over
-- [ ] restart
-- [ ] victory
+- [x] pause
+- [x] game over
+- [x] restart
+- [x] victory
 
 Critério:
-vertical slice completo. **Parcial.**
+vertical slice completo. **Atingido.**
 
-O painel foi adiantado, fora da ordem do roadmap, porque a FASE 6 é toda sobre
+O HUD foi adiantado, fora da ordem do roadmap, porque a FASE 6 é toda sobre
 balanceamento: sem ver vida, XP e tempo na tela não há como julgar se uma
-passiva compensa. O resto da fase — pausa, tela de game over de verdade e
-condição de vitória — continua pendente e depende do `GameManager`
-(`docs/03_SYSTEMS.md` §16).
+passiva compensa.
+
+Observações:
+- o estado da partida virou **um só**, no `GameManager`. Antes morava em quatro lugares que precisavam concordar sozinhos: `_running` na raiz e um `enabled` no spawn, no wave e nas armas;
+- ligar e desligar sistema passou a ser **consequência da transição**, não responsabilidade de quem a provocou. Cada tela nova deixou de ter que lembrar dos quatro;
+- a tela de escolha não pausa mais sozinha: avisa que abriu e fechou, e quem pausa é o manager. Dois lugares mexendo em `get_tree().paused` foi o que esta fase veio desfazer;
+- a vitória é uma conexão, não um sistema: o wave entrega o nó do boss e o `HealthComponent` dele já emitia `died` desde a FASE 2;
+- a mesma tela serve à vitória e à derrota — o que muda é o título e a cor. Duas cenas quase iguais divergiriam na primeira mexida;
+- validação automatizada: `tests/test_phase9.gd`.
+
+Fica de fora: **menu principal**. A §16 pede "voltar ao menu" e não há menu para
+onde voltar; por ora o botão é SAIR. O menu não está na lista desta fase e pede
+tela e arte próprias.
 
 Observações:
 - as barras são `TextureProgressBar` com moldura e preenchimento separados: clipar a imagem cheia inteira cortaria a gema da ponta junto (DEC-023);

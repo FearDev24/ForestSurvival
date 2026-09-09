@@ -50,6 +50,14 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **FASE 9 — Loop completo:**
+  - `scripts/systems/game_manager.gd` — um estado só para a partida, com `JOGANDO`, `ESCOLHENDO`, `PAUSADO`, `DERROTA` e `VITORIA`. Ligar e desligar spawn, waves e armas virou consequência da transição;
+  - `scripts/ui/pause_menu.gd` e `scripts/ui/result_screen.gd`, mais as cenas — as duas escutam o manager e se mostram; nenhuma decide nada;
+  - `scripts/ui/placa_ui.gd` — o botão vestido com a placa, que as três telas que pausam compartilham. A terceira cópia do mesmo código seria a hora em que uma começaria a divergir;
+  - a tela de level up deixa de pausar sozinha: emite `opened` e `closed`, e o manager decide o que isso significa;
+  - a imagem de game over solta no mundo e o botão avulso saem; a tela de resultado mostra tempo e nível (§16) e serve também à vitória (§17);
+  - o relógio muda de dono: sai da raiz da partida e vai para o manager, que é quem sabe se a partida está correndo;
+  - `tests/test_phase9.gd`.
 - **Cão de Inferno, primeiro inimigo com arte própria:**
   - `tools/preparar_inimigo.py` — monta o `SpriteFrames` a partir das quatro folhas e confere altura de corpo entre direções, pés na mesma linha e folha múltipla do quadro;
   - `tools/extrair_inimigo_video.py` — as folhas passam a sair do **vídeo de movimentação**, não das folhas estáticas. Nele as quatro vistas são a mesma animação de ângulos diferentes, então já estão na mesma escala de mundo; nas folhas soltas o perfil vinha com um terço da altura da frente;

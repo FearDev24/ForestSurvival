@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-06
+Última atualização: 2026-09-08
 
 # Projeto
 
@@ -30,7 +30,7 @@ Nada da FASE 1 existia: sem `player.tscn`, sem `player.gd`, sem mundo de teste. 
 
 ## Fases concluídas
 
-**FASE 0 a FASE 8.** Fundação, movimento, primeiro inimigo, horda, primeira arma, XP, level up, sistema de upgrades, famílias de arma e waves.
+**FASE 0 a FASE 9.** O vertical slice fechou: dá para jogar, subir de nível, pausar, perder e vencer.
 
 Mais o **HUD da partida** — vida, XP, nível e cronômetro —, adiantado da FASE 9 por um motivo: a FASE 6 é toda sobre balanceamento, e sem ver esses quatro números na tela não há como julgar se uma passiva compensa.
 
@@ -701,6 +701,90 @@ Antes o `World` inteiro tinha `z_index = -1`, o que jogava tudo dele para baixo
 das entidades. A borda precisou de ordenação própria pelo mesmo motivo: sem ela,
 ordenaria pela posição do nó pai, em (0,0), e engoliria o Player perto da parede
 de cima.
+
+# Estado da partida (FASE 9)
+
+| O quê | Caminho |
+|---|---|
+| Estado | `res://scripts/systems/game_manager.gd`, nó `GameManager` |
+| Pausa | `res://scenes/ui/pause_menu.tscn` |
+| Resultado | `res://scenes/ui/result_screen.tscn` |
+| Botão compartilhado | `res://scripts/ui/placa_ui.gd` |
+
+## O problema que a fase resolveu
+
+O estado da partida morava em **quatro lugares que precisavam concordar
+sozinhos**: `_running` na raiz, e um `enabled` no `SpawnManager`, no
+`WaveManager` e no `WeaponManager`. Nada garantia que concordassem, e cada tela
+nova teria de lembrar de mexer nos quatro.
+
+Agora há um estado só. Ligar e desligar sistema virou **consequência da
+transição**, não responsabilidade de quem a provocou.
+
+```text
+JOGANDO ──┬─ opened ──→ ESCOLHENDO ── closed ──→ JOGANDO
+          ├─ pause  ──→ PAUSADO    ── pause  ──→ JOGANDO
+          ├─ morte  ──→ DERROTA
+          └─ boss   ──→ VITORIA
+```
+
+## Duas coisas deixaram de existir
+
+A tela de escolha **não pausa mais sozinha**: emite `opened` e `closed`, e o
+manager decide o que isso significa. Dois lugares mexendo em
+`get_tree().paused` foi o que esta fase veio desfazer.
+
+A imagem de game over solta no mundo e o botão avulso na `CanvasLayer` saíram. A
+tela de resultado mostra tempo e nível, como a §16 pede, e serve também à
+vitória (§17) — o que muda entre os dois desfechos é o título e a cor. Duas
+cenas quase iguais divergiriam na primeira mexida.
+
+## A vitória é uma conexão, não um sistema
+
+O `WaveManager` já entregava o nó do boss em `boss_spawned`, e o
+`HealthComponent` dele já emitia `died` desde a FASE 2. O manager só liga um no
+outro.
+
+## Por que `configure()` não liga nada
+
+Ele conecta os sinais e destrava a árvore, mas **não força os sistemas a
+ligados**. Quem já estava desligado de propósito — a suíte da FASE 3 mede a
+rampa do spawn com as waves fora — deve continuar desligado. A primeira versão
+forçava, e a FASE 3 quebrou na hora.
+
+## O que `tests/test_phase9.gd` cobre
+
+Estrutura: os três nós existem, as telas nascem escondidas, as quatro camadas
+não se atropelam, e tudo que age com a árvore parada tem `process_mode` ALWAYS
+— sem isso os botões não recebem clique e a partida trava de vez.
+
+Comportamento: pausar para **a árvore, o spawn, as waves e o relógio**; retomar
+religa os quatro; e o boss morrendo dá vitória, com o fim anunciado **uma única
+vez** e o tempo aparecendo na tela.
+
+O teste não checa "a tela apareceu". Checa que o estado manda nos sistemas —
+uma tela que aparecesse com o spawn ainda correndo passaria num teste de
+visibilidade e falha neste.
+
+## Verificação de que a FASE 9 não passa vazia
+
+Cinco erros injetados, os cinco pegos: pausa sem desligar o spawn, relógio
+andando na pausa, vitória anunciada duas vezes, tela de pausa sem
+`process_mode` ALWAYS, e o level up voltando a pausar por conta própria.
+
+## Três suítes antigas tiveram de mudar
+
+As três acusaram mudança real, não ruído:
+
+1. **FASE 0** cobrava um nó `CanvasLayer` em `game.tscn` — o que existia só para
+   segurar o botão de reiniciar. Passou a cobrar `PauseMenu` e `ResultScreen`;
+2. **FASE 2** cobrava o `Sprite2D` de game over e o botão avulso. Passou a
+   cobrar que a morte leve a **alguma** tela e que o estado vá para `DERROTA`.
+   E o último caso dela — o inimigo sem alvo — precisou despausar antes, porque
+   a derrota agora para a árvore inteira e o inimigo parado não decide nada;
+3. **FASE 5** conferia a despausa no mesmo quadro em que a tela fecha. O manager
+   mexe no estado da árvore **adiado**, pelo mesmo motivo do orbe de XP, então o
+   teste ganhou um estágio só para observar isso um quadro depois.
 
 # Tela de level up com arte
 
@@ -1566,6 +1650,10 @@ Godot usado na validação: **4.7.1 stable** (`4.7.1.stable.official.a13da4feb`)
 | 62 | Partida saltada para 430 s, com render | wave 5 valendo, 9 imps, 10 cães, 9 brutos, 2 elites e 1 boss em cena |
 | 63 | Os cinco tipos lado a lado, com render | tamanhos e tintas distintos, do cão ao boss |
 | 64 | Suíte completa ao fim da FASE 8 | dez suítes, exit 0 em todas |
+| 65 | `--headless --script res://tests/test_phase9.gd` | `FASE 9 OK`, exit 0 |
+| 66 | Cinco erros injetados no estado da partida | os cinco foram pegos |
+| 67 | Pausa e vitória com render | painel, título e botões nas duas; tempo e nível na de resultado |
+| 68 | Suíte completa ao fim da FASE 9 | onze suítes, exit 0 em todas |
 
 ## O que `tests/test_phase1.gd` cobre
 
@@ -1885,14 +1973,14 @@ tropeçou.
 - **Não há transição de terra para água** no tileset: cada folha cobre um par de terrenos. Pintar água encostando em terra não acha peça.
 - **O mapa procedural é placeholder**, não design: existe para o jogo não rodar sobre um retângulo liso. A primeira célula pintada à mão desliga ele.
 - **O inimigo não tem animação de morte**: some na hora. A do druida existe; a dele não.
-- **A imagem de game over não é tela de game over**: tem o botão de reiniciar, mas não tem tempo de partida, level alcançado nem voltar ao menu. É da FASE 9.
+- **Não há menu principal.** A §16 pede "voltar ao menu" e não existe menu para onde voltar: o botão é SAIR. O menu não está na lista da FASE 9 e pede tela e arte próprias.
 - **O raio é andaime.** Dispara sozinho, não tem nível, não tem upgrade e não passa por `WeaponManager`. Vira arma de verdade na FASE 4.
 - **Inimigo não tem nem terá `idle`** (DEC-019). Parado, congela no frame 0 da caminhada. É o alvo, não pendência.
 - **Sprites de mesma linha ainda se misturam.** O Y-sort resolve a profundidade, mas dois inimigos praticamente na mesma coordenada Y têm ordem indefinida entre si, e a sprite de 96 px de altura sobre uma pegada de 28 px faz a horda se sobrepor verticalmente de qualquer jeito. É característica de top-down com personagem alto, não defeito de ordenação.
 - **Não há feedback visual de dano**: nem no Player nem no inimigo. A `Hurtbox` já emite `hit`, que é o gancho para piscar ou mostrar número — falta a arte e é assunto da FASE 11.
 - **O HUD não tem ícones nem números.** Mostra vida, XP, nível e tempo; não mostra quantas armas há, nem o valor exato de vida. Suficiente para balancear a FASE 6.
 - **O tamanho do HUD está baked na textura** (DEC-023): mudá-lo é editar `LARGURA_EM_TELA` em `tools/preparar_barras_hud.py` e rodar de novo, não arrastar o nó no editor.
-- **Nada acontece quando o Player morre.** Ele para e sai do radar, e o jogo continua rodando. Game over, tela de resultado e restart são da FASE 9.
+- **A derrota e a vitória param a árvore inteira.** Os inimigos congelam atrás do painel. É a leitura literal de "interromper gameplay" da §16; se ficar estranho em jogo, é um `const` no `GameManager`.
 - **Os `.json` do diabrete têm `sheet` e `id` de frame inconsistentes** (dizem `idle`/`andar`, apontam para nomes inexistentes). Não afeta o jogo; vale corrigir na origem.
 - **O druida não tem `idle` em nenhuma direção**, e é o único personagem que deveria ter (DEC-019). Parado, congela no frame 0 da caminhada correspondente.
 - **Diagonal mostra a direção vertical.** Andando na diagonal, o empate de magnitude resolve para north/south. É a regra fixa do `facing`; se preferir horizontal na diagonal, é uma linha em `_update_facing`.
@@ -1904,29 +1992,28 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 9 — Loop completo.** Parcialmente feita: HP, XP, nível e cronômetro já
-estão na tela desde que o HUD foi adiantado. Falta o resto.
+**FASE 10 — Performance.** Não iniciada.
 
-Itens:
+A FASE 9 fechou o vertical slice: dá para jogar, subir de nível, pausar, perder
+e vencer.
 
-1. **`GameManager` com os estados de partida** (`docs/03_SYSTEMS.md` §16). Hoje o estado da partida está espalhado: `_running` em `game.gd`, `enabled` no spawn, no wave e nas armas. Um lugar só;
-2. **pausa de verdade**, com tecla e botão. Existe pausa hoje, mas só a que a tela de level up provoca;
-3. **tela de game over**: tempo de partida, nível alcançado, reiniciar, voltar ao menu. Hoje há uma imagem e um botão;
-4. **vitória** ao derrubar o Guardião Profanado. O gancho é `WaveManager.boss_spawned` — falta escutar a morte dele;
-5. `tests/test_phase9.gd`; manter as dez suítes passando;
-6. atualizar HANDOFF, CHANGELOG, TODO e ROADMAP.
+O que a FASE 10 pede está no `docs/ROADMAP.md`. Duas coisas já medidas valem de
+ponto de partida:
 
-## O que já está pronto para receber a fase
+- **o teto de 200 inimigos saiu de medição, não de palpite**: 200 custam 8,20 ms de física por quadro, 250 custam 14,03 e 300 custam 19,05, contra 16,6 ms de orçamento. A física é o gargalo, não o desenho;
+- **nada varre a árvore por frame**: a população é `get_child_count()`, a arma só procura alvo no instante do disparo, e a hitbox desliga o `_physics_process` quando não há ninguém encostado. O que sobra para otimizar é o custo por corpo, não o custo por busca.
 
-- **o HUD existe e é só apresentação**: recebe os componentes em `configure()` e não guarda regra. Um `GameManager` não muda nada nele;
-- **o tempo de partida já é estado da raiz**, contado em passo de física, e vai junto para o `GameManager` sem mudar o HUD;
-- **`WaveManager.boss_spawned` entrega o nó do boss**, e o `HealthComponent` dele já emite `died` — a vitória é uma conexão, não um sistema.
+## O que também está pendente, fora do roadmap
 
-## Critério de aceite da FASE 9
+- **menu principal** — a §16 pede "voltar ao menu" e não há menu. Tela e arte próprias;
+- **animação de morte de inimigo** — nem o diabrete nem o cão têm; somem no ar;
+- **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
+- **ícones do Anel de Esporos e dos Vagalumes** — a tela de escolha reserva a coluna e desenha só o texto;
+- **a pasta `hablidades forestsurvival/`** continua na raiz do projeto, fora do controle de versão. Pelo `ASSET_WORKFLOW` ela deveria estar em `assets/_raw/`.
 
-- há um estado de partida único e legível, em vez de três `enabled` espalhados;
-- dá para pausar, perder e vencer, e cada um leva a uma tela;
-- as dez suítes anteriores continuam passando.
+## Critério de aceite da FASE 10
+
+Ver `docs/ROADMAP.md`. As onze suítes anteriores continuam passando.
 
 # Não alterar sem registrar decisão
 

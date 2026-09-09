@@ -30,7 +30,8 @@ const EXPECTED_GAME_NODES := [
 	"ProjectileContainer",
 	"PickupContainer",
 	"EffectContainer",
-	"CanvasLayer",
+	"PauseMenu",
+	"ResultScreen",
 ]
 
 var _failures: Array[String] = []
