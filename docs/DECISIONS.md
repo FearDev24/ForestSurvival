@@ -439,3 +439,25 @@ Dois ganhos além de resolver a detecção:
 
 - **alinhamento garantido por construção.** Some o risco de as duas peças não serem a mesma barra — que foi exatamente o que aconteceu quando se tentou gerar o par: a fenda da vazia ficou em cima e o canal da cheia, centrado;
 - **o musgo continua na frente.** A máscara do líquido exige o pixel escuro, então a hera que cai dentro do sulco não é encoberta pela energia.
+
+
+## DEC-024 — Só o Guardião tem animação de morte
+
+**Decisão:** as criaturas comuns — diabrete, cão, bruto e elite — **somem** ao
+morrer, sem animação. O único inimigo com animação de morte é o Guardião
+Profanado, o boss.
+
+**Motivo:** decisão de design do responsável pelo projeto. Numa horda de até
+200 inimigos, uma animação por morte é ruído visual e custo de arte multiplicado
+por cada tipo, sem mudar o que o jogador precisa ler — o inimigo saiu, o orbe
+ficou. O Guardião é o contrário: é o clímax da partida, nasce uma vez e cai uma
+vez, e a queda dele é o que diz que a partida foi vencida.
+
+**Consequência:** a pendência "animação de morte de inimigo" deixa de existir.
+Sumir é o comportamento final das criaturas comuns, não um placeholder, e
+nenhum pacote de arte pede morte para elas.
+
+**Consequência:** a morte do Guardião precisa caber no fluxo de fim de partida
+da FASE 9, que hoje dispara a vitória no instante em que a vida dele zera. Quem
+integrar a animação decide se a tela de resultado espera ela terminar, como a
+derrota já espera `death_finished` do druida.

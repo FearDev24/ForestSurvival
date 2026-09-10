@@ -2108,7 +2108,8 @@ dura uma luta de minuto e meio.
 ## O que também está pendente, fora do roadmap
 
 - **menu principal** — a §16 pede "voltar ao menu" e não há menu. Tela e arte próprias;
-- **animação de morte de inimigo** — nem o diabrete nem o cão têm; somem no ar;
+- **animação de morte do Guardião** — o único inimigo que terá uma (DEC-024). As criaturas comuns somem ao morrer, e isso é o final, não falta;
+- **arte própria do bruto, da elite e do Guardião** — os três ainda são o diabrete recolorido e aumentado (1,45×, 1,7× e 2,8×);
 - **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
 - **ícones do Anel de Esporos e dos Vagalumes** — a tela de escolha reserva a coluna e desenha só o texto;
 
