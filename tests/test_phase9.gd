@@ -29,6 +29,12 @@ var _frames_left := 0
 var _estados: Array[int] = []
 var _fins: Array[Array] = []
 var _tempo_ao_pausar := 0.0
+var _boss: Node2D = null
+var _tempo_do_golpe := 0.0
+
+## Espera máxima pela vitória depois do golpe final. A queda provisória dura
+## ~2,2 s; 240 passos de física são 4 s, folga para a arte de verdade.
+const ESPERA_DA_QUEDA := 240
 
 
 func _initialize() -> void:
@@ -58,6 +64,17 @@ func _physics_process(_delta: float) -> bool:
 				_start_vitoria()
 		3:
 			_frames_left -= 1
+			if _frames_left <= 0:
+				_check_queda()
+				_frames_left = ESPERA_DA_QUEDA
+				_stage = 4
+		4:
+			# Espera a vitória **chegar**, com teto: um fluxo que nunca anuncia
+			# a vitória falha aqui em vez de travar o teste.
+			_frames_left -= 1
+			var chegou := _manager.estado == GameManager.Estado.VITORIA
+			if chegou and _frames_left > 2:
+				_frames_left = 2  # dois passos para a pausa adiada e a tela
 			if _frames_left <= 0:
 				_check_vitoria()
 				_finish()
@@ -209,6 +226,7 @@ func _start_vitoria() -> void:
 		return
 
 	var boss := _spawn.spawn_data(wave.boss)
+	_boss = boss
 	if boss == null:
 		_fail("O boss não nasceu")
 		_frames_left = 1
@@ -222,10 +240,37 @@ func _start_vitoria() -> void:
 	if vida == null:
 		_fail("O boss não tem HealthComponent")
 	else:
+		_tempo_do_golpe = _manager.get_elapsed()
 		vida.damage(vida.max_health + 1.0)
 
 	_frames_left = 6
 	_stage = 3
+
+
+## O intervalo entre o golpe final e a vitória (DEC-024).
+##
+## É o que a primeira versão da FASE 9 não tinha: o boss sumia num quadro e a
+## tela de resultado vinha por cima. Aqui ele tem de estar **caindo** — ainda
+## na árvore, com a horda parada e nada anunciado.
+func _check_queda() -> void:
+	if _manager.estado != GameManager.Estado.TRIUNFO:
+		_fail("Com o boss caindo, a partida deveria estar em TRIUNFO, está em %d" % _manager.estado)
+	if not _fins.is_empty():
+		_fail("A vitória foi anunciada antes de a queda terminar")
+	if _resultado.visible:
+		_fail("A tela de resultado apareceu por cima da queda")
+	if paused:
+		_fail("A árvore parou durante a queda: o boss não teria como cair")
+	if _spawn.enabled or _waves.enabled:
+		_fail("A horda continuou chegando durante a queda")
+	if not is_instance_valid(_boss) or not _boss.is_inside_tree():
+		_fail("O boss sumiu no golpe final, sem cair")
+	var inimigos := _game.get_node("EnemyContainer")
+	if inimigos.process_mode != Node.PROCESS_MODE_DISABLED:
+		_fail("Os inimigos continuaram andando durante a queda")
+	var orbes := _game.get_node("PickupContainer")
+	if orbes.process_mode != Node.PROCESS_MODE_DISABLED:
+		_fail("Os orbes continuaram coletáveis durante a queda")
 
 
 func _check_vitoria() -> void:
@@ -246,11 +291,18 @@ func _check_vitoria() -> void:
 			_fail("O fim veio marcado como derrota")
 		if float(fim[1]) <= 0.0:
 			_fail("O fim veio sem tempo de partida: %.2f" % float(fim[1]))
+		# O tempo da vitória é o do golpe final: a queda não conta.
+		if absf(float(fim[1]) - _tempo_do_golpe) > 0.1:
+			_fail("O relógio andou durante a queda: golpe aos %.2f s, vitória aos %.2f s"
+				% [_tempo_do_golpe, float(fim[1])])
 		var rotulo := (_resultado.get_node("Caixa/Tempo") as Label).text
 		if not rotulo.contains(":"):
 			_fail("A tela de resultado não mostrou o tempo: '%s'" % rotulo)
 
 	_check_titulo(true)
+
+	if is_instance_valid(_boss):
+		_fail("A queda terminou e o boss continua na árvore")
 
 	# Um segundo boss morrendo não pode reabrir nem reanunciar nada.
 	var antes := _fins.size()

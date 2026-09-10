@@ -2108,7 +2108,7 @@ dura uma luta de minuto e meio.
 ## O que também está pendente, fora do roadmap
 
 - **menu principal** — a §16 pede "voltar ao menu" e não há menu. Tela e arte próprias;
-- **animação de morte do Guardião** — o único inimigo que terá uma (DEC-024). As criaturas comuns somem ao morrer, e isso é o final, não falta;
+- **arte da morte do Guardião** — o fluxo já existe (DEC-024, emenda): o boss cai com uma queda provisória no `Visual` e a vitória espera ela terminar. Quando o vídeo chegar, a arte entra como animação `death` **sem loop** no `SpriteFrames` do Guardião e substitui a provisória sozinha. As criaturas comuns somem ao morrer, e isso é o final, não falta;
 - **arte própria do bruto, da elite e do Guardião** — os três ainda são o diabrete recolorido e aumentado (1,45×, 1,7× e 2,8×);
 - **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
 - **ícones do Anel de Esporos e dos Vagalumes** — a tela de escolha reserva a coluna e desenha só o texto;

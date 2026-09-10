@@ -461,3 +461,18 @@ nenhum pacote de arte pede morte para elas.
 da FASE 9, que hoje dispara a vitória no instante em que a vida dele zera. Quem
 integrar a animação decide se a tela de resultado espera ela terminar, como a
 derrota já espera `death_finished` do druida.
+
+**Emenda de 2026-09-10 — a vitória espera a queda.**
+
+A consequência deixada em aberto acima foi decidida: a tela de resultado
+**espera a queda terminar**, como a derrota já espera `death_finished` do
+druida. O golpe final leva a partida ao estado `TRIUNFO` — a árvore segue
+andando para a queda tocar, mas spawn, waves e armas desligam, inimigos e
+orbes congelam (o druida não apanha, e o fragmento do boss não abre a tela de
+level up por cima da vitória) e o relógio para. Só `death_finished` do boss
+anuncia a vitória, com o tempo do golpe final.
+
+Enquanto a arte não chega, a queda é provisória e mora no `Visual` do inimigo:
+três lampejos e o corpo afundando no chão, ~2,2 s. A arte entra como uma
+animação `death`, **sem loop**, no `SpriteFrames` do Guardião, e substitui a
+provisória sem tocar em código.

@@ -50,6 +50,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Queda do Guardião (DEC-024):**
+  - o golpe final não some mais com o boss num quadro: a partida entra em `TRIUNFO`, o boss cai, e só quando a queda termina vem a vitória — do mesmo jeito que a derrota espera a morte do druida;
+  - durante a queda a horda e os orbes congelam, spawn, waves e armas desligam e o relógio para; a vitória mostra o tempo do golpe final. O congelamento é adiado, porque o golpe chega de dentro da detecção de área;
+  - `EnemyData.staged_death`, ligado só no Guardião; `Enemy.death_finished`, emitido na hora pelos comuns e no fim da queda pelo boss;
+  - a queda é provisória e mora no `Visual`: três lampejos e o corpo afundando no chão. A arte entra como animação `death` sem loop no `SpriteFrames`; em loop, a queda termina pelo tempo de uma volta e avisa;
+  - `tests/test_phase9.gd` confere o intervalo: estado `TRIUNFO`, nada anunciado, tela escondida, árvore andando, boss ainda na árvore, inimigos e orbes congelados — e depois a vitória, uma vez, com o tempo do golpe. Provado com três erros injetados: vitória no golpe final, queda que nunca termina e horda sem congelar.
 - **Primeiro balanceamento medido:**
   - `xp_growth` de 1,35 para **1,20** (`scripts/components/level_component.gd`) — a progressão travava aos 2 minutos, justo quando os brutos entram. Sobrevivência média do bot de 204 para 256 s;
   - Guardião Profanado de 3000 para **2000** de vida — com 3000, um em cada quatro druidas que chegassem vivos não o derrubaria em quatro minutos; com 2000 cai em todas, mediana de 93 s;

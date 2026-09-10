@@ -31,6 +31,10 @@ enum Estado {
 	DERROTA,
 	## O Guardião Profanado caiu.
 	VITORIA,
+	## O Guardião foi derrubado e está desabando; a vitória ainda não foi
+	## anunciada. A árvore segue andando para a queda tocar, mas a horda, os
+	## orbes e as armas param, e o relógio já não conta (DEC-024).
+	TRIUNFO,
 }
 
 ## Estados em que a árvore fica parada.
@@ -47,6 +51,8 @@ var _spawn: SpawnManager = null
 var _waves: WaveManager = null
 var _weapons: WeaponManager = null
 var _level: LevelComponent = null
+var _inimigos: Node = null
+var _orbes: Node = null
 
 
 ## Ligado pela raiz da partida.
@@ -54,8 +60,16 @@ var _level: LevelComponent = null
 ## Recebe tudo que precisa ser desligado quando a partida acaba, mais o Player e
 ## o nível — que são o que a tela de resultado mostra. Nenhum deles é procurado
 ## por conta própria: quem conhece a composição é `game.gd`.
+##
+## Os dois contêineres são o que congela durante a queda do Guardião:
+## inimigos, para ninguém bater no druida enquanto o boss desaba, e orbes, para
+## o fragmento do próprio boss não abrir a tela de level up por cima da vitória.
+## Opcionais: sem eles a queda acontece do mesmo jeito, só sem congelar.
 func configure(player: Player, spawn: SpawnManager, waves: WaveManager,
-		weapons: WeaponManager, level: LevelComponent, level_up_menu: Node) -> void:
+		weapons: WeaponManager, level: LevelComponent, level_up_menu: Node,
+		enemy_container: Node = null, pickup_container: Node = null) -> void:
+	_inimigos = enemy_container
+	_orbes = pickup_container
 	_player = player
 	_spawn = spawn
 	_waves = waves
@@ -158,11 +172,30 @@ func _on_player_death_finished() -> void:
 		_ir_para(Estado.DERROTA)
 
 
-## O boss nasce; quando ele cair, a partida está ganha.
+## O boss nasce; quando a vida dele zera, ele começa a cair, e quando a queda
+## termina a partida está ganha.
+##
+## São dois sinais de propósito. `died` é o golpe final — a partir dali ninguém
+## mais luta. `death_finished` é o fim da queda, e só ele anuncia a vitória:
+## antes desta mudança o boss sumia num quadro e a tela vinha por cima dele.
+##
+## Um boss sem `death_finished` — de uma cena que não seja a de inimigo —
+## cai no comportamento antigo, vitória no golpe final.
 func _on_boss_spawned(boss: Node2D) -> void:
 	var vida := boss.get_node_or_null("Health") as HealthComponent
-	if vida != null and not vida.died.is_connected(_on_boss_morreu):
-		vida.died.connect(_on_boss_morreu)
+	if not boss.has_signal(&"death_finished"):
+		if vida != null and not vida.died.is_connected(_on_boss_morreu):
+			vida.died.connect(_on_boss_morreu)
+		return
+	if vida != null and not vida.died.is_connected(_on_boss_caindo):
+		vida.died.connect(_on_boss_caindo)
+	if not boss.death_finished.is_connected(_on_boss_morreu):
+		boss.death_finished.connect(_on_boss_morreu)
+
+
+func _on_boss_caindo() -> void:
+	if estado == Estado.JOGANDO:
+		_ir_para(Estado.TRIUNFO)
 
 
 func _on_boss_morreu() -> void:
@@ -207,7 +240,16 @@ func _aplicar(novo: Estado) -> void:
 	if _weapons != null:
 		# Nos estados de pausa a árvore para de qualquer jeito; desligar as
 		# armas só no fim evita que voltar da pausa deixe alguma sem religar.
-		_weapons.set_weapons_enabled(not acabou)
+		# Na queda a árvore anda, então elas desligam também.
+		_weapons.set_weapons_enabled(not acabou and novo != Estado.TRIUNFO)
+
+	# A queda congela a horda e os orbes. Adiado: o golpe final chega de dentro
+	# da detecção de área, e congelar tira os corpos da física no meio dela.
+	var congelar := novo == Estado.TRIUNFO
+	for conteiner in [_inimigos, _orbes]:
+		if conteiner != null:
+			conteiner.set_deferred(&"process_mode",
+				Node.PROCESS_MODE_DISABLED if congelar else Node.PROCESS_MODE_INHERIT)
 
 	var arvore := get_tree()
 	if arvore != null:

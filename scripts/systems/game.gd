@@ -52,7 +52,7 @@ func _ready() -> void:
 	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)
 	_game_manager.configure(_player, _spawn_manager, _wave_manager, _weapons,
-		_level, _level_up_menu)
+		_level, _level_up_menu, _enemy_container, _pickup_container)
 	_pause_menu.configure(_game_manager)
 	_result_screen.configure(_game_manager)
 

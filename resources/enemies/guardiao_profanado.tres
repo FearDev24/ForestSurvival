@@ -13,3 +13,4 @@ xp_value = 80.0
 visual_scale = 2.80
 body_radius = 44.0
 tint = Color(0.85, 0.3, 0.35, 1)
+staged_death = true

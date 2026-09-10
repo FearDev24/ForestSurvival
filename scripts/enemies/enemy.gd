@@ -27,6 +27,11 @@ signal movement_state_changed(is_moving: bool)
 ## script precise conhecer nenhum deles.
 signal died
 
+## Emitido quando o inimigo sai de vez da partida. Nos comuns, no mesmo quadro
+## de `died`; no Guardião, quando a queda termina (DEC-024). A vitória da
+## FASE 9 espera por este, e não por `died`.
+signal death_finished
+
 ## Velocidade em pixels por segundo. Mais lento que o Player (200 px/s), para
 ## que dê para fugir. Valor provisório: o sistema de Stats só entra na FASE 6.
 @export var move_speed: float = 110.0
@@ -129,9 +134,9 @@ func _physics_process(_delta: float) -> void:
 
 ## Reage à morte vinda do `HealthComponent`, ligado na própria cena.
 ##
-## Some da partida de uma vez: um cadáver que continua colidindo e perseguindo
-## seria pior que nenhum feedback. Efeito de morte e drop de XP entram nas
-## FASES 5 e 11, penduradas no sinal `died`.
+## Os comuns somem da partida de uma vez: um cadáver que continua colidindo e
+## perseguindo seria pior que nenhum feedback, e sumir é o final deles
+## (DEC-024). O Guardião para de lutar no mesmo quadro, mas fica para cair.
 func _on_health_died() -> void:
 	if _is_dying:
 		return
@@ -145,6 +150,34 @@ func _on_health_died() -> void:
 	_hitbox.set_deferred(&"monitoring", false)
 
 	died.emit()
+
+	if data != null and data.staged_death:
+		_encenar_queda()
+		return
+	_sair()
+
+
+## Morte encenada (DEC-024): o corpo fica na partida até a queda terminar.
+##
+## Ganha modo de processamento próprio porque, durante a queda, o
+## `GameManager` congela o contêiner dos inimigos — e o Guardião precisa
+## continuar caindo enquanto a horda para. PAUSABLE, e não ALWAYS: quando a
+## vitória pausa a árvore a queda já terminou, e nada deve andar por baixo da
+## tela de resultado. Adiado pelo mesmo motivo do `set_vulnerable` acima.
+##
+## Quem decide **como** cair é o `Visual`: este script não conhece animação.
+func _encenar_queda() -> void:
+	set_deferred(&"process_mode", Node.PROCESS_MODE_PAUSABLE)
+	var visual := get_node_or_null("Visual")
+	if visual == null or not visual.has_method("play_death"):
+		_sair()
+		return
+	visual.connect(&"death_animation_finished", _sair, CONNECT_ONE_SHOT)
+	visual.call(&"play_death")
+
+
+func _sair() -> void:
+	death_finished.emit()
 	queue_free()
 
 

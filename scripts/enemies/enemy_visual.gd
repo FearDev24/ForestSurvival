@@ -19,6 +19,10 @@ extends Node2D
 ## sprites em 32 x 48 e devolver a escala para 1. Está registrado em
 ## `docs/TODO.md`. A escala fica no nó visual, nunca em `enemy.gd`.
 
+## Emitido quando a apresentação da morte termina. Só é pedido para inimigos
+## de morte encenada (DEC-024); os comuns somem sem passar por aqui.
+signal death_animation_finished
+
 ## Sufixo de animação por direção.
 const _DIRECTION_SUFFIX := {
 	Enemy.Facing.SOUTH: "south",
@@ -31,8 +35,20 @@ const _DIRECTION_SUFFIX := {
 ## `ASSET_WORKFLOW`: falta de direção permite fallback temporário).
 const _FALLBACK_SUFFIX := "south"
 
+## Nome da animação de morte no `SpriteFrames`. Quando a arte da queda do
+## Guardião chegar, ela entra com este nome e substitui a queda provisória
+## sozinha, sem tocar em código.
+const _DEATH_ANIMATION := &"death"
+
+## Duração da queda provisória: três lampejos e o corpo afundando no chão.
+const _FLASH_IDA := 0.07
+const _FLASH_VOLTA := 0.13
+const _AFUNDAR := 1.3
+const _REPOUSO := 0.3
+
 var _facing: Enemy.Facing = Enemy.Facing.SOUTH
 var _moving := false
+var _morrendo := false
 
 ## Procurado na primeira vez que faz falta, não em `@onready`: `set_frames()` é
 ## chamado **antes** de o nó entrar na árvore, e `_ready` também não dispara em
@@ -82,7 +98,67 @@ func set_moving(moving: bool) -> void:
 	_apply()
 
 
+## Toca a morte encenada.
+##
+## Com arte — uma animação `death` no `SpriteFrames` —, toca ela uma vez. Sem
+## arte, a queda provisória abaixo, que é PLACEHOLDER declarado (DEC-013): o
+## fluxo de fim de partida já espera por ela, e trocar pela arte é só trocar o
+## `.tres`.
+func play_death() -> void:
+	if _morrendo:
+		return
+	_morrendo = true
+
+	var sprite := _resolver()
+	var frames := sprite.sprite_frames if sprite != null else null
+	if frames == null or not frames.has_animation(_DEATH_ANIMATION):
+		_queda_provisoria()
+		return
+
+	sprite.play(_DEATH_ANIMATION)
+	if frames.get_animation_loop(_DEATH_ANIMATION):
+		# Em loop, `animation_finished` nunca dispara e a vitória nunca viria.
+		# A queda termina pelo tempo de uma volta, e o aviso diz o que corrigir.
+		push_warning("A animação 'death' está em loop; desligue o loop no SpriteFrames.")
+		var fps := maxf(1.0, frames.get_animation_speed(_DEATH_ANIMATION))
+		var duracao := frames.get_frame_count(_DEATH_ANIMATION) / fps
+		get_tree().create_timer(duracao, false).timeout.connect(_terminar_morte)
+	else:
+		sprite.animation_finished.connect(_terminar_morte, CONNECT_ONE_SHOT)
+
+
+## Três lampejos, e o corpo afunda no chão e escurece.
+##
+## Afundar é encolher só na vertical: a origem do nó está nos pés, então o
+## corpo desce em direção ao chão em vez de encolher para o centro — lê como
+## desabar, não como sumir.
+func _queda_provisoria() -> void:
+	if _sprite != null:
+		_sprite.pause()
+
+	var escala := scale
+	var tween := create_tween()
+	for i in 3:
+		tween.tween_property(self, "modulate", Color(2.2, 2.2, 2.2), _FLASH_IDA)
+		tween.tween_property(self, "modulate", Color.WHITE, _FLASH_VOLTA)
+	tween.set_parallel(true)
+	var afundar := tween.tween_property(self, "scale", Vector2(escala.x * 1.25, escala.y * 0.12), _AFUNDAR)
+	afundar.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var apagar := tween.tween_property(self, "modulate", Color(0.25, 0.08, 0.05, 0.0), _AFUNDAR)
+	apagar.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.set_parallel(false)
+	tween.tween_interval(_REPOUSO)
+	tween.tween_callback(_terminar_morte)
+
+
+func _terminar_morte() -> void:
+	death_animation_finished.emit()
+
+
 func _apply() -> void:
+	# Morrendo, a animação é a da morte: virar ou parar não troca mais nada.
+	if _morrendo:
+		return
 	if _resolver() == null or _sprite.sprite_frames == null:
 		return
 

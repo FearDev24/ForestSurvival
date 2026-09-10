@@ -45,6 +45,11 @@ extends Resource
 ## Tinta aplicada ao inimigo inteiro. Branco não altera nada.
 @export var tint: Color = Color.WHITE
 
+## Morte encenada: o corpo fica na partida até a queda terminar, e só então
+## sai. **Só o Guardião** (DEC-024) — as criaturas comuns somem no quadro em
+## que morrem, e isso é o final delas, não falta de arte.
+@export var staged_death: bool = false
+
 
 ## Um tipo sem id ou sem vida não deveria existir; vale conferir na carga,
 ## porque `.tres` é editado à mão com frequência.
