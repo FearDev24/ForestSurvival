@@ -19,8 +19,14 @@ signal leveled_up(level: int)
 ## XP exigido para sair do nível 1.
 @export var base_xp: float = 5.0
 
-## Quanto o custo cresce a cada nível. 1.35 significa 35% a mais por nível.
-@export var xp_growth: float = 1.35
+## Quanto o custo cresce a cada nível. 1.20 significa 20% a mais por nível.
+##
+## Era 1.35, número de raciocínio. A sonda de balanceamento mostrou a
+## progressão travando justo quando a pressão sobe -- nível 8 aos 2 min e
+## depois um por minuto, com os brutos entrando aos 150 s. Com 1.20 o nível
+## aos 3 min sobe de 9 para 12, e a sobrevivência média de 204 para 283 s
+## (10 partidas cada, z = 2,6). Ver docs/HANDOFF.md, "Balanceamento medido".
+@export var xp_growth: float = 1.20
 
 ## Teto de segurança contra curva mal configurada: sem ele, `xp_growth` igual a
 ## zero faria o laço de subir de nível rodar para sempre no primeiro ganho.

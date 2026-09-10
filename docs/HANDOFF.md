@@ -2021,6 +2021,90 @@ ponto de partida:
 - **o teto de 200 inimigos saiu de medição, não de palpite**: 200 custam 8,20 ms de física por quadro, 250 custam 14,03 e 300 custam 19,05, contra 16,6 ms de orçamento. A física é o gargalo, não o desenho;
 - **nada varre a árvore por frame**: a população é `get_child_count()`, a arma só procura alvo no instante do disparo, e a hitbox desliga o `_physics_process` quando não há ninguém encostado. O que sobra para otimizar é o custo por corpo, não o custo por busca.
 
+## Balanceamento medido: o druida não chega ao Guardião
+
+Os números das FASES 6, 7 e 8 saíram de raciocínio, não de partida jogada.
+`tools/sonda_balanceamento.gd` passou a jogar a partida real sem janela — um
+bot que foge da horda circulando, busca orbes e escolhe upgrades pelo próprio
+menu — e `tools/resumir_sonda.py` resume os JSON. ~100 partidas, 2026-09-10.
+
+**A sonda vale como régua:** o druida parado morre aos 51–68 s; o bot, aos
+~200 s. A direção faz diferença real. O bot não diz se é divertido — e é um
+jogador mediano: um humano bom fica entre ele e o teto invulnerável.
+
+**Cada ajuste é conferido no jogo.** A primeira versão da sonda perdia os
+ajustes feitos em recurso: o recurso alterado ficava numa variável local, era
+liberado ao fim da função, saía do cache, e a partida recarregava o original do
+disco. A sonda imprimia `190.0 -> 150.0` e o cão corria a 190. Isso invalidou
+um teste do cão e uma varredura do boss, e uma conclusão errada chegou a ser
+escrita aqui. Agora a sonda segura a referência e grava em `vistos` o que cada
+tipo realmente teve ao nascer, lido do nó.
+
+### Sobrevivência (partidas mortais)
+
+| condição | n | sobrevive, média | IC95 | viram o boss |
+|---|---|---|---|---|
+| original (`xp_growth` 1,35, boss 3000) | 10 | 204 s | 153–255 | 0 |
+| `xp_growth` 1,20, boss 2000, cão 190 | 12 | 256 s | 233–280 | 0 |
+| + cão a 150 | 20 | 280 s | 253–307 | 0 |
+| **arquivos atuais** (+ bruto com dano 12 e velocidade 55) | 20 | **345 s** | 307–383 | 3 (2 vitórias) |
+
+- **A curva de XP travava a progressão** justo quando a pressão sobe: nível 8
+  aos 2 min e depois um por minuto, com os brutos entrando aos 150 s. Com 1,20:
+  nível 10 aos 2 min e 12 aos 3 (z = 2,6 contra a original);
+- **o cão a 150 ajuda, e está aplicado.** Juntando todas as partidas com a
+  curva 1,20 — 22 com o cão a 190, 30 com ele a 150 —, a diferença é de +64 s
+  (244 contra 308 s, z = 3,3). A primeira estimativa, +133 s, foi inflada por
+  duas partidas fora da curva (660 e 437 s) numa amostra de dez; sozinha, a
+  rodada com o valor já gravado deu +24 s (z = 1,3). O dano recebido passa a
+  vir principalmente dos brutos (48%, contra 33% do cão);
+- **o jogo passou a ser vencível.** Com o bruto ajustado, 3 de 20 partidas
+  chegam ao Guardião e 2 vencem (boss cai em 96 e 137 s). Somando o lote de
+  teste da combinação, 10 de 40 chegaram ao boss e 6 venceram. O dano recebido
+  fica dividido: cão 42%, bruto 34%, elite 18%.
+
+### O bruto (aplicado: dano 12, velocidade 55)
+
+Com o cão a 150, o bruto passou a causar ~55% do dano recebido. Cada
+hipótese contra uma base do mesmo lote, 20 partidas cada; em todas a sonda
+conferiu em `vistos` que o bruto nasceu com o valor testado.
+
+| hipótese | sobrevive | contra a base | viram o boss | vitórias |
+|---|---|---|---|---|
+| base (arquivos atuais) | 320 s | — | 1 | 0 |
+| dano 18 → 12 | 367 s | +47 s (z 1,7) | 3 | 1 |
+| velocidade 70 → 55 | 352 s | +32 s (z 1,4) | 3 | 3 |
+| vida 130 → 90 | 345 s | +25 s (z 1,0) | 3 | 2 |
+| **dano 12 + velocidade 55** (outro lote, base 292 s) | **375 s** | **+83 s (z 2,9)** | **7** | **4** |
+
+Sozinha, nenhuma das três passa do ruído; juntas elas dão +55 s (z = 3,4).
+A combinação é a primeira condição em que um terço dos druidas chega ao
+Guardião, e com o boss a 2000 quem chega costuma vencer (10 de 16 somando
+todos os grupos). O dano recebido fica dividido entre cão (36%) e bruto (35%).
+
+A mesma configuração base deu 280, 292 e 320 s em lotes diferentes: só vale
+comparar condições rodadas no mesmo lote.
+
+### O Guardião (druida invulnerável, curva 1,20)
+
+| vida | caiu dentro de 240 s | tempo até cair |
+|---|---|---|
+| 3000 | 15 de 20 | mediana ~105 s |
+| **2000** (aplicado) | 5 de 5 | mediana 93 s (48–221) |
+| 1500 | 5 de 5 | mediana 73 s, uma queda em 13 s |
+
+Com 3000, um em cada quatro druidas que chegassem vivos não derrubaria o boss
+em quatro minutos. Com 1500 ele vira saco de pancada. 2000 cai sempre e ainda
+dura uma luta de minuto e meio.
+
+### O que isso não mede
+
+- **a mesma semente não reproduz a partida** (160–207 s em quatro rodadas da
+  semente 1). Por isso cada condição tem 10 partidas e se compara média;
+- **o bot deixa muitos orbes no chão** (58–163 por partida). Um humano que
+  colete mais sobe de nível mais cedo;
+- **se é divertido.** Isso só jogando.
+
 ## O que também está pendente, fora do roadmap
 
 - **menu principal** — a §16 pede "voltar ao menu" e não há menu. Tela e arte próprias;

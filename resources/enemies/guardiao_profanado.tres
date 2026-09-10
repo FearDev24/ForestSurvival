@@ -6,7 +6,7 @@
 script = ExtResource("1_data")
 id = &"guardiao_profanado"
 display_name = "Guardião Profanado"
-max_health = 3000.0
+max_health = 2000.0
 contact_damage = 34.0
 move_speed = 85.0
 xp_value = 80.0

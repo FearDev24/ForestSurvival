@@ -50,6 +50,21 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Primeiro balanceamento medido:**
+  - `xp_growth` de 1,35 para **1,20** (`scripts/components/level_component.gd`) — a progressão travava aos 2 minutos, justo quando os brutos entram. Sobrevivência média do bot de 204 para 256 s;
+  - Guardião Profanado de 3000 para **2000** de vida — com 3000, um em cada quatro druidas que chegassem vivos não o derrubaria em quatro minutos; com 2000 cai em todas, mediana de 93 s;
+  - Cão Demoníaco de 190 para **150** de velocidade — a 190 ele corria a 95% do druida e causava 55–69% de todo o dano recebido. Juntando 52 partidas, +64 s de sobrevivência (z = 3,3); o dano principal passa para os brutos;
+  - Bruto Corrompido com dano de contato de 18 para **12** e velocidade de 70 para **55** — com o cão mais lento ele passou a causar ~55% do dano. Cada mudança sozinha ficou no ruído; as duas juntas deram +83 s (z = 2,9) contra uma base do mesmo lote;
+  - com as quatro mudanças, o bot sobrevive em média 345 s, contra 204 s no começo, e o jogo passa a ser vencível: 3 de 20 partidas chegam ao Guardião e 2 vencem;
+  - números e método em `docs/HANDOFF.md`, "Balanceamento medido".
+- **Sonda de balanceamento:**
+  - `tools/sonda_balanceamento.gd` — joga a partida real sem janela, com `--fixed-fps 60`: dirige o druida pelas mesmas ações de input do teclado (foge da horda circulando, volta das paredes, busca orbes quando o aperto deixa) e escolhe upgrades pelo próprio menu de level up, com a política `sensata` ou `aleatoria`. Grava amostras a cada 5 s, subidas de nível, escolhas, vida do boss e dano recebido por tipo de inimigo. Uma partida de 3 minutos custa ~4 s reais;
+  - modos de controle: `--parado` (prova que a direção do bot vale algo) e `--invulneravel` (teto da economia: o Guardião cai?);
+  - ajustes só em memória, sem tocar nos arquivos: `--ajuste=enemies/cao_demoniaco.move_speed=150` num recurso e `--no=Player/Level.xp_growth=1.2` num nó;
+  - a sonda **segura a referência** de cada recurso ajustado. Sem isso o recurso era liberado ao fim da função, saía do cache, e a partida recarregava o original do disco — o ajuste imprimia `190.0 -> 150.0` e o cão corria a 190. Isso invalidou uma rodada inteira;
+  - `vistos` no JSON grava o que cada tipo realmente teve ao nascer, lido do nó: é a prova de que um ajuste chegou ao jogo, e não só à cópia da sonda;
+  - `tools/resumir_sonda.py` — uma linha por partida, divisão do dano recebido por tipo e médias por grupo (subpasta);
+  - os resultados das 46 partidas estão em `docs/HANDOFF.md`, "Balanceamento medido".
 - **Palavra desenhada no fim da partida:**
   - `assets/ui/titulo_floresta_caiu.png` e `titulo_floresta_resistiu.png` — as duas frases da tela de resultado, geradas na mesma sessão e por isso com a mesma altura de letra;
   - `result_screen.tscn` ganha `TituloArte`, um slot de 385x187 com aspecto preservado. Como os dois recortes têm a **mesma largura** (1152), os dois ficam limitados pela largura e caem na mesma escala — a letra não muda de tamanho entre derrota e vitória;
