@@ -2,7 +2,7 @@ extends CanvasLayer
 ## Tela de fim de partida, de vitória e de derrota (`docs/03_SYSTEMS.md` §16, §17).
 ##
 ## É a mesma tela para os dois desfechos: o que muda é o título e a cor dele. A
-## §16 e a §17 pedem as mesmas informações — tempo, level, reiniciar, sair — e
+## §16 e a §17 pedem as mesmas informações — tempo, level, reiniciar, menu — e
 ## duas cenas quase iguais divergiriam na primeira mexida.
 ##
 ## Substitui a imagem de game over solta no mundo, que marcava o ponto da morte
@@ -41,7 +41,7 @@ func configure(manager: GameManager) -> void:
 func _montar() -> void:
 	for antigo in _opcoes.get_children():
 		antigo.queue_free()
-	for texto in ["REINICIAR", "SAIR"]:
+	for texto in ["REINICIAR", "MENU"]:
 		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
@@ -97,4 +97,4 @@ func _on_escolha(texto: String) -> void:
 	if texto == "REINICIAR":
 		_manager.reiniciar()
 	else:
-		_manager.sair()
+		_manager.voltar_ao_menu()

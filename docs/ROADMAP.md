@@ -222,9 +222,10 @@ Observações:
 - a mesma tela serve à vitória e à derrota — o que muda é o título e a cor. Duas cenas quase iguais divergiriam na primeira mexida;
 - validação automatizada: `tests/test_phase9.gd`.
 
-Fica de fora: **menu principal**. A §16 pede "voltar ao menu" e não há menu para
-onde voltar; por ora o botão é SAIR. O menu não está na lista desta fase e pede
-tela e arte próprias.
+O **menu principal** ficou de fora desta fase e entrou depois: a §16 pede "voltar
+ao menu", e desde então o jogo abre em `scenes/ui/main_menu.tscn` e o botão MENU da
+pausa e do resultado volta para ele (validação em `tests/test_menu.gd`). Faltam só
+o nome do jogo desenhado e a ilustração de fundo, que funcionam como vagas vazias.
 
 Observações:
 - as barras são `TextureProgressBar` com moldura e preenchimento separados: clipar a imagem cheia inteira cortaria a gema da ponta junto (DEC-023);

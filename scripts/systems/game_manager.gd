@@ -43,6 +43,10 @@ const _PARA_A_ARVORE := [Estado.ESCOLHENDO, Estado.PAUSADO, Estado.DERROTA, Esta
 ## Estados em que a partida já acabou e não há volta.
 const _FIM := [Estado.DERROTA, Estado.VITORIA]
 
+## Para onde o botão MENU da pausa e do resultado leva. É a cena principal do
+## projeto.
+const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
+
 var estado: Estado = Estado.JOGANDO
 
 var _elapsed := 0.0
@@ -160,8 +164,14 @@ func reiniciar() -> void:
 	get_tree().reload_current_scene()
 
 
-func sair() -> void:
-	get_tree().quit()
+## Volta ao menu principal (§16).
+##
+## Despausa antes pelo mesmo motivo do `reiniciar()`: a cena nova nasceria com
+## a árvore parada, e o menu apareceria sem responder a clique. Este nó é o
+## único que mexe em `paused`, e o menu confia nisso.
+func voltar_ao_menu() -> void:
+	get_tree().paused = false
+	get_tree().change_scene_to_file(MENU_SCENE)
 
 
 # ------------------------------------------------------------------ estados --

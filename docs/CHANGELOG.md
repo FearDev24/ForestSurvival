@@ -50,6 +50,13 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Menu principal (§16, "permitir voltar ao menu"):**
+  - `scenes/ui/main_menu.tscn` passa a ser a cena principal do projeto: o jogo abre no menu, com JOGAR e SAIR, e JOGAR carrega a partida;
+  - SAIR da pausa e da tela de resultado vira **MENU**, que volta para o menu em vez de fechar o jogo. `GameManager.sair()` sai, `voltar_ao_menu()` entra;
+  - o menu **não mexe em `paused`**: quem despausa é o `GameManager`, antes de trocar de cena — o mesmo cuidado do `reiniciar()`, e a mesma regra da FASE 9 de um dono só para a pausa;
+  - os botões são as placas do `PlacaUI`, as mesmas das telas que pausam; o nome do jogo e o fundo são vagas de arte (`TituloArte`, `FundoArte`) que funcionam vazias, com texto e cor (DEC-013);
+  - `tests/test_menu.gd` percorre o ciclo pelos próprios botões — menu → partida → pausa → menu → partida → fim → menu — e confere em cada volta que a árvore está andando e os botões processam. Provado com três erros injetados: volta sem despausar, pausa ainda com SAIR e cena principal ainda na partida;
+  - `tests/test_foundation.gd` passa a exigir o menu como cena principal.
 - **Queda do Guardião (DEC-024):**
   - o golpe final não some mais com o boss num quadro: a partida entra em `TRIUNFO`, o boss cai, e só quando a queda termina vem a vitória — do mesmo jeito que a derrota espera a morte do druida;
   - durante a queda a horda e os orbes congelam, spawn, waves e armas desligam e o relógio para; a vitória mostra o tempo do golpe final. O congelamento é adiado, porque o golpe chega de dentro da detecção de área;

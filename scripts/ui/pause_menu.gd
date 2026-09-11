@@ -2,7 +2,7 @@ extends CanvasLayer
 ## Tela de pausa (`docs/ROADMAP.md`, FASE 9).
 ##
 ## Não decide nada: escuta o `GameManager` e se mostra. Os botões devolvem a
-## intenção para ele — continuar, reiniciar, sair —, e é ele que sabe o que cada
+## intenção para ele — continuar, reiniciar, voltar ao menu —, e é ele que sabe o que cada
 ## uma significa.
 ##
 ## `process_mode` ALWAYS na cena: a tela precisa responder enquanto a árvore
@@ -32,7 +32,7 @@ func configure(manager: GameManager) -> void:
 func _montar() -> void:
 	for antigo in _opcoes.get_children():
 		antigo.queue_free()
-	for texto in ["CONTINUAR", "REINICIAR", "SAIR"]:
+	for texto in ["CONTINUAR", "REINICIAR", "MENU"]:
 		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
@@ -72,5 +72,5 @@ func _on_escolha(texto: String) -> void:
 			_manager.retomar()
 		"REINICIAR":
 			_manager.reiniciar()
-		"SAIR":
-			_manager.sair()
+		"MENU":
+			_manager.voltar_ao_menu()

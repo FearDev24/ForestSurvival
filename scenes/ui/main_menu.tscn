@@ -1,0 +1,85 @@
+[gd_scene load_steps=4 format=3 uid="uid://bfsmenu0fs"]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_normal.png" id="2_normal"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_destaque.png" id="3_destaque"]
+
+[node name="MainMenu" type="Control"]
+editor_description = "Cena principal do projeto (secao 16: voltar ao menu). JOGAR carrega a partida, SAIR fecha o jogo. Nao mexe em paused: quem despausa e o GameManager, antes de trocar de cena para ca."
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+textura_placa = ExtResource("2_normal")
+textura_placa_destaque = ExtResource("3_destaque")
+
+[node name="Fundo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.09, 0.065, 1)
+
+[node name="FundoArte" type="TextureRect" parent="."]
+editor_description = "Vaga da ilustracao de fundo. Nula mostra so a cor do Fundo (DEC-013). Cobre a tela inteira sem deformar (KEEP_ASPECT_COVERED), filtro LINEAR porque e ilustracao, nao pixel art (DEC-023)."
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Caixa" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -330.0
+offset_top = -250.0
+offset_right = 330.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 18
+
+[node name="TituloArte" type="TextureRect" parent="Caixa"]
+editor_description = "Vaga do nome do jogo desenhado. Quando houver textura, ela aparece e o rotulo Titulo some; nula, o rotulo assume (DEC-013)."
+custom_minimum_size = Vector2(0, 170)
+texture_filter = 2
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Titulo" type="Label" parent="Caixa"]
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.87, 0.96, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 60
+text = "FOREST SURVIVAL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Opcoes" type="VBoxContainer" parent="Caixa"]
+editor_description = "Botoes criados em tempo de execucao com PlacaUI, a mesma placa das tres telas que pausam a partida."
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 16
+alignment = 1

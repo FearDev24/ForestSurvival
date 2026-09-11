@@ -53,7 +53,9 @@ func _fail(message: String) -> void:
 
 func _check_main_scene() -> void:
 	var main_scene: String = ProjectSettings.get_setting("application/run/main_scene", "")
-	if main_scene != "res://scenes/game/game.tscn":
+	# Desde o menu principal (§16), a partida não é mais a cena de entrada: o
+	# jogo abre no menu, e JOGAR carrega `game.tscn`.
+	if main_scene != "res://scenes/ui/main_menu.tscn":
 		_fail("Main Scene inesperada: '%s'" % main_scene)
 
 
