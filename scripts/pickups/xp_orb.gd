@@ -29,11 +29,40 @@ func _draw() -> void:
 		Vector2(0.0, _RAIO),
 		Vector2(-_RAIO * 0.7, 0.0),
 	])
-	draw_colored_polygon(pontos, _COR)
-	draw_polyline(pontos + PackedVector2Array([pontos[0]]), _COR_BORDA, 1.0)
+	# Uma textura só para todos os fragmentos, e não polígono mais contorno por
+	# fragmento: a Godot agrupa numa chamada de desenho tudo que usa a mesma
+	# textura, e 300 fragmentos no chão passaram de 331 chamadas extras para
+	# nenhuma (FASE 10, docs/HANDOFF.md). O losango de `pontos` continua sendo
+	# a referência da forma: é ele que `textura_compartilhada()` pinta.
+	var gema := textura_compartilhada()
+	draw_texture(gema, -gema.get_size() * 0.5)
 
 
 ## Chamado pela área de coleta do Player.
 func collect() -> void:
 	collected.emit(value)
 	queue_free()
+
+
+## A gema de todos os fragmentos, pintada uma vez na primeira vez que faz falta.
+##
+## É estática de propósito: uma textura por instância quebraria o agrupamento
+## de novo — cada fragmento viraria uma chamada de desenho própria, que é o que
+## a FASE 10 mediu e tirou. `tests/test_phase10.gd` confere que é a mesma.
+static var _textura: Texture2D = null
+
+
+static func textura_compartilhada() -> Texture2D:
+	if _textura != null:
+		return _textura
+	var lado := 15
+	var img := Image.create(lado, lado, false, Image.FORMAT_RGBA8)
+	var centro := (lado - 1) / 2.0
+	for y in lado:
+		for x in lado:
+			# Mesmo losango do `_draw` antigo: 0,7 do raio na horizontal.
+			var d := absf(x - centro) / (_RAIO * 0.7) + absf(y - centro) / _RAIO
+			if d <= 1.0:
+				img.set_pixel(x, y, _COR_BORDA if d > 0.78 else _COR)
+	_textura = ImageTexture.create_from_image(img)
+	return _textura

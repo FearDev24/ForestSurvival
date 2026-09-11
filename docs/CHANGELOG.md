@@ -50,6 +50,14 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **FASE 10 — Performance:**
+  - `tools/sonda_balanceamento.gd` ganha `--perf`: numa partida real, grava o custo de cada quadro medido pelo relógio entre dois passos (média, p95, p99 e pior) e o que havia em cena — inimigos, efeitos, fragmentos, nós, pares de colisão, chamadas de desenho e memória;
+  - `tools/stress_performance.gd` — a horda empilhada da tabela de carga da FASE 3, em patamares escolhidos (`--patamares=100,200,300,500`), com armas desligadas e `--orbes=N` para medir fragmentos de XP isolados;
+  - `Performance.TIME_PHYSICS_PROCESS` é o pior quadro de física do último segundo, atualizado uma vez por segundo: serve de pico, não de distribuição. A primeira versão da sonda caiu nisso;
+  - medido: 500 inimigos empilhados dão 4 FPS e o teto de 200 fica; numa partida real a horda não passa de ~110, o quadro fica abaixo de 4 ms no p99 e o jogo usa no máximo ~25% do orçamento neste PC;
+  - os fragmentos de XP passam a desenhar **uma textura compartilhada**, em vez de polígono e contorno por instância: com 300 no chão, as chamadas de desenho foram de 412 para 79, e na partida real de 129 para 46 em média;
+  - pooling e redução de alocações avaliados e não feitos: nenhum número pediu. A física da horda no teto fica para a medição no aparelho (FASE 12);
+  - `tests/test_phase10.gd` guarda a textura compartilhada, o teto de 200 em todas as waves e no spawn, e a compilação das ferramentas de medição. Provada com três erros injetados.
 - **Menu principal (§16, "permitir voltar ao menu"):**
   - `scenes/ui/main_menu.tscn` passa a ser a cena principal do projeto: o jogo abre no menu, com JOGAR e SAIR, e JOGAR carrega a partida;
   - SAIR da pausa e da tela de resultado vira **MENU**, que volta para o menu em vez de fechar o jogo. `GameManager.sair()` sai, `voltar_ao_menu()` entra;

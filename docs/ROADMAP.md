@@ -234,14 +234,17 @@ Observações:
 
 # FASE 10 — Performance
 
-- [ ] profiler
-- [ ] stress 100 inimigos
-- [ ] stress 250 inimigos
-- [ ] stress 500 inimigos
-- [ ] identificar gargalos
-- [ ] pooling onde necessário
-- [ ] reduzir custo de física
-- [ ] reduzir alocações
+- [x] profiler — `tools/sonda_balanceamento.gd -- --perf`: custo de quadro numa partida real
+- [x] stress 100 inimigos
+- [x] stress 250 inimigos — medido em 200 e 300, os dois lados do teto
+- [x] stress 500 inimigos — 4 FPS: inviável, e o teto de 200 fica
+- [x] identificar gargalos — física da horda empilhada; desenho dos fragmentos de XP
+- [x] pooling onde necessário — avaliado: nenhum lugar precisou (p99 abaixo de 4 ms)
+- [ ] reduzir custo de física — adiado para a medição no aparelho (FASE 12)
+- [ ] reduzir alocações — sem sinal na medição
+- [x] fragmentos de XP numa textura só — 331 chamadas de desenho a menos com 300 no chão
+
+Detalhes, tabelas e o que ficou de fora em `docs/HANDOFF.md`, "FASE 10".
 
 # FASE 11 — Arte
 
