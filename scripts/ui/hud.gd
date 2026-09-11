@@ -13,6 +13,12 @@ extends CanvasLayer
 ## valor por `set_time()`. Assim o relógio para sozinho quando a partida pausa,
 ## sem o HUD precisar saber o que é pausa.
 
+## Emitido quando o jogador toca o botão de pausa. O HUD não pausa nada:
+## `game.gd` liga este sinal ao `GameManager.pausar()`, que continua sendo o
+## único dono da pausa (FASE 9). O Esc chega lá por `_unhandled_input`, o toque
+## chega por aqui.
+signal pausa_pedida
+
 ## Formato do relógio quando a partida passa de uma hora. Antes disso, `MM:SS`.
 const _UMA_HORA := 3600.0
 
@@ -27,6 +33,8 @@ var _barra_vida: TextureProgressBar = null
 var _barra_xp: TextureProgressBar = null
 var _rotulo_nivel: Label = null
 var _rotulo_tempo: Label = null
+var _joystick: JoystickVirtual = null
+var _pausa: Button = null
 var _resolvido := false
 
 
@@ -42,6 +50,48 @@ func _resolver() -> void:
 	_barra_xp = get_node_or_null("BarraXp") as TextureProgressBar
 	_rotulo_nivel = get_node_or_null("Nivel") as Label
 	_rotulo_tempo = get_node_or_null("Tempo") as Label
+	_joystick = get_node_or_null("Joystick") as JoystickVirtual
+	_pausa = get_node_or_null("Pausa") as Button
+	if _pausa != null and not _pausa.pressed.is_connected(_on_pausa_tocada):
+		_pausa.pressed.connect(_on_pausa_tocada)
+
+	# Controles de toque só onde há toque. No PC eles não aparecem; com
+	# "emular toque com o mouse" ligado no projeto, aparecem e dá para testar.
+	set_toque(DisplayServer.is_touchscreen_available())
+
+	# A área segura muda quando a tela gira: recalcula a cada mudança de tamanho.
+	if is_inside_tree():
+		var viewport := get_viewport()
+		if viewport != null and not viewport.size_changed.is_connected(_aplicar_area_segura):
+			viewport.size_changed.connect(_aplicar_area_segura)
+		_aplicar_area_segura()
+
+
+## Liga ou desliga os controles de toque: o joystick e o botão de pausa.
+##
+## Resolve os nós antes: chamado de fora antes do `_ready` — como os testes
+## fazem —, os filhos ainda não estariam resolvidos e isto não faria nada.
+func set_toque(ativo: bool) -> void:
+	_resolver()
+	if _joystick != null:
+		_joystick.set_ativo(ativo)
+	if _pausa != null:
+		_pausa.visible = ativo
+
+
+## Afasta o painel do entalhe da câmera e dos cantos arredondados. No PC as
+## margens são zero e nada se mexe (`AreaSegura`).
+func _aplicar_area_segura() -> void:
+	var viewport := get_viewport()
+	if viewport == null:
+		return
+	var margens := AreaSegura.margens(viewport)
+	for controle in [_barra_xp, _rotulo_nivel, _barra_vida, _rotulo_tempo, _pausa]:
+		AreaSegura.aplicar(controle, margens)
+
+
+func _on_pausa_tocada() -> void:
+	pausa_pedida.emit()
 
 
 ## Liga o painel aos componentes da partida.

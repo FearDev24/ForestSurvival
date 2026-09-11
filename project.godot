@@ -21,6 +21,7 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=4
 
 [input]
 
@@ -66,6 +67,7 @@ pause={
 
 [rendering]
 
+textures/vram_compression/import_etc2_astc=true
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="mobile"
 environment/defaults/default_clear_color=Color(0.078, 0.129, 0.106, 1)

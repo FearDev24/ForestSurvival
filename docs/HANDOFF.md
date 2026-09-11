@@ -2010,10 +2010,66 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 11 — Arte.** A FASE 10 fechou na branch `fase-10-performance` (abaixo).
-A 11 depende quase toda de arte que está com o responsável — os pacotes de
-prompt já entregues estão em "O que também está pendente". O que dá para fazer
-sem ela é integrar cada peça assim que chegar.
+**FASE 12 — Mobile, na branch `fase-12-mobile`.** O que dava para fazer sem
+aparelho está feito (abaixo); o que falta é medir **no celular**. A FASE 11
+(arte) segue esperando as peças que estão com o responsável — os pacotes de
+prompt já entregues estão em "O que também está pendente".
+
+## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
+
+O que entrou:
+
+- **joystick virtual flutuante** (`scripts/ui/joystick_virtual.gd`, nó `Hud/Joystick`):
+  nasce onde o polegar encosta na metade esquerda da tela e aperta as mesmas
+  ações `move_*` do teclado, com a força da distância do polegar. O druida lê
+  `Input.get_vector()` e não sabe que existe joystick (`docs/ANDROID.md`).
+  Flutuante porque o canto inferior esquerdo é da barra de vida. Um dedo só: os
+  outros ficam livres para os botões;
+- **o joystick solta só o que ele mesmo apertou.** A primeira versão soltava as
+  quatro ações ao desligar, e isso parava o druida de quem segura uma tecla — a
+  suíte da FASE 1 pegou. Ele também solta tudo ao pausar e quando o app perde o
+  foco: pausado, ele não recebe o toque de soltar, e o druida voltaria da pausa
+  andando sozinho;
+- **botão de pausa por toque** (`Hud/Pausa`, canto superior direito): no celular
+  não há Esc. O HUD emite `pausa_pedida` e `game.gd` liga ao
+  `GameManager.pausar()` — ele segue sendo o único dono da pausa;
+- **área segura** (`scripts/ui/area_segura.gd`): converte a área segura da tela
+  para unidades de viewport e empurra cada borda do HUD conforme a âncora. **Só
+  em aparelho móvel**: no Windows a área segura é a tela menos a barra de
+  tarefas, e o HUD pularia com a janela fora de tela cheia;
+- os controles de toque só aparecem em tela de toque. **Para testar no PC com o
+  mouse**, ligar `input_devices/pointing/emulate_touch_from_mouse` nas
+  Configurações do Projeto;
+- orientação paisagem pelo sensor, e compressão de textura ETC2/ASTC ligada — a
+  exportação para Android recusa sem ela;
+- **exportação Android** (`export_presets.cfg`, preset "Android", só arm64-v8a):
+
+      godot --headless --path . --export-debug "Android" build/android/ForestSurvival-debug.apk
+
+  Sai um APK de depuração de ~38 MB, assinado com a keystore de depuração do
+  editor, SDK alvo 36. `tools/`, `tests/`, `_raw/` e `docs/` ficam de fora
+  (conferido pela lista de arquivos do APK). `build/` não é versionado.
+
+O que ainda não está resolvido:
+
+- **o nome do pacote é provisório**: `com.feardev24.forestsurvival`. Na Google
+  Play ele é a identidade do app e não muda depois da primeira publicação —
+  decisão do responsável antes do primeiro envio;
+- **não há ícone do app**: a exportação avisa e usa o da Godot. É arte a pedir
+  (192 x 192 e as duas camadas de 432 x 432 do ícone adaptativo);
+- **o `export_filter` é `all_resources`**, então vai para o APK tudo o que a
+  Godot importa, usado ou não — `gameover.png`, 1,2 MB, é um dos maiores
+  arquivos do pacote;
+- **só o aparelho responde**: tempo de quadro, memória, o entalhe de verdade e
+  o tamanho dos botões na mão. A física da horda no teto, que a FASE 10 deixou
+  para cá, é a primeira coisa a medir.
+
+`tests/test_phase12.gd` confere o joystick nas ações do teclado com a força
+certa, o segundo dedo e a metade direita ignorados, o druida parado depois da
+pausa, o botão de pausa, a área segura por âncora sem acumular, a orientação e
+o preset. Provada com quatro erros injetados — pausa sem soltar, a tela inteira
+começando o joystick, área segura ignorando a âncora e o joystick soltando
+teclas que não apertou.
 
 ## FASE 10 — Performance: medido numa partida de verdade
 
@@ -2194,8 +2250,8 @@ dura uma luta de minuto e meio.
 
 ## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As treze suítes continuam passando (`test_foundation`,
-`test_phase1` a `test_phase10`, `test_hud` e `test_menu`).
+Ver `docs/ROADMAP.md`. As catorze suítes continuam passando (`test_foundation`,
+`test_phase1` a `test_phase10`, `test_phase12`, `test_hud` e `test_menu`).
 
 # Não alterar sem registrar decisão
 

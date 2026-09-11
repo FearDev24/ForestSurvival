@@ -51,6 +51,9 @@ func _ready() -> void:
 	_upgrade_pool.configure(_stats, _weapons)
 	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)
+	# O botão de pausa por toque (FASE 12) pede, e o manager decide: ele segue
+	# sendo o único que mexe na pausa.
+	_hud.pausa_pedida.connect(_game_manager.pausar)
 	_game_manager.configure(_player, _spawn_manager, _wave_manager, _weapons,
 		_level, _level_up_menu, _enemy_container, _pickup_container)
 	_pause_menu.configure(_game_manager)

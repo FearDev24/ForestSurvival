@@ -258,12 +258,15 @@ Detalhes, tabelas e o que ficou de fora em `docs/HANDOFF.md`, "FASE 10".
 
 # FASE 12 — Mobile
 
-- [ ] joystick virtual
-- [ ] UI responsiva
-- [ ] safe areas
-- [ ] Android export
-- [ ] performance device
-- [ ] consumo de memória
+- [x] joystick virtual — flutuante, na metade esquerda, pelas mesmas ações `move_*` do teclado
+- [x] UI responsiva — `canvas_items` + `expand` (DEC-015), controles de toque só em tela de toque
+- [x] safe areas — `AreaSegura`, só em aparelho móvel
+- [x] Android export — `export_presets.cfg`, APK de depuração arm64 gerado
+- [ ] performance device — pendente: medir no aparelho, a começar pela horda no teto
+- [ ] consumo de memória — pendente: medir no aparelho
+- [x] pausa por toque — não estava na lista: no celular não há Esc
+
+Detalhes e o que ainda falta decidir em `docs/HANDOFF.md`, "FASE 12".
 - [ ] testes de resolução
 
 # FASE 13 — Meta-progressão

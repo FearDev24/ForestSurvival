@@ -50,6 +50,14 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **FASE 12 — Mobile:**
+  - joystick virtual flutuante (`scripts/ui/joystick_virtual.gd`): nasce sob o polegar na metade esquerda e aperta as ações `move_*` com a força da distância; um dedo só; solta **só o que ele apertou** — a primeira versão soltava as quatro ações e parava o druida de quem segura uma tecla, e a suíte da FASE 1 pegou — e solta ao pausar ou perder o foco;
+  - botão de pausa por toque no HUD; o HUD emite `pausa_pedida` e `game.gd` liga ao `GameManager.pausar()`;
+  - `scripts/ui/area_segura.gd`: empurra cada borda do HUD para dentro da área segura conforme a âncora, só em aparelho móvel — no Windows a área segura desconta a barra de tarefas;
+  - orientação paisagem pelo sensor e compressão ETC2/ASTC, exigida pela exportação Android;
+  - `export_presets.cfg` com o preset "Android" (arm64-v8a, depuração): o APK sai com ~38 MB, SDK alvo 36, sem `tools/`, `tests/`, `_raw/` nem `docs/`;
+  - `tests/test_phase12.gd`, provada com quatro erros injetados;
+  - pendentes: nome de pacote definitivo, ícone do app, e a medição de desempenho e memória no aparelho.
 - **FASE 10 — Performance:**
   - `tools/sonda_balanceamento.gd` ganha `--perf`: numa partida real, grava o custo de cada quadro medido pelo relógio entre dois passos (média, p95, p99 e pior) e o que havia em cena — inimigos, efeitos, fragmentos, nós, pares de colisão, chamadas de desenho e memória;
   - `tools/stress_performance.gd` — a horda empilhada da tabela de carga da FASE 3, em patamares escolhidos (`--patamares=100,200,300,500`), com armas desligadas e `--orbes=N` para medir fragmentos de XP isolados;

@@ -1,15 +1,28 @@
-[gd_scene load_steps=6 format=3 uid="uid://bfshud0forest"]
+[gd_scene load_steps=7 format=3 uid="uid://bfshud0forest"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Texture2D" path="res://assets/ui/barra_xp_fundo.png" id="2_xp_fundo"]
 [ext_resource type="Texture2D" path="res://assets/ui/barra_xp_preenchimento.png" id="3_xp_cheio"]
 [ext_resource type="Texture2D" path="res://assets/ui/barra_vida_fundo.png" id="4_vida_fundo"]
 [ext_resource type="Texture2D" path="res://assets/ui/barra_vida_preenchimento.png" id="5_vida_cheio"]
+[ext_resource type="Script" path="res://scripts/ui/joystick_virtual.gd" id="6_joystick"]
 
 [node name="Hud" type="CanvasLayer"]
 editor_description = "Painel da partida. layer 1: acima do mundo e abaixo do LevelUpMenu, que esta em 5. process_mode herdado de proposito, para o cronometro congelar junto com a partida quando a tela de escolha pausa o jogo."
 layer = 1
 script = ExtResource("1_hud")
+
+[node name="Joystick" type="Control" parent="."]
+editor_description = "Joystick virtual flutuante (FASE 12): nasce onde o polegar encosta na metade esquerda da tela e aperta as mesmas acoes move_* do teclado. Cobre a tela inteira mas nao bloqueia clique (mouse_filter IGNORE): le o toque em _input. So liga em tela de toque. Visual PLACEHOLDER em codigo (DEC-013)."
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+mouse_filter = 2
+script = ExtResource("6_joystick")
 
 [node name="BarraXp" type="TextureProgressBar" parent="."]
 editor_description = "As texturas ja vem no tamanho de tela: o TextureProgressBar usa o tamanho da textura como minimo do controle, entao nao ha como encolher pelo size. Quem gera e tools/preparar_barras_hud.py. texture_filter LINEAR porque esta arte nao e pixel art - reduzi-la com NEAREST serrilha (excecao consciente a DEC-015, limitada ao HUD)."
@@ -76,3 +89,17 @@ theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 30
 text = "00:00"
 horizontal_alignment = 2
+
+[node name="Pausa" type="Button" parent="."]
+editor_description = "Pausa por toque (FASE 12): no celular nao ha tecla Esc. Canto superior direito, que a 1280 de largura nao encosta na barra de XP (ela termina em 1160). O HUD emite pausa_pedida e o game.gd liga ao GameManager.pausar(): quem pausa continua sendo so ele. So aparece em tela de toque. Visual PLACEHOLDER (DEC-013)."
+visible = false
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -96.0
+offset_top = 16.0
+offset_right = -24.0
+offset_bottom = 88.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 34
+text = "II"
