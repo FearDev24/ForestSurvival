@@ -71,6 +71,25 @@ var _invulneravel := false
 ## de a partida nascer, e so em memoria.
 var _ajustes_de_no: Array = []
 var _dano_por_tipo := {}
+## FASE 10: mede o custo de cada quadro ao longo da partida inteira.
+##
+## Rode **uma partida por vez**: com varias em paralelo elas disputam o
+## processador e o tempo de quadro mede a disputa, nao o jogo. Com janela a
+## medicao inclui o desenho (chamadas de desenho); sem janela, so logica e
+## fisica.
+var _perf := false
+## Custo de cada quadro inteiro, medido pelo relogio entre dois passos. Com
+## `--fixed-fps` e sem limite de quadros, o intervalo entre dois passos e
+## exatamente o que o quadro custou -- fisica, logica e, com janela, desenho.
+var _perf_quadro: Array[float] = []
+var _perf_ultimo := 0
+## `TIME_PHYSICS_PROCESS` nao e o quadro atual: a Godot guarda nele o **pior**
+## quadro de fisica do ultimo segundo real, e atualiza uma vez por segundo.
+## Serve de pico, nao de distribuicao -- e e a mesma metrica da tabela da
+## FASE 3, entao se compara com ela.
+var _perf_fisica: Array[float] = []
+var _efeitos: Node = null
+var _projeteis: Node = null
 
 var _game: Node2D = null
 var _player: Player = null
@@ -118,6 +137,8 @@ func _initialize() -> void:
 			_parado = true
 		elif arg == "--invulneravel":
 			_invulneravel = true
+		elif arg == "--perf":
+			_perf = true
 		elif arg.begins_with("--no="):
 			_ajustes_de_no.append(arg.trim_prefix("--no="))
 		elif arg.begins_with("--ajuste="):
@@ -142,6 +163,10 @@ func _initialize() -> void:
 	_menu = _game.get_node("LevelUpMenu")
 	_pool = _game.get_node("UpgradePool")
 	_armas = _game.get_node("Player/WeaponManager")
+	_efeitos = _game.get_node_or_null("EffectContainer")
+	_projeteis = _game.get_node_or_null("ProjectileContainer")
+	if _perf:
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	_limites = (_game.get_node("World/TestWorld") as TestWorld).get_bounds()
 	_pool.set_seed(_semente)
 	for ajuste in _ajustes_de_no:
@@ -179,6 +204,17 @@ func _physics_process(_delta: float) -> bool:
 	if _escolha_pendente and _menu.visible:
 		_escolha_pendente = false
 		_escolher()
+
+	if _perf and _manager.estado == GameManager.Estado.JOGANDO:
+		var agora := Time.get_ticks_usec()
+		if _perf_ultimo > 0:
+			_perf_quadro.append((agora - _perf_ultimo) / 1000.0)
+		_perf_ultimo = agora
+		_perf_fisica.append(Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0)
+	elif _perf:
+		# Menu de level up aberto: o intervalo ate o proximo quadro jogado seria
+		# o tempo parado, nao custo.
+		_perf_ultimo = 0
 
 	var t := _manager.get_elapsed()
 	if _manager.estado == GameManager.Estado.JOGANDO:
@@ -457,8 +493,39 @@ func _amostrar(t: float) -> void:
 		"y": roundf(_player.global_position.y),
 		"armas": armas,
 	})
+	if _perf and not _perf_quadro.is_empty():
+		_amostras[-1]["perf"] = _resumo_perf()
+		_perf_quadro.clear()
+		_perf_fisica.clear()
 	if _boss_vida != null and is_instance_valid(_boss):
 		_boss_linha.append([snappedf(t, 0.1), roundf(float(_boss_vida.get(&"current_health")))])
+
+
+## Distribuicao do custo de quadro na janela, o pico de fisica e o que havia
+## em cena.
+func _resumo_perf() -> Dictionary:
+	var q := _perf_quadro.duplicate()
+	q.sort()
+	var soma := 0.0
+	for v in q:
+		soma += v
+	var pico := 0.0
+	for v in _perf_fisica:
+		pico = maxf(pico, v)
+	return {
+		"quadro_media": snappedf(soma / q.size(), 0.01),
+		"quadro_p95": snappedf(q[int((q.size() - 1) * 0.95)], 0.01),
+		"quadro_p99": snappedf(q[int((q.size() - 1) * 0.99)], 0.01),
+		"quadro_max": snappedf(q[-1], 0.01),
+		"fisica_pico": snappedf(pico, 0.01),
+		"efeitos": _efeitos.get_child_count() if _efeitos != null else -1,
+		"projeteis": _projeteis.get_child_count() if _projeteis != null else -1,
+		"nos": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
+		"fisica_ativos": int(Performance.get_monitor(Performance.PHYSICS_2D_ACTIVE_OBJECTS)),
+		"pares": int(Performance.get_monitor(Performance.PHYSICS_2D_COLLISION_PAIRS)),
+		"desenhos": int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)),
+		"memoria_mb": snappedf(Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0, 0.1),
+	}
 
 
 func _on_fim(vitoria: bool, tempo: float, nivel: int) -> void:

@@ -2010,16 +2010,95 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 10 — Performance.** Não iniciada.
+**FASE 11 — Arte.** A FASE 10 fechou na branch `fase-10-performance` (abaixo).
+A 11 depende quase toda de arte que está com o responsável — os pacotes de
+prompt já entregues estão em "O que também está pendente". O que dá para fazer
+sem ela é integrar cada peça assim que chegar.
 
-A FASE 9 fechou o vertical slice: dá para jogar, subir de nível, pausar, perder
-e vencer.
+## FASE 10 — Performance: medido numa partida de verdade
 
-O que a FASE 10 pede está no `docs/ROADMAP.md`. Duas coisas já medidas valem de
-ponto de partida:
+Duas ferramentas, e nenhuma otimização sem número antes:
 
-- **o teto de 200 inimigos saiu de medição, não de palpite**: 200 custam 8,20 ms de física por quadro, 250 custam 14,03 e 300 custam 19,05, contra 16,6 ms de orçamento. A física é o gargalo, não o desenho;
-- **nada varre a árvore por frame**: a população é `get_child_count()`, a arma só procura alvo no instante do disparo, e a hitbox desliga o `_physics_process` quando não há ninguém encostado. O que sobra para otimizar é o custo por corpo, não o custo por busca.
+- `tools/sonda_balanceamento.gd -- --perf` — a partida real, gravando o custo de
+  cada quadro **pelo relógio** e o que havia em cena. Com `--fixed-fps` e sem
+  limite de quadros, o intervalo entre dois passos é exatamente o custo do
+  quadro. Rodar **uma partida por vez**, e com janela para incluir o desenho;
+- `tools/stress_performance.gd` — o método da tabela "Carga" da FASE 3: horda
+  empilhada sobre o druida parado, vsync desligado. Armas desligadas, para o
+  patamar se sustentar, e `--orbes=N` para medir fragmentos de XP isolados.
+
+**Uma armadilha de medição:** `Performance.TIME_PHYSICS_PROCESS` não é o quadro
+atual. A Godot guarda nele o **pior** quadro de física do último segundo real,
+e atualiza uma vez por segundo. Serve de pico, não de distribuição. A primeira
+versão da sonda o tratou como distribuição, e cada janela de 5 s de jogo tinha
+uma leitura só.
+
+### Horda empilhada (RTX 2060 SUPER, 1280 x 720)
+
+| inimigos | FPS | física (pico/s) | pares de colisão | desenhos | nós |
+|---|---|---|---|---|---|
+| 100 | 1646 | 4,6 ms | 199 | 81 | 1293 |
+| 200 (teto) | 694 | 11,4 ms | 422 | 131 | 2193 |
+| 300 | 55 | 18,8 ms | 668 | 180 | 3093 |
+| 500 | 4 | 39,9 ms | 1192 | 265 | 4893 |
+
+- **500 é inviável, e o teto de 200 continua certo.** O custo cresce mais rápido
+  que o número de inimigos, porque a horda empilhada multiplica os pares de
+  colisão;
+- 200 empilhados custam hoje 11,4 ms, contra os 8,20 da FASE 3, pelo mesmo
+  método. **A diferença não foi investigada**: de lá para cá entraram props
+  sólidos no mapa, componentes novos no inimigo e a HUD. Só importa se a horda
+  voltar a encostar no teto — o que não acontece nas partidas medidas.
+
+### Partida real (teto invulnerável, 3 partidas)
+
+- o quadro inteiro fica entre 0,7 e 2,7 ms em média, p99 abaixo de 4 ms e pior
+  quadro de ~7 ms, contra 16,6 ms de orçamento: **neste PC o jogo usa no máximo
+  ~25% do quadro**;
+- **a horda real não chega ao teto**: com as armas no máximo, o pico ficou entre
+  60 e 110 inimigos;
+- **os fragmentos de XP se acumulam sem limite**: até 376 no chão aos 7 minutos,
+  e nós e memória sobem junto.
+
+### O que foi otimizado: o desenho dos fragmentos
+
+Os fragmentos não custam física — 100 inimigos com 300 fragmentos deram 4,2 ms,
+contra 4,6 sem nenhum —, mas **cada um era uma chamada de desenho**: polígono e
+contorno desenhados por instância impedem a Godot de agrupar. Agora todos
+desenham a mesma textura, pintada uma vez (`XpOrb.textura_compartilhada()`).
+
+| 100 inimigos + 300 fragmentos | desenhos | FPS |
+|---|---|---|
+| polígono + contorno (antes) | 412 | 879 |
+| só o polígono | 244 | 1374 |
+| **textura compartilhada** | **79** | **1571** |
+
+Na partida real, a partir dos 6 minutos: de 129 chamadas de desenho em média
+(224 no pico) para 46 (57), com os mesmos ~350 fragmentos no chão.
+
+### O que não foi feito, e por quê
+
+- **pooling** — nenhum sinal de soluço: p99 abaixo de 4 ms e pior quadro de ~7 ms
+  na partida inteira. Fica para quando um número pedir;
+- **reduzir custo de física** — numa partida real a física fica em poucos ms. O
+  caso caro é a horda empilhada no teto, e esse precisa ser medido **no
+  aparelho**: é da FASE 12 ("performance device");
+- **reduzir alocações** — sem sinal na medição.
+
+### Decisão pendente: fragmentos sem limite
+
+O acúmulo não tem teto. Um jogador que foge sem coletar deixa centenas no chão,
+e partidas mais longas deixariam milhares. Com a textura compartilhada eles não
+custam desenho nem física, mas cada um é um nó e memória. A saída comum no
+gênero é **fundir** os fragmentos acima de um limite num fragmento maior, com a
+soma do XP: o XP total não muda, mas o jogador vê e coleta de outro jeito. É
+decisão de design, e aguarda o responsável.
+
+`tests/test_phase10.gd` guarda o que a medição mostrou que não pode voltar: os
+fragmentos numa textura só, nenhum teto de população acima de 200 e as
+ferramentas de medição compilando. Provada com três erros injetados — textura
+pintada por fragmento, wave pedindo 300 inimigos e o `_draw` de volta ao
+polígono.
 
 ## Balanceamento medido: o druida não chega ao Guardião
 
@@ -2113,9 +2192,10 @@ dura uma luta de minuto e meio.
 - **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
 - **ícones do Anel de Esporos e dos Vagalumes** — a tela de escolha reserva a coluna e desenha só o texto;
 
-## Critério de aceite da FASE 10
+## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As onze suítes anteriores continuam passando.
+Ver `docs/ROADMAP.md`. As treze suítes continuam passando (`test_foundation`,
+`test_phase1` a `test_phase10`, `test_hud` e `test_menu`).
 
 # Não alterar sem registrar decisão
 
