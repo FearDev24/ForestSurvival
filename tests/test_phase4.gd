@@ -236,6 +236,13 @@ func _start_observa() -> void:
 		_stage = 1
 		return
 
+	# Desde a DEC-025 o druida nasce só com o Orbe do Cajado. Este teste é
+	# sobre uma arma disparando sozinha no ritmo certo, não sobre qual é a
+	# arma inicial: o cajado entra à mão e continua sendo a cobaia.
+	var cobaia: WeaponData = load(ARMAS[0])
+	if not _armas.has_weapon(cobaia.id):
+		_armas.add_weapon(cobaia)
+
 	# Fica só o cajado: com duas armas atirando não dá para atribuir o dano.
 	var raio: WeaponData = load(ARMAS[0])
 	for arma in _armas.get_children():

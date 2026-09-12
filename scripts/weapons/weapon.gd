@@ -115,12 +115,20 @@ func _find_targets() -> Array[Node2D]:
 
 
 func _attack(alvo: Node2D) -> void:
+	var origem := _spawn_position(alvo)
+	if data.grounded:
+		var livre: Variant = _achar_chao_livre(alvo)
+		if livre == null:
+			# Nenhum ponto em volta tem chão livre: melhor nenhum golpe do que
+			# um golpe atravessando pedra.
+			return
+		origem = livre
+
 	var efeito := data.effect_scene.instantiate() as Node2D
 	if efeito == null:
 		push_warning("effect_scene de '%s' não é uma cena 2D." % data.id)
 		return
 
-	var origem := _spawn_position(alvo)
 	efeito.global_position = origem
 	# Área é escala do nó inteiro: a hitbox é filha do efeito, então cresce
 	# junto com o desenho sem que a cena precise saber que existe passiva.
@@ -167,6 +175,68 @@ func _attack(alvo: Node2D) -> void:
 	attacked.emit(efeito, alvo)
 
 
+## Quantos pontos tentar antes de desistir de achar chão livre.
+const _TENTATIVAS_DE_CHAO := 8
+
+## Faixa de chão que o golpe ocupa virado para a direita, a partir da origem.
+## Sai da própria colisão do efeito, medida uma vez: a faixa conferida e a faixa
+## que acerta são sempre a mesma.
+var _faixa_de_chao := Rect2()
+
+
+## Um ponto de nascimento em que o golpe não atravessa objeto sólido do mapa.
+##
+## Golpe que corre pelo chão — a vinha (`WeaponData.grounded`) — brota da terra
+## e se estende pelo chão. Nascendo de um lado de uma pedra, sairia do outro
+## lado por cima dela, flutuando. Então tenta pontos até achar um em que a faixa
+## do golpe esteja livre. Nulo se nenhum estiver.
+func _achar_chao_livre(alvo: Node2D) -> Variant:
+	for i in _TENTATIVAS_DE_CHAO:
+		var ponto := _spawn_position(alvo)
+		if _chao_livre(ponto, _aim_direction(alvo, ponto)):
+			return ponto
+	return null
+
+
+func _chao_livre(ponto: Vector2, direcao: Vector2) -> bool:
+	if _target == null or not _target.is_inside_tree():
+		return true
+	var faixa := _medir_faixa_de_chao()
+	if faixa.size == Vector2.ZERO:
+		return true
+	var escala := area_efetiva()
+	var local := Rect2(faixa.position * escala, faixa.size * escala)
+	# Virado para a esquerda o golpe espelha no eixo X, em volta da origem.
+	if direcao.x < 0.0:
+		local.position.x = -local.end.x
+	var retangulo := RectangleShape2D.new()
+	retangulo.size = local.size
+	var consulta := PhysicsShapeQueryParameters2D.new()
+	consulta.shape = retangulo
+	consulta.transform = Transform2D(0.0, ponto + local.get_center())
+	consulta.collision_mask = 1 << (TestWorld.WORLD_STATIC_LAYER - 1)
+	consulta.collide_with_areas = false
+	return _target.get_world_2d().direct_space_state.intersect_shape(consulta, 1).is_empty()
+
+
+func _medir_faixa_de_chao() -> Rect2:
+	if _faixa_de_chao.size != Vector2.ZERO:
+		return _faixa_de_chao
+	var modelo := data.effect_scene.instantiate() as Node2D
+	var hitbox := modelo.get_node_or_null("Hitbox") as Node2D
+	var forma := hitbox.get_node_or_null("CollisionShape2D") as CollisionShape2D if hitbox else null
+	if forma != null and forma.shape != null:
+		var t := hitbox.transform * forma.transform
+		var r := forma.shape.get_rect()
+		var pontos := [r.position, Vector2(r.end.x, r.position.y), Vector2(r.position.x, r.end.y), r.end]
+		var caixa := Rect2(t * pontos[0], Vector2.ZERO)
+		for p in pontos:
+			caixa = caixa.expand(t * p)
+		_faixa_de_chao = caixa
+	modelo.free()
+	return _faixa_de_chao
+
+
 ## Onde o ataque nasce, conforme o modo da arma.
 func _spawn_position(alvo: Node2D) -> Vector2:
 	match data.spawn_mode:
@@ -180,14 +250,16 @@ func _spawn_position(alvo: Node2D) -> Vector2:
 			var distancia := data.spawn_radius * randf_range(0.45, 1.0)
 			return _target.global_position + Vector2(distancia, 0.0).rotated(angulo)
 		_:
-			return _target.global_position
+			return _target.global_position + data.spawn_offset
 
 
 ## Para onde o ataque aponta. `Vector2.ZERO` significa "não aponta".
 func _aim_direction(alvo: Node2D, origem: Vector2) -> Vector2:
 	match data.aim_mode:
 		WeaponData.Aim.PARA_O_ALVO:
-			return (alvo.global_position - origem).normalized()
+			# Mira no inimigo na mesma altura de onde o golpe sai: o orbe nasce na
+			# altura do cajado e cruza o corpo do alvo, e não o chão aos pés dele.
+			return (alvo.global_position + data.spawn_offset - origem).normalized()
 		WeaponData.Aim.HORIZONTAL:
 			# Nunca na diagonal: o alvo só decide o lado.
 			return Vector2.LEFT if alvo.global_position.x < origem.x else Vector2.RIGHT

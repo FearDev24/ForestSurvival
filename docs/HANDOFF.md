@@ -2010,10 +2010,235 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 11 — Arte.** A FASE 10 fechou na branch `fase-10-performance` (abaixo).
-A 11 depende quase toda de arte que está com o responsável — os pacotes de
-prompt já entregues estão em "O que também está pendente". O que dá para fazer
-sem ela é integrar cada peça assim que chegar.
+**FASE 12 — Mobile, na branch `fase-12-mobile`.** O que dava para fazer sem
+aparelho está feito (abaixo); o que falta é medir **no celular**. A FASE 11
+(arte) segue esperando as peças que estão com o responsável — os pacotes de
+prompt já entregues estão em "O que também está pendente".
+
+## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
+
+O que entrou:
+
+- **joystick virtual flutuante** (`scripts/ui/joystick_virtual.gd`, nó `Hud/Joystick`):
+  nasce onde o polegar encosta na metade esquerda da tela e aperta as mesmas
+  ações `move_*` do teclado, com a força da distância do polegar. O druida lê
+  `Input.get_vector()` e não sabe que existe joystick (`docs/ANDROID.md`).
+  Flutuante porque o canto inferior esquerdo é da barra de vida. Um dedo só: os
+  outros ficam livres para os botões;
+- **o joystick solta só o que ele mesmo apertou.** A primeira versão soltava as
+  quatro ações ao desligar, e isso parava o druida de quem segura uma tecla — a
+  suíte da FASE 1 pegou. Ele também solta tudo ao pausar e quando o app perde o
+  foco: pausado, ele não recebe o toque de soltar, e o druida voltaria da pausa
+  andando sozinho;
+- **botão de pausa por toque** (`Hud/Pausa`, canto superior direito): no celular
+  não há Esc. O HUD emite `pausa_pedida` e `game.gd` liga ao
+  `GameManager.pausar()` — ele segue sendo o único dono da pausa;
+- **área segura** (`scripts/ui/area_segura.gd`): converte a área segura da tela
+  para unidades de viewport e empurra cada borda do HUD conforme a âncora. **Só
+  em aparelho móvel**: no Windows a área segura é a tela menos a barra de
+  tarefas, e o HUD pularia com a janela fora de tela cheia;
+- os controles de toque só aparecem em tela de toque. **Para testar no PC com o
+  mouse**, ligar `input_devices/pointing/emulate_touch_from_mouse` nas
+  Configurações do Projeto;
+- orientação paisagem pelo sensor, e compressão de textura ETC2/ASTC ligada — a
+  exportação para Android recusa sem ela;
+- **exportação Android** (`export_presets.cfg`, preset "Android", só arm64-v8a):
+
+      godot --headless --path . --export-debug "Android" build/android/ForestSurvival-debug.apk
+
+  Sai um APK de depuração de ~38 MB, assinado com a keystore de depuração do
+  editor, SDK alvo 36. `tools/`, `tests/`, `_raw/` e `docs/` ficam de fora
+  (conferido pela lista de arquivos do APK). `build/` não é versionado.
+
+O que ainda não está resolvido:
+
+- **o nome do pacote é provisório**: `com.feardev24.forestsurvival`. Na Google
+  Play ele é a identidade do app e não muda depois da primeira publicação —
+  decisão do responsável antes do primeiro envio;
+- **não há ícone do app**: a exportação avisa e usa o da Godot. É arte a pedir
+  (192 x 192 e as duas camadas de 432 x 432 do ícone adaptativo);
+- **o `export_filter` é `all_resources`**, então vai para o APK tudo o que a
+  Godot importa, usado ou não — `gameover.png`, 1,2 MB, é um dos maiores
+  arquivos do pacote;
+- **só o aparelho responde**: tempo de quadro, memória, o entalhe de verdade e
+  o tamanho dos botões na mão. A física da horda no teto, que a FASE 10 deixou
+  para cá, é a primeira coisa a medir.
+
+### Primeira medição no aparelho (2026-09-11)
+
+Xiaomi 2412DPC0AG, Android 16, Mali-G720 MC7, tela de 2712 x 1220 a 120 Hz.
+`scripts/systems/monitor_desempenho.gd` — só em build de depuração num
+aparelho móvel — escreve uma linha no log a cada 5 s, lida pelo
+`adb logcat -s godot`.
+
+- **120 FPS**: o quadro fica em 8,3 ms na média (o vsync de 120 Hz), p95 de 10 a
+  13 ms, um pico de 27 ms. Física no máximo 4,7 ms;
+- memória de 52 MB, e 125 MB de vídeo;
+- **o entalhe caiu à direita** nessa orientação: 77 unidades de viewport de
+  margem, e o HUD se afastou dele;
+- em paisagem a tela é 2,22:1, e o `expand` mostra 1600 x 720 de mundo;
+- **ressalva**: a partida medida foi curta — ~2 minutos e no máximo 15 inimigos.
+  A horda cheia perto do Guardião, que é o caso pesado, ainda não foi medida
+  no aparelho;
+- o joystick ficou bom na mão, na avaliação do responsável.
+
+`tests/test_phase12.gd` confere o joystick nas ações do teclado com a força
+certa, o segundo dedo e a metade direita ignorados, o druida parado depois da
+pausa, o botão de pausa, a área segura por âncora sem acumular, a orientação e
+o preset. Provada com quatro erros injetados — pausa sem soltar, a tela inteira
+começando o joystick, área segura ignorando a âncora e o joystick soltando
+teclas que não apertou.
+
+## Progressão por fase (DEC-025): nasce com o Orbe, ganha o resto na partida
+
+O druida nascia com o Cajado e a Vinha e tinha 4 das 5 habilidades aos 40 s.
+Agora nasce só com o **Orbe do Cajado** e cada arma é oferecida a partir da
+sua fase (tabela na DEC-025). Medido com a sonda, 20 partidas cada:
+
+| começo | 2ª / 3ª / 4ª habilidade | nível aos 60 s | mortes nas waves 1-2-3-4 | vitórias |
+|---|---|---|---|---|
+| Cajado + Vinha (antes) | — / 19 / 39 s | 6 | 0 / 0 / 5 / 58% | 6/20 |
+| só o Corvo (teste) | 72 / 89 / 117 s | **1** | 5 / 21 / 27 / 55% | 3/20 |
+| **só o Orbe (atual)** | **43 / 94 / 200 s** | **6** | 0 / 0 / 0 / 10% | **17/20** |
+
+A progressão ficou como planejado: começo no mesmo ritmo e as habilidades
+espalhadas pelas fases. Os Vagalumes quase nunca entram (1 em 20), mas é a
+política do bot — ele para de pegar arma nova com quatro, e aos 270 s já tem.
+
+**Mas o jogo ficou fácil demais: 17 vitórias em 20.** Três calibrações do
+Orbe, testadas em memória, não mudaram isso:
+
+| calibração | vitórias | nível aos 60 s |
+|---|---|---|
+| Orbe cresce menos por nível (+3 de dano, recarga -5%) | 16/20 | 6 |
+| o mesmo, e dano inicial 14 | 13/20 | **2** — o começo volta a emperrar |
+| o primeiro, e cerco e Guardião mais densos | 17/20 | 6 |
+
+Ou seja, a força do Orbe não é a causa, e os números dele ficam como estão. O
+que ficou fácil é a partida inteira: o recuo novo afasta os inimigos (antes da
+troca de início ele já tinha levado de ~2 para 6 vitórias em 20), e com uma
+arma só no começo as subidas de nível se concentram nas habilidades principais.
+O dano recebido passou a vir de elites (31-38%) e brutos (29-34%).
+
+Um controle confirmou que os ajustes em memória chegam às armas: com o Orbe
+causando dano 1, o druida não matou ninguém e morreu aos 32 s, no nível 1.
+
+### Dificuldade recalibrada (meta adotada: o bot vence ~1 em 3)
+
+Cinco calibrações, 20 partidas cada, todas com os valores conferidos no jogo
+pelo que cada inimigo teve ao nascer:
+
+| calibração | vitórias | wave 3 | cerco | Guardião |
+|---|---|---|---|---|
+| como estava | 17/20 | 0% | 10% | 0% |
+| C1 — elite e bruto mais duros, boss 3000 | 17/20 | 0% | 0% | 15% |
+| C2 — waves 3 a 5 mais densas | 18/20 | 0% | 0% | 5% |
+| C3 — C1 + C2 | 11/20 | 0% | 5% | 26% |
+| C4 — C3 + matilha densa e elites cedo | 13/20 | 0% | 25% | 7% |
+| **C5 — C2 + elite 500/30 e boss 3600 (gravado)** | **10/20** | 0% | 25% | 20% |
+
+**O que os números ensinam:** inimigos mais duros **ou** mais numerosos não
+mexem no placar — as armas do druida dão conta de cada um isolado. Só as duas
+coisas juntas endurecem a partida. E adiantar a pressão (C4) não tira o passeio
+das waves 2 e 3: nelas o que mata é acúmulo, não densidade momentânea; o efeito
+foi só antecipar as mortes para o cerco.
+
+O gravado é o C5: elite com 500 de vida e 30 de dano, bruto com 170, Guardião
+com 3600, e as waves 3, 4 e 5 mais densas com elites mais frequentes. Confirmado
+depois de gravado, com 20 partidas sem nenhum ajuste em memória: **8 vitórias em
+20**, 40% morrendo no cerco e 17% no Guardião — dentro do ruído do C5 medido. Ele ainda
+é mais fácil que a meta (1 em 2, não 1 em 3), e a diferença entre 10, 11 e 13
+vitórias está dentro do ruído de 20 partidas: o que separou o C5 foi o formato
+da curva. **Apertar mais depende de jogar** — o bot não julga se é divertido.
+
+### Bot de teste no celular: rodou no aparelho
+
+`BotPiloto` + `BotMobile` + o preset "Android Bot": um APK separado que joga
+sozinho no aparelho e escreve no log. O teste no PC passa (`tests/test_bot.gd`).
+**No Xiaomi a instalação de um app novo pelo USB precisa de um toque de
+confirmação na tela do celular** (`INSTALL_FAILED_USER_RESTRICTED`); atualizar
+um app já instalado não pede. Por isso o teste rodou com o APK do bot exportado
+**com o nome de pacote do jogo normal**, instalado por cima dele — o preset no
+repositório continua com pacote próprio, e o jogo normal foi reinstalado no fim.
+
+**O que o aparelho respondeu** (Xiaomi 2412DPC0AG, 120 Hz; partida de 7,5 min,
+druida invulnerável, vitória no Guardião):
+
+| medida | valor |
+|---|---|
+| quadro médio | 8,39 ms (o teto dos 120 Hz é 8,33) |
+| p95 do quadro | 12,1 ms; pior janela 18,9 |
+| pior quadro | 25,2 ms |
+| física | pico mediano 5,1 ms, pior 13,2 |
+| memória | 58 MB, mais 124 MB de vídeo |
+| pico de inimigos | 58 |
+| pico de fragmentos de XP no chão | **397** |
+
+Ou seja: folga larga para 60 FPS, mas **os 120 Hz não se sustentam** — um em
+cada vinte quadros passa de 12 ms, e a pior janela foi aos 6 minutos, com 58
+inimigos e 203 fragmentos na tela. O acúmulo de fragmentos que a FASE 10
+apontou aparece aqui com número de aparelho. A horda nunca passou de 58, o que
+é a mesma facilidade que a calibração de dificuldade veio corrigir.
+
+Duas lições do caminho:
+
+- **exportar pela Godot derruba o servidor do `adb`**, e com ele qualquer
+  `logcat` rodando no PC. Por isso o log do bot é gravado **dentro do
+  aparelho** (`logcat -f /data/local/tmp/fs_bot.log`) e baixado depois;
+- o log do jogo normal também sai com `adb logcat -d -s godot`, do buffer do
+  aparelho, se a captura ao vivo cair.
+
+## Acerto das habilidades: a colisão é o desenho, e o golpe se vê
+
+O responsável testou no celular e disse que as habilidades "saem e parecem não
+bater", e que a vinha passava por cima das pedras. Medido nos desenhos:
+
+| habilidade | colisão antes | o desenho | colisão agora |
+|---|---|---|---|
+| raio | círculo de 80 px | impacto no chão de 160 a 190 px, quadros 4 a 6 | cápsula de 180 x 72 na altura do corpo, só nos quadros 4 a 6 |
+| vinha | cápsula de 25 a 175 | chicote de -25 a 175, faixa -46..-2 | cápsula de -25 a 175, faixa -56..-4, quadros 3 a 6 |
+| corvo | círculo de 52 px | corpo de ~72 x 55 com o bater das asas | cápsula de 72 x 48 |
+| vagalumes | raio 18 | orbe de raio 9, brilho fraco até 17 | raio 11 |
+| esporos | raio 64 | anel de 59 a 64 | igual — já estava certo |
+
+**O diagnóstico da vinha precisou de duas correções.** Primeiro pareceu que a
+colisão ficava abaixo do desenho ao virar para a esquerda. Não era: virar
+girava o efeito 180°, e o giro leva **desenho e colisão juntos** para o outro
+lado do eixo — a vinha inteira ficava pendurada ~70 px abaixo do ponto de onde
+brota, coincidindo consigo mesma e flutuando. A suíte de acerto pegou as duas
+leituras erradas. Agora virar é **espelhar na horizontal**, sem girar
+(`AbilityEffect.aim` e `HitboxComponent.set_espelhado`), e a suíte confere que
+a vinha fica apoiada no chão nos dois sentidos. O giro continua para mira em
+ângulo qualquer, que nenhuma arma usa (DEC-022).
+
+**Recuo.** Golpe de habilidade que não mata empurra o inimigo ~18 px para longe
+de quem acertou, em 0,14 s, com intervalo de 0,2 s. Golpe que mata não empurra:
+o inimigo some, e o empurrão não se veria. `EnemyData.knockback_scale`: bruto
+0,5, elite 0,4, **Guardião 0** — um boss empurrado a cada golpe deixa de
+parecer um boss.
+
+**A vinha e os objetos do mapa.** Os efeitos eram desenhados sempre por cima de
+tudo (`z_index` 40). Agora o `EffectContainer` ordena por Y e a vinha fica em
+z 0: entra na mesma ordem de profundidade de pedras, totens e personagens, e
+uma pedra na frente dela a encobre. E ela só brota onde a faixa do golpe não
+atravessa objeto sólido (`WeaponData.grounded`): a arma tenta até 8 pontos em
+volta do druida e, sem chão livre, não ataca naquele disparo. A faixa conferida
+é a própria colisão do efeito, espelhada para a esquerda. Raio, corvo e
+vagalumes ficam por cima de tudo — vêm do céu ou voam —, e os esporos ficam no
+chão, embaixo dos objetos, como já estavam.
+
+**Em aberto:**
+
+- **o balanceamento mudou**: o recuo afasta os inimigos do druida e a vinha
+  deixa de atacar quando não há chão livre. Os números da seção "Balanceamento
+  medido" são de antes disto; vale rodar a sonda de novo;
+- **o APK no celular é anterior a estas mudanças**: precisa ser exportado e
+  instalado de novo para o responsável sentir o acerto e o recuo na mão.
+
+`tests/test_acerto.gd`, provada com sete erros injetados: a vinha voltando a
+girar, o raio de volta ao círculo de 40, o raio pegando depois de sair do chão,
+o golpe letal empurrando, o Guardião recuando, a vinha sem checagem de chão
+livre e os efeitos fora da ordem de profundidade.
 
 ## FASE 10 — Performance: medido numa partida de verdade
 
@@ -2190,12 +2415,14 @@ dura uma luta de minuto e meio.
 - **arte da morte do Guardião** — o fluxo já existe (DEC-024, emenda): o boss cai com uma queda provisória no `Visual` e a vitória espera ela terminar. Quando o vídeo chegar, a arte entra como animação `death` **sem loop** no `SpriteFrames` do Guardião e substitui a provisória sozinha. As criaturas comuns somem ao morrer, e isso é o final, não falta;
 - **arte própria do bruto, da elite e do Guardião** — os três ainda são o diabrete recolorido e aumentado (1,45×, 1,7× e 2,8×);
 - **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
-- **ícones do Anel de Esporos e dos Vagalumes** — a tela de escolha reserva a coluna e desenha só o texto;
+- **ícones do Anel de Esporos, dos Vagalumes e do Orbe do Cajado** — a tela de escolha reserva a coluna e desenha só o texto;
+- **arte do Orbe do Cajado** — o disparo é um círculo desenhado em código; hoje sai do centro do corpo do druida, e com a arte dá para mover a saída para a ponta do cajado (`spawn_offset`);
 
 ## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As treze suítes continuam passando (`test_foundation`,
-`test_phase1` a `test_phase10`, `test_hud` e `test_menu`).
+Ver `docs/ROADMAP.md`. As dezessete suítes continuam passando (`test_foundation`,
+`test_phase1` a `test_phase10`, `test_phase12`, `test_hud`, `test_menu`,
+`test_acerto`, `test_bot` e `test_progressao`).
 
 # Não alterar sem registrar decisão
 

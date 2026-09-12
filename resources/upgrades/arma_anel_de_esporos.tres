@@ -10,3 +10,4 @@ display_name = "Anel de Esporos"
 description = "Uma nuvem fica no chão e fere quem passar."
 kind = 1
 weapon = ExtResource("2_arma")
+unlock_time = 150.0

@@ -28,6 +28,12 @@ const TAMANHO_BOTAO := Vector2(400.0, 67.0)
 
 
 func _ready() -> void:
+	# Teste automático no celular (`BotMobile`): só numa build de depuração
+	# aberta com `--bot`, que é o APK "Android Bot". O jogo normal nunca entra
+	# aqui. Adiado porque a raiz ainda está montando os filhos neste momento.
+	if BotMobile.pedido():
+		get_tree().root.add_child.call_deferred(BotMobile.new())
+		return
 	var com_arte := _titulo_arte.texture != null
 	_titulo_arte.visible = com_arte
 	_titulo.visible = not com_arte

@@ -4,8 +4,9 @@
 [ext_resource type="SpriteFrames" uid="uid://bfscorvoframes" path="res://assets/effects/corvo_sprite_frames.tres" id="2_frames"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="3_hitbox"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_corvo"]
-radius = 26.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_corvo"]
+radius = 24.0
+height = 72.0
 
 [node name="SpiritCrow" type="Node2D"]
 editor_description = "Segunda familia de arma: ataque que viaja. A arte aponta para a direita, e girar o no aponta o voo e a hitbox de uma vez - ver aim() em scripts/effects/projectile_effect.gd."
@@ -30,4 +31,5 @@ damage = 1.0
 hit_interval = 0.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
-shape = SubResource("CircleShape2D_corvo")
+rotation = 1.5707963
+shape = SubResource("CapsuleShape2D_corvo")

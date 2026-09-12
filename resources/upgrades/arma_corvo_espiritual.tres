@@ -12,3 +12,4 @@ description = "Um corvo voa e atravessa dois inimigos."
 icon = ExtResource("3_icone")
 kind = 1
 weapon = ExtResource("2_arma")
+unlock_time = 150.0

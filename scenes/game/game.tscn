@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://bfsgame0forest1"]
+[gd_scene load_steps=32 format=3 uid="uid://bfsgame0forest1"]
 
 [ext_resource type="Script" path="res://scripts/systems/game.gd" id="1_game"]
 [ext_resource type="PackedScene" uid="uid://bfstestworld0fs" path="res://scenes/game/test_world.tscn" id="2_world"]
@@ -30,6 +30,7 @@
 [ext_resource type="Resource" uid="uid://bfsupgvagalume" path="res://resources/upgrades/arma_vagalumes_guardioes.tres" id="22_vagalume"]
 [ext_resource type="Resource" uid="uid://bfsupgraio" path="res://resources/upgrades/arma_cajado_raio.tres" id="15_raio"]
 [ext_resource type="Resource" uid="uid://bfsupgvinha" path="res://resources/upgrades/arma_vinha_espinhosa.tres" id="16_vinha"]
+[ext_resource type="Resource" uid="uid://bfsupgorbe" path="res://resources/upgrades/arma_orbe_do_cajado.tres" id="23_orbe"]
 
 [node name="Game" type="Node2D"]
 y_sort_enabled = true
@@ -54,6 +55,8 @@ editor_description = "y_sort_enabled aqui faz os inimigos entrarem na mesma orde
 [node name="PickupContainer" type="Node2D" parent="."]
 
 [node name="EffectContainer" type="Node2D" parent="."]
+y_sort_enabled = true
+editor_description = "y_sort_enabled para os efeitos que nascem do chao, como a vinha (z_index 0), entrarem na mesma ordem de profundidade dos props, do druida e dos inimigos: uma pedra na frente da vinha a encobre, em vez de a vinha ser desenhada flutuando por cima dela. O que vem do ceu ou voa - raio, corvo, vagalumes - fica acima de tudo pelo z_index proprio; a zona de esporos fica no chao, abaixo dos props, com z_index -1."
 
 [node name="SpawnManager" type="Node" parent="."]
 editor_description = "Cria os inimigos da partida. Ligado ao Player, ao EnemyContainer e aos limites do mundo por scripts/systems/game.gd: o manager nao procura ninguem sozinho."
@@ -73,7 +76,7 @@ orb_scene = ExtResource("7_orb")
 [node name="UpgradePool" type="Node" parent="."]
 editor_description = "Catalogo do level up. Decide o que pode ser oferecido e o que a escolha faz; a tela so desenha. Acrescentar uma passiva ao jogo e criar um .tres em resources/upgrades e por na lista aqui - nao escrever codigo (DEC-010)."
 script = ExtResource("11_pool")
-catalogo = Array[Resource]([ExtResource("12_casca"), ExtResource("13_cervo"), ExtResource("14_essencia"), ExtResource("17_semente"), ExtResource("18_ciclo"), ExtResource("19_coracao"), ExtResource("15_raio"), ExtResource("16_vinha"), ExtResource("20_corvo"), ExtResource("21_esporo"), ExtResource("22_vagalume")])
+catalogo = Array[Resource]([ExtResource("12_casca"), ExtResource("13_cervo"), ExtResource("14_essencia"), ExtResource("17_semente"), ExtResource("18_ciclo"), ExtResource("19_coracao"), ExtResource("23_orbe"), ExtResource("15_raio"), ExtResource("16_vinha"), ExtResource("20_corvo"), ExtResource("21_esporo"), ExtResource("22_vagalume")])
 
 [node name="GameManager" type="Node" parent="."]
 editor_description = "Estado da partida (docs/03_SYSTEMS.md secao 16 e 17). Antes desta fase o estado morava em quatro lugares que precisavam concordar sozinhos: _running na raiz e um enabled no spawn, no wave e nas armas. process_mode ALWAYS porque ele precisa ouvir a tecla de pausa enquanto a arvore esta parada."

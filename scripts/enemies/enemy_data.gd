@@ -50,6 +50,11 @@ extends Resource
 ## que morrem, e isso é o final delas, não falta de arte.
 @export var staged_death: bool = false
 
+## Quanto o golpe de uma habilidade empurra este tipo, de 0 a 1. Pesado recua
+## menos; o Guardião não recua — um boss empurrado a cada golpe deixa de
+## parecer um boss.
+@export var knockback_scale: float = 1.0
+
 
 ## Um tipo sem id ou sem vida não deveria existir; vale conferir na carga,
 ## porque `.tres` é editado à mão com frequência.

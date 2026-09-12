@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_orbe"]
-radius = 18.0
+radius = 11.0
 
 [node name="GuardianFireflies" type="Node2D"]
 editor_description = "Quarta familia: ataque que acompanha o druida. Tres orbes, definidos aqui e nao no WeaponData: quantidade de orbe e forma da cena, os numeros do golpe e que sao dado. Visual PLACEHOLDER desenhado em codigo (DEC-013)."
