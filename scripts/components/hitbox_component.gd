@@ -106,6 +106,24 @@ func _hit(hurtbox: HurtboxComponent) -> void:
 	hit_landed.emit(hurtbox, damage)
 
 
+## Espelha as formas de colisão na horizontal, junto com o desenho.
+##
+## Um golpe com mira horizontal (DEC-022) vira para a esquerda espelhando, e
+## não girando: o desenho troca de lado em volta da origem, e a colisão tem de
+## trocar junto. Girar 180° levava desenho e colisão para baixo do chão.
+##
+## Parte sempre da posição original de cada forma: chamar de novo não acumula.
+func set_espelhado(espelhado: bool) -> void:
+	for filho in get_children():
+		var forma := filho as CollisionShape2D
+		if forma == null:
+			continue
+		if not forma.has_meta(&"x_original"):
+			forma.set_meta(&"x_original", forma.position.x)
+		var x: float = forma.get_meta(&"x_original")
+		forma.position.x = -x if espelhado else x
+
+
 func _is_single_hit() -> bool:
 	return hit_interval <= 0.0
 

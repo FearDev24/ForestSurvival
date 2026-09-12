@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3 uid="uid://bfsarmaorbe"]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" uid="uid://bfsorbe0forest" path="res://scenes/effects/orbe_do_cajado.tscn" id="2_efeito"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"orbe_do_cajado"
+display_name = "Orbe do Cajado"
+base_damage = 16.0
+cooldown = 0.6
+attack_range = 420.0
+amount = 1
+spawn_mode = 1
+spawn_radius = 0.0
+spawn_offset = Vector2(0, -24)
+aim_mode = 1
+projectile_speed = 520.0
+projectile_pierce = 1
+effect_duration = 0.0
+max_level = 5
+damage_per_level = 5.0
+cooldown_multiplier_per_level = 0.9
+effect_scene = ExtResource("2_efeito")

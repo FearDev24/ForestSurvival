@@ -27,6 +27,8 @@ const MAX_OPCOES := 3
 
 var _stats: StatComponent = null
 var _weapons: WeaponManager = null
+## Relógio da partida, para a trava de fase (DEC-025).
+var _manager: GameManager = null
 ## Quantas vezes cada opção já foi escolhida, por id.
 var _escolhidas: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
@@ -37,9 +39,10 @@ func _ready() -> void:
 
 
 ## Ligado pela raiz da partida.
-func configure(stats: StatComponent, weapons: WeaponManager) -> void:
+func configure(stats: StatComponent, weapons: WeaponManager, manager: GameManager = null) -> void:
 	_stats = stats
 	_weapons = weapons
+	_manager = manager
 
 
 ## Quantas vezes esta opção já foi levada.
@@ -53,6 +56,11 @@ func stacks(id: StringName) -> int:
 ## teto, uma arma no nível máximo, ou uma arma nova sem slot livre.
 func is_applicable(upgrade: UpgradeData) -> bool:
 	if upgrade == null or not upgrade.is_valid():
+		return false
+
+	# Cada habilidade chega na fase dela (DEC-025): antes da hora, não é
+	# oferecida. Sem relógio — um teste que monta o pool sozinho —, nada trava.
+	if upgrade.unlock_time > 0.0 and _manager != null and _manager.get_elapsed() < upgrade.unlock_time:
 		return false
 
 	if upgrade.kind == UpgradeData.Kind.ARMA:

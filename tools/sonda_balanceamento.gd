@@ -71,6 +71,10 @@ var _invulneravel := false
 ## de a partida nascer, e so em memoria.
 var _ajustes_de_no: Array = []
 var _dano_por_tipo := {}
+## Armas com que o druida nasce, trocadas em memória antes de a partida
+## entrar na árvore: `--armas_iniciais=corvo_espiritual` (ids de
+## `resources/weapons/`). Vazio mantém as da cena do Player.
+var _armas_iniciais: Array = []
 ## FASE 10: mede o custo de cada quadro ao longo da partida inteira.
 ##
 ## Rode **uma partida por vez**: com varias em paralelo elas disputam o
@@ -141,6 +145,8 @@ func _initialize() -> void:
 			_perf = true
 		elif arg.begins_with("--no="):
 			_ajustes_de_no.append(arg.trim_prefix("--no="))
+		elif arg.begins_with("--armas_iniciais="):
+			_armas_iniciais = arg.trim_prefix("--armas_iniciais=").split(",", false)
 		elif arg.begins_with("--ajuste="):
 			_ajustes.append(arg.trim_prefix("--ajuste="))
 
@@ -152,6 +158,17 @@ func _initialize() -> void:
 		_aplicar_ajuste(ajuste)
 
 	_game = (load(GAME_SCENE) as PackedScene).instantiate()
+	if not _armas_iniciais.is_empty():
+		var lista: Array[WeaponData] = []
+		for id in _armas_iniciais:
+			var arma := load("res://resources/weapons/%s.tres" % id) as WeaponData
+			if arma == null:
+				push_error("sonda: arma inicial desconhecida: %s" % id)
+				quit(2)
+				return
+			lista.append(arma)
+		(_game.get_node("Player/WeaponManager") as WeaponManager).starting_weapons = lista
+		print("sonda: armas iniciais %s" % str(_armas_iniciais))
 	root.add_child(_game)
 
 	_player = _game.get_node("Player")
@@ -473,7 +490,7 @@ func _on_boss(boss: Node2D) -> void:
 
 func _amostrar(t: float) -> void:
 	var armas := {}
-	for id in [&"cajado_raio", &"vinha_espinhosa", &"corvo_espiritual",
+	for id in [&"orbe_do_cajado", &"cajado_raio", &"vinha_espinhosa", &"corvo_espiritual",
 			&"anel_de_esporos", &"vagalumes_guardioes"]:
 		var n := _armas.get_weapon_level(id)
 		if n > 0:
@@ -546,6 +563,7 @@ func _encerrar() -> void:
 		"ajustes": _ajustes,
 		"invulneravel": _invulneravel,
 		"ajustes_de_no": _ajustes_de_no,
+		"armas_iniciais": _armas_iniciais,
 		"dano_por_tipo": _dano_por_tipo,
 		"vistos": _vistos,
 		"fim": _fim,

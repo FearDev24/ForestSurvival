@@ -34,6 +34,11 @@ enum Kind {
 
 @export var kind: Kind = Kind.PASSIVA
 
+## Segundos de partida a partir dos quais esta opção pode ser oferecida. Zero:
+## desde o começo. É o que dá a cada fase as suas habilidades (DEC-025) — a
+## vinha chega aos 30 s, o cajado aos 60, e assim por diante.
+@export var unlock_time: float = 0.0
+
 @export_group("Passiva")
 ## Qual stat recebe o bônus.
 @export var stat: StatComponent.Stat = StatComponent.Stat.MAX_HEALTH

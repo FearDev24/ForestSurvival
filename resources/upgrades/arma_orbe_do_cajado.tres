@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgorbe"]
+
+[ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
+[ext_resource type="Resource" uid="uid://bfsarmaorbe" path="res://resources/weapons/orbe_do_cajado.tres" id="2_arma"]
+
+[resource]
+script = ExtResource("1_data")
+id = &"arma_orbe_do_cajado"
+display_name = "Orbe do Cajado"
+description = "Um orbe de energia verde sai do cajado rumo ao inimigo mais próximo."
+kind = 1
+weapon = ExtResource("2_arma")

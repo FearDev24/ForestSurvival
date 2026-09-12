@@ -10,3 +10,4 @@ display_name = "Vagalumes Guardiões"
 description = "Três luzes giram em volta do druida."
 kind = 1
 weapon = ExtResource("2_arma")
+unlock_time = 270.0

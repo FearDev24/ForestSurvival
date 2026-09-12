@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://bfsorbe0forest"]
+
+[ext_resource type="Script" path="res://scripts/effects/orbe_projetil.gd" id="1_efeito"]
+[ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orbe"]
+radius = 10.0
+
+[node name="OrbeDoCajado" type="Node2D"]
+editor_description = "Ataque inicial do druida (DEC-025): orbe verde disparado do cajado no inimigo mais proximo. Redondo, entao pode mirar em qualquer direcao (DEC-022). z_index 40: voa na altura do cajado, por cima do chao e dos props, como o corvo. Visual PLACEHOLDER em codigo (DEC-013); a colisao tem o raio do nucleo desenhado."
+z_index = 40
+script = ExtResource("1_efeito")
+speed = 520.0
+lifetime = 1.1
+pierce = 1
+
+[node name="Hitbox" type="Area2D" parent="."]
+editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox, golpe unico por alvo. O dano 1.0 e marcador: quem manda no numero e o WeaponData, por set_damage()."
+collision_layer = 16
+collision_mask = 8
+monitorable = false
+script = ExtResource("2_hitbox")
+damage = 1.0
+hit_interval = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("CircleShape2D_orbe")

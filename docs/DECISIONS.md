@@ -476,3 +476,47 @@ Enquanto a arte não chega, a queda é provisória e mora no `Visual` do inimigo
 três lampejos e o corpo afundando no chão, ~2,2 s. A arte entra como uma
 animação `death`, **sem loop**, no `SpriteFrames` do Guardião, e substitui a
 provisória sem tocar em código.
+
+
+## DEC-025 — O druida nasce com o Orbe do Cajado, e cada habilidade tem a sua fase
+
+**Decisão:** o druida começa a partida **só com o Orbe do Cajado** — um orbe de
+energia verde disparado do cajado no inimigo mais próximo. As outras
+habilidades são conquistadas nas subidas de nível, e cada uma só é oferecida a
+partir da sua fase:
+
+| a partir de | libera | a ameaça daquela fase |
+|---|---|---|
+| início | Orbe do Cajado | o ataque básico |
+| 30 s | Vinha Espinhosa | primeiro controle de área, perto do druida |
+| 60 s — matilha | Cajado da Tempestade | cães rápidos e em grupo |
+| 150 s — brutos | Corvo Espiritual, Anel de Esporos | brutos lentos e resistentes |
+| 270 s — cerco | Vagalumes Guardiões | a horda fechando em volta |
+
+Passivas valem desde o começo.
+
+**Motivo:** decisão do responsável pelo projeto, a partir de 40 partidas da
+sonda. Nascendo com o Cajado e a Vinha, o druida tinha a 3ª habilidade aos
+19 s e a 4ª aos 39 s: as três primeiras waves não matavam ninguém (0 a 5%),
+toda a dificuldade caía no cerco (58%) e não existia "habilidade de cada
+fase". Nascendo só com o Corvo, o único projétil que havia, o começo emperrava:
+nível 1 aos 60 s, a 2ª habilidade só aos 72 s, e diabretes acumulando na tela.
+Um ataque inicial próprio, mais fraco por disparo e mais rápido, calibra a
+wave 1; a trava por fase espalha as habilidades pela partida.
+
+**Por que um orbe:** redondo, ele pode mirar em qualquer direção. A DEC-022
+restringe a mira ao horizontal porque a arte das habilidades é desenhada de
+lado, e deixou reservado o caso de "arte desenhada para girar — um projétil
+radial". O Orbe é esse caso (`aim_mode = PARA_O_ALVO`). Ele nasce na altura do
+cajado (`WeaponData.spawn_offset`) e mira o inimigo na mesma altura, para
+cruzar o corpo do alvo, e não o chão aos pés dele.
+
+**Consequência:** `UpgradeData.unlock_time` guarda a fase de cada opção, e o
+`UpgradePool` consulta o relógio do `GameManager` antes de oferecer. Sem
+relógio — um teste que monta o pool sozinho —, nada trava.
+
+**Consequência:** o Corvo Espiritual deixa de ser o único projétil e vira uma
+habilidade de meio de partida. As suítes que assumiam o Cajado e a Vinha no
+início (FASE 4 e acerto) passam a pôr essas armas à mão: elas testam uma arma
+disparando e acertando, não qual é a inicial. `tests/test_progressao.gd` guarda
+a tabela acima.

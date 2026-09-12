@@ -48,7 +48,7 @@ func _ready() -> void:
 	_weapons.configure(_player, _enemy_container, _effect_container, _stats)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
-	_upgrade_pool.configure(_stats, _weapons)
+	_upgrade_pool.configure(_stats, _weapons, _game_manager)
 	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)
 	# O botão de pausa por toque (FASE 12) pede, e o manager decide: ele segue
@@ -58,6 +58,14 @@ func _ready() -> void:
 		_level, _level_up_menu, _enemy_container, _pickup_container)
 	_pause_menu.configure(_game_manager)
 	_result_screen.configure(_game_manager)
+
+	# Só em build de depuração num aparelho móvel (FASE 12): mede a partida e
+	# escreve no log, lido pelo `adb logcat`. No PC e nos testes nem existe.
+	if MonitorDesempenho.deve_rodar():
+		var monitor := MonitorDesempenho.new()
+		monitor.name = "MonitorDesempenho"
+		monitor.configure(_enemy_container, _pickup_container, _game_manager)
+		add_child(monitor)
 
 
 ## O relógio é do `GameManager`; esta cena só o repassa ao HUD.

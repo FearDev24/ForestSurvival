@@ -262,8 +262,8 @@ Detalhes, tabelas e o que ficou de fora em `docs/HANDOFF.md`, "FASE 10".
 - [x] UI responsiva — `canvas_items` + `expand` (DEC-015), controles de toque só em tela de toque
 - [x] safe areas — `AreaSegura`, só em aparelho móvel
 - [x] Android export — `export_presets.cfg`, APK de depuração arm64 gerado
-- [ ] performance device — pendente: medir no aparelho, a começar pela horda no teto
-- [ ] consumo de memória — pendente: medir no aparelho
+- [x] performance device — medido no Xiaomi 2412DPC0AG com o bot jogando: quadro médio 8,4 ms, p95 12,1, pior 25,2; física no pico 13,2. Folga para 60 FPS, mas os 120 Hz da tela não se sustentam
+- [x] consumo de memória — 58 MB de RAM e 124 MB de vídeo numa partida de 7,5 minutos
 - [x] pausa por toque — não estava na lista: no celular não há Esc
 
 Detalhes e o que ainda falta decidir em `docs/HANDOFF.md`, "FASE 12".

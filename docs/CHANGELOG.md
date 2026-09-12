@@ -50,6 +50,30 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `scenes/ui/level_up_menu.tscn` reconstruída sobre a arte; cada opção vira uma linha com placa, ícone, nome e efeito, e o `Button` continua sendo um botão de verdade — os filhos ignoram o mouse para o clique chegar nele;
   - a coluna do ícone existe mesmo sem ícone, para uma opção ainda sem arte não desalinhar a fileira;
   - `icon` preenchido nos nove `UpgradeData` correspondentes.
+- **Dificuldade recalibrada para a progressão nova:**
+  - Elite Corrompida: 320 → **500** de vida e 22 → **30** de dano; Bruto Corrompido: 130 → **170** de vida; Guardião Profanado: 2000 → **3600**;
+  - waves mais densas no fim: brutos 0,60 → 0,50 s entre spawns e teto 110 → 140; cerco 0,38 → 0,30 s, teto 170 → **200** e elite a cada 12 s em vez de 18; Guardião 0,45 → 0,35 s e elite a cada 15 s em vez de 25;
+  - medido com a sonda, 20 partidas por calibração: inimigos mais duros **ou** mais numerosos não mudaram o placar (17 e 18 vitórias em 20, contra 17 do estado anterior) — só as duas coisas juntas mexeram nele. O escolhido leva a 10 vitórias em 20, com a dificuldade subindo no fim: 25% morrem no cerco e 20% no Guardião, e as três primeiras waves seguem sem matar ninguém;
+  - ainda acima da meta adotada de ~1 vitória em 3 para o bot, que é um jogador mediano. Daqui em diante quem julga é jogar.
+- **Progressão de habilidades por fase (DEC-025):**
+  - o druida nasce **só com o Orbe do Cajado** (`resources/weapons/orbe_do_cajado.tres`, `scenes/effects/orbe_do_cajado.tscn`): um orbe verde disparado do cajado no inimigo mais próximo, em qualquer direção — redondo, é o "projétil radial" que a DEC-022 deixou reservado. Visual provisório em código (`OrbeProjetil`), com a colisão no raio do desenho;
+  - `WeaponData.spawn_offset`: o Orbe nasce na altura do cajado e mira o inimigo na mesma altura, cruzando o corpo dele;
+  - `UpgradeData.unlock_time` e a trava no `UpgradePool`: Vinha a partir de 30 s, Cajado de 60 s, Corvo e Esporos de 150 s, Vagalumes de 270 s. Passivas valem desde o começo;
+  - medido: as habilidades passam a chegar espalhadas pela partida (2ª aos 43 s, 3ª aos 94 s, 4ª aos 200 s, contra 19 e 39 s antes), e o druida chega ao nível 6 aos 60 s, o mesmo ritmo de antes;
+  - `tests/test_progressao.gd` guarda a tabela de fases, a trava no sorteio e a mira do Orbe; as FASES 4 e de acerto passam a pôr à mão o Cajado e a Vinha, que não vêm mais de nascença;
+  - a sonda ganha `--armas_iniciais=`, para trocar as armas de nascença em memória.
+- **Bot de teste no celular:**
+  - `scripts/debug/bot_piloto.gd` — o bot da sonda num nó reutilizável: foge da horda, busca orbes, escolhe upgrades pelo menu e solta só as ações que apertou;
+  - `scripts/debug/bot_mobile.gd` — joga partidas seguidas no aparelho e escreve `FS_BOT_INICIO` / `FS_BOT_FIM` no log; liga só numa build de depuração aberta com `--bot`;
+  - preset de exportação "Android Bot", com pacote próprio (`com.feardev24.forestsurvival.bot`) e os argumentos do bot no APK;
+  - `tests/test_bot.gd` confere no PC que o piloto anda, escolhe upgrade e solta as ações ao sair.
+- **Acerto das habilidades:**
+  - as colisões foram medidas **nos próprios desenhos**, quadro a quadro: o raio passa de um círculo de 80 px para uma cápsula de 180 x 72 na largura do impacto no chão, que tem de 160 a 190 px; a vinha cobre da raiz (-25) à ponta (175); o corvo, o corpo de ~72 x 48; os vagalumes, raio 11 para um orbe desenhado com 9;
+  - **janela de impacto** no golpe (`AbilityEffect.impact_last_frame`): o raio e a vinha só pegam enquanto o desenho encosta, e a colisão desliga depois do quadro 6;
+  - **virar é espelhar na horizontal**, desenho e colisão juntos (`HitboxComponent.set_espelhado`). Girar 180° pendurava a vinha para a esquerda ~70 px abaixo do ponto de onde ela brota — desenho e colisão juntos, flutuando;
+  - **recuo**: um golpe de habilidade que não mata empurra o inimigo uns 18 px para longe de quem acertou, com intervalo de 0,2 s para uma zona que acerta várias vezes não virar parede. O sinal `hit` da hurtbox chega antes do dano, e é isso que deixa saber se o golpe vai matar. `EnemyData.knockback_scale`: bruto 0,5, elite 0,4, Guardião 0;
+  - **a vinha respeita os objetos do mapa**: entra na mesma ordem de profundidade de pedras, totens e personagens (o `EffectContainer` passa a ordenar por Y e ela vai para z 0), e só brota onde a faixa do golpe não atravessa objeto sólido (`WeaponData.grounded`). A faixa conferida é a própria colisão do efeito. Sem chão livre em 8 tentativas, ela não ataca naquele disparo;
+  - `tests/test_acerto.gd` mede o desenho nas texturas e confere a colisão para os dois lados, a vinha apoiada no chão, o recuo, a profundidade e o chão livre. Provada com sete erros injetados.
 - **FASE 12 — Mobile:**
   - joystick virtual flutuante (`scripts/ui/joystick_virtual.gd`): nasce sob o polegar na metade esquerda e aperta as ações `move_*` com a força da distância; um dedo só; solta **só o que ele apertou** — a primeira versão soltava as quatro ações e parava o druida de quem segura uma tecla, e a suíte da FASE 1 pegou — e solta ao pausar ou perder o foco;
   - botão de pausa por toque no HUD; o HUD emite `pausa_pedida` e `game.gd` liga ao `GameManager.pausar()`;

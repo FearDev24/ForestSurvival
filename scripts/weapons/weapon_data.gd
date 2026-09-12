@@ -48,6 +48,10 @@ enum Spawn { NO_ALVO, NO_DRUIDA, EM_VOLTA }
 ## ataques não nascerem todos colados no druida nem todos na borda.
 @export var spawn_radius: float = 140.0
 
+## Deslocamento do ponto de nascimento em relação ao druida, nos modos que
+## nascem nele. O Orbe do Cajado sai da altura do cajado, e não dos pés.
+@export var spawn_offset: Vector2 = Vector2.ZERO
+
 ## Para onde o ataque aponta.
 ##
 ## `HORIZONTAL` é a regra do jogo: habilidade com direção aponta para a esquerda
@@ -55,6 +59,12 @@ enum Spawn { NO_ALVO, NO_DRUIDA, EM_VOLTA }
 ## em ângulo qualquer denuncia que é um desenho girado.
 enum Aim { NENHUMA, PARA_O_ALVO, HORIZONTAL }
 @export var aim_mode: Aim = Aim.NENHUMA
+
+## Golpe que corre pelo chão, como a vinha: só nasce onde a faixa dele não
+## atravessa objeto sólido do mapa — pedra, totem, tronco. Sem isso ele
+## brotaria de um lado da pedra e sairia do outro, flutuando por cima dela.
+## O que vem do céu ou voa fica com falso.
+@export var grounded: bool = false
 
 @export_group("Família")
 ## Campos que só algumas famílias de ataque usam (`docs/ROADMAP.md`, FASE 7).

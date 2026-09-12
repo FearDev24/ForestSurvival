@@ -232,6 +232,11 @@ func _check_area_segura() -> void:
 
 
 func _check_projeto() -> void:
+	# O monitor de desempenho do aparelho não pode ligar no PC: o log dos testes
+	# e de quem joga no computador viraria uma linha a cada 5 segundos.
+	if MonitorDesempenho.deve_rodar():
+		_fail("O monitor de desempenho ligou fora do celular")
+
 	var orientacao := int(ProjectSettings.get_setting("display/window/handheld/orientation", -1))
 	# Paisagem, paisagem invertida ou paisagem pelo sensor.
 	if not orientacao in [DisplayServer.SCREEN_LANDSCAPE, DisplayServer.SCREEN_REVERSE_LANDSCAPE,

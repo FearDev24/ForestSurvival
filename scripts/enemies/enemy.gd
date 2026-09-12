@@ -55,12 +55,23 @@ var _is_dying := false
 ## (`docs/02_ARCHITECTURE.md`, DEC-011).
 var _target: Node2D = null
 
+## Recuo quando uma habilidade acerta sem matar: o jogador precisa ver que o
+## golpe pegou. Leve de propósito — uns 18 px — e com intervalo, para uma zona
+## que acerta várias vezes não virar uma parede que empurra a horda.
+const _RECUO_VELOCIDADE := 260.0
+const _RECUO_DURACAO := 0.14
+const _RECUO_INTERVALO := 0.2
+var _recuo := Vector2.ZERO
+var _recuo_tempo := 0.0
+var _recuo_espera := 0.0
+
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _hitbox: HitboxComponent = $Hitbox
 
 
 func _ready() -> void:
 	_target = get_tree().get_first_node_in_group("player")
+	_hurtbox.hit.connect(_on_atingido)
 	facing_changed.emit(facing)
 	movement_state_changed.emit(_is_moving)
 
@@ -118,7 +129,7 @@ func _redimensionar_corpo(raio: float) -> void:
 		forma.shape = circulo
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var direction := Vector2.ZERO
 
 	# `is_instance_valid` cobre o caso do alvo ser removido da árvore (morte do
@@ -127,9 +138,44 @@ func _physics_process(_delta: float) -> void:
 		direction = global_position.direction_to(_target.global_position)
 
 	velocity = direction * move_speed
+	# No recuo a perseguição cede e o empurrão manda, soltando aos poucos.
+	if _recuo_tempo > 0.0:
+		var peso := _recuo_tempo / _RECUO_DURACAO
+		velocity = velocity * (1.0 - peso) + _recuo * peso
+		_recuo_tempo -= delta
+	_recuo_espera -= delta
 	_update_facing(direction)
 	_update_movement_state(direction)
 	move_and_slide()
+
+
+## Recua quando uma habilidade acerta sem matar.
+##
+## O sinal `hit` da hurtbox chega **antes** do dano, e é isso que deixa saber se
+## o golpe vai matar: se vai, não empurra — o inimigo some no mesmo quadro, e o
+## empurrão não se veria.
+##
+## Para longe de quem acertou — o centro do raio, o orbe, o corvo —, e encolhe
+## com `EnemyData.knockback_scale`: pesado recua menos, o Guardião não recua.
+func _on_atingido(quanto: float, fonte: Node) -> void:
+	if _is_dying or _recuo_espera > 0.0:
+		return
+	var vida := get_node_or_null("Health") as HealthComponent
+	if vida != null and vida.current_health - quanto <= 0.0:
+		return
+	var escala := data.knockback_scale if data != null else 1.0
+	if escala <= 0.0:
+		return
+	var origem := global_position
+	var fonte_2d := fonte as Node2D
+	if fonte_2d != null:
+		origem = fonte_2d.global_position
+	var direcao := origem.direction_to(global_position)
+	if direcao.is_zero_approx():
+		direcao = Vector2.RIGHT
+	_recuo = direcao * _RECUO_VELOCIDADE * escala
+	_recuo_tempo = _RECUO_DURACAO
+	_recuo_espera = _RECUO_INTERVALO
 
 
 ## Reage à morte vinda do `HealthComponent`, ligado na própria cena.
