@@ -26,13 +26,30 @@ const _DIRECTION_SUFFIX := {
 ## `ASSET_WORKFLOW`: falta de direção permite fallback temporário).
 const _FALLBACK_SUFFIX := "south"
 
-## Escala da arte de morte.
+## Escala da arte de morte, por eixo.
 ##
-## Vale 1.0 porque a folha de morte foi gerada já na escala certa: o corpo mede
-## 70 px, igual ao da caminhada. Existe como `@export` porque a arte pode ser
-## trocada por outra fora de escala — foi o que aconteceu com a versão anterior,
-## que vinha a 64% do tamanho e precisava de 1,56 aqui.
-@export var death_scale: float = 1.0
+## A folha de morte não foi desenhada nas proporções da caminhada. Medido linha
+## a linha, o corpo dela é **12% mais alto** (91 px contra 83) e tem a cabeça
+## quase pela metade (12 px de capuz contra 22) — é isso que o jogador vê como
+## "o druida encolheu" no instante em que morre, embora nada no código escale
+## coisa alguma.
+##
+## Encolher tudo pioraria: a massa desenhada das duas folhas é praticamente a
+## mesma (3634 pixels acesos contra 3538), então reduzir a escala tiraria tinta
+## que está lá. O que aproxima é **achatar na vertical e alargar na
+## horizontal**: a altura passa a bater com a da caminhada e a silhueta volta a
+## ser atarracada, com a mesma quantidade de desenho.
+##
+## Não é conserto de arte — a cabeça continua mais estreita. É o ajuste que
+## cabe sem refazer a folha; o resto some na transição abaixo.
+@export var death_scale: Vector2 = Vector2(1.14, 0.90)
+
+## Segundos de transição entre a última pose viva e o primeiro quadro da morte.
+##
+## Uma cópia congelada da pose viva desvanece por cima do primeiro quadro da
+## morte. O que sobra de diferença entre as duas folhas deixa de acontecer num
+## quadro só, e o olho não tem dois desenhos nítidos para comparar.
+@export var death_fade: float = 0.16
 
 ## Linha dos pés dentro do quadro de morte.
 ##
@@ -49,6 +66,12 @@ signal death_animation_finished
 var _facing: Player.Facing = Player.Facing.SOUTH
 var _moving := false
 var _dead := false
+
+## Pose viva no instante da morte, para a transição.
+var _animacao_viva: StringName = &""
+var _quadro_vivo := 0
+var _posicao_viva := Vector2.ZERO
+var _escala_viva := Vector2.ONE
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 
@@ -74,10 +97,17 @@ func play_death() -> void:
 		death_animation_finished.emit()
 		return
 
+	# A pose viva é guardada antes de qualquer troca: é ela que desvanece.
+	_animacao_viva = _sprite.animation
+	_quadro_vivo = _sprite.frame
+	_posicao_viva = _sprite.position
+	_escala_viva = _sprite.scale
+
 	_apply_death_transform(animation)
 	_sprite.animation = animation
 	_sprite.frame = 0
 	_sprite.play()
+	_cruzar_para_morte()
 
 
 ## Recebe a direção encarada pelo jogador.
@@ -102,7 +132,7 @@ func set_moving(moving: bool) -> void:
 ## tamanhos de quadro diferentes, e fixar 48 aqui faria a morte pular para cima
 ## no instante em que começasse.
 func _apply_death_transform(animation: StringName) -> void:
-	_sprite.scale = Vector2(death_scale, death_scale)
+	_sprite.scale = death_scale
 
 	var meia := 48.0
 	var frames := _sprite.sprite_frames
@@ -111,7 +141,29 @@ func _apply_death_transform(animation: StringName) -> void:
 		if textura != null:
 			meia = textura.get_height() * 0.5
 
-	_sprite.position.y = -(death_feet_row - meia) * death_scale
+	_sprite.position.y = -(death_feet_row - meia) * death_scale.y
+
+
+## Deixa a pose viva congelada por cima, desvanecendo, enquanto a morte começa.
+##
+## A cópia é filha do mesmo nó e some sozinha no fim — ninguém de fora precisa
+## saber que ela existiu.
+func _cruzar_para_morte() -> void:
+	if death_fade <= 0.0:
+		return
+	var fantasma := AnimatedSprite2D.new()
+	fantasma.sprite_frames = _sprite.sprite_frames
+	fantasma.texture_filter = _sprite.texture_filter
+	fantasma.animation = _animacao_viva
+	fantasma.frame = _quadro_vivo
+	fantasma.position = _posicao_viva
+	fantasma.scale = _escala_viva
+	fantasma.z_index = _sprite.z_index + 1
+	add_child(fantasma)
+
+	var tween := create_tween()
+	tween.tween_property(fantasma, "modulate:a", 0.0, death_fade)
+	tween.tween_callback(fantasma.queue_free)
 
 
 func _on_sprite_animation_finished() -> void:

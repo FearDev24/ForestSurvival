@@ -341,6 +341,68 @@ func _check_render_order() -> void:
 
 ## Arte da morte e imagem de game over. Só a configuração: o resultado na tela
 ## foi conferido com render (ver HANDOFF).
+## A morte não pode mudar o tamanho do druida.
+##
+## As duas folhas não têm a mesma anatomia: medido linha a linha, o corpo da
+## morte é 12% mais alto e bem mais estreito que o da caminhada, e o jogador viu
+## isso como "o druida encolheu ao morrer". O `death_scale` do `Visual` achata e
+## alarga para compensar. Este teste mede a **textura**, aplica a escala e cobra
+## duas coisas: silhueta da mesma altura e pés no mesmo lugar.
+func _check_death_proporcao() -> void:
+	var jogador := (load(PLAYER_SCENE) as PackedScene).instantiate()
+	var visual := jogador.get_node("Visual")
+	var sprite := visual.get_node("Sprite") as AnimatedSprite2D
+	var escala: Vector2 = visual.get("death_scale")
+	var linha_dos_pes: float = visual.get("death_feet_row")
+
+	var viva := _silhueta(sprite, &"walk_south")
+	var morta := _silhueta(sprite, &"death_south")
+	jogador.free()
+	if viva.is_empty() or morta.is_empty():
+		_fail("Não consegui medir a silhueta do druida nas folhas de caminhada e morte")
+		return
+
+	var alta: float = morta["altura"] * escala.y
+	var razao: float = alta / maxf(1.0, viva["altura"])
+	if absf(razao - 1.0) > 0.06:
+		_fail("Ao morrer o druida muda de tamanho: %.0f px de corpo contra %.0f andando (%.0f%%)" % [
+			alta, viva["altura"], razao * 100.0])
+
+	# Onde o pé desenhado vai parar depois da escala e do deslocamento do nó.
+	var meia: float = morta["altura_do_quadro"] * 0.5
+	var y_do_no: float = -(linha_dos_pes - meia) * escala.y
+	var pe: float = y_do_no + (morta["pe"] - (morta["altura_do_quadro"] - 1) * 0.5) * escala.y
+	if absf(pe) > 4.0:
+		_fail("Ao morrer os pés saem do chão: ficam %.0f px da origem do druida" % pe)
+
+
+## Altura do corpo e linha dos pés no primeiro quadro, medidas na textura.
+##
+## Linhas com poucos pixels acesos são cajado, não corpo: o cajado sobe acima da
+## cabeça e falsearia a altura.
+func _silhueta(sprite: AnimatedSprite2D, animacao: StringName) -> Dictionary:
+	var frames := sprite.sprite_frames
+	if frames == null or not frames.has_animation(animacao) or frames.get_frame_count(animacao) == 0:
+		return {}
+	var img := frames.get_frame_texture(animacao, 0).get_image()
+	var largura := img.get_width()
+	var altura := img.get_height()
+	var topo := -1
+	var pe := -1
+	for y in altura:
+		var acesos := 0
+		for x in largura:
+			if img.get_pixel(x, y).a > 0.16:
+				acesos += 1
+		if acesos >= 10:
+			if topo < 0:
+				topo = y
+			pe = y
+	if topo < 0:
+		return {}
+	return {"altura": float(pe - topo + 1), "pe": float(pe), "altura_do_quadro": float(altura)}
+
+
 func _check_death_presentation() -> void:
 	if ResourceLoader.exists(PLAYER_FRAMES):
 		var frames: SpriteFrames = load(PLAYER_FRAMES)
@@ -353,6 +415,8 @@ func _check_death_presentation() -> void:
 				_fail("Animação de morte com menos de 2 frames")
 	else:
 		_fail("SpriteFrames do druida não encontrado: %s" % PLAYER_FRAMES)
+
+	_check_death_proporcao()
 
 	if not ResourceLoader.exists(GAME_SCENE):
 		return

@@ -2075,6 +2075,58 @@ o `AtlasTexture` fica vazio e o `SpriteFrames` vem sem animação. `godot
 --headless --import` antes de rodar os testes resolve, e vale para qualquer
 asset que chegue por script em vez de pelo editor.
 
+
+## Dois defeitos vistos jogando no celular
+
+### O Anel de Esporos "não aparecia"
+
+Aparecia. Medido numa partida de verdade com a arma equipada: **6 disparos em
+20 s**, zona viva na árvore, sprite tocando, e capturada na tela. O que estava
+errado era **onde**: `spawn_mode` era `NO_ALVO`, então a nuvem caía no inimigo,
+a até 320 px do druida, e sumia em 3,5 s. Somado ao `z_index -1` — que é o que
+faz a zona ficar no chão, debaixo do mato e dos totens — e à arte nova, que são
+cogumelos cor de terra sobre terra (o placeholder era um círculo verde
+translúcido, muito mais berrante), dava para jogar sem nunca notar.
+
+Passou a `EM_VOLTA` com raio 150: a zona brota em volta do druida, como a vinha.
+Continua no chão e continua sendo coberta pelos objetos — isso é de propósito.
+
+**Isto mexe no balanceamento** e a sonda ainda não foi rodada depois da
+mudança: a zona agora machuca quem chega perto em vez de quem está longe, o que
+provavelmente a fortalece no cerco e a enfraquece contra inimigo parado ao
+longe. Vale uma rodada de 20 partidas antes de dar a dificuldade por fechada.
+
+### O druida "encolhia" ao morrer
+
+Não havia escala nenhuma no código — `death_scale` valia 1.0 e era aplicado
+igual à caminhada. O problema é que as duas folhas não foram desenhadas com a
+mesma anatomia:
+
+| medida (quadro 0, alinhado pelos pés) | caminhada | morte |
+| ------------------------------------- | --------- | ----- |
+| altura do corpo                       | 83 px     | 91 px |
+| largura da cabeça com capuz           | 22 px     | 12 px |
+| largura dos ombros                    | 36 px     | 27 px |
+| pixels acesos no corpo                | 3634      | 3538  |
+
+A massa desenhada é praticamente a mesma: **encolher tudo tiraria tinta que
+está lá** e deixaria o druida de fato menor. O que aproxima as duas silhuetas é
+achatar e alargar, e foi o que `death_scale` passou a fazer — virou `Vector2` e
+vale `(1.14, 0.90)`. A altura passa a bater exata; a cabeça continua mais
+estreita, e é por isso que existe a segunda metade do ajuste: uma cópia
+congelada da pose viva desvanece em 0,16 s por cima do primeiro quadro da
+morte. A troca deixa de acontecer num quadro só, e o olho não tem dois desenhos
+nítidos para comparar.
+
+O jogador pediu explicitamente para **não** refazer a arte — o ajuste tinha de
+caber no código. Se um dia a folha for refeita, o caminho honesto é voltar
+`death_scale` para `(1, 1)`: o teste abaixo avisa se a nova folha precisar dele.
+
+`tests/test_phase2.gd` mede agora, na textura: silhueta da morte com a mesma
+altura da caminhada (±6%) e pés na origem do druida (±4 px). Verificado com
+defeito de propósito — escala de volta a `(1, 1)` acusa "muda de tamanho: 91 px
+contra 83 (110%)", e `death_feet_row` errado acusa "os pés saem do chão: 32 px".
+
 ## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
 
 O que entrou:

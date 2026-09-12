@@ -293,6 +293,11 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - `OrbeProjetil`, `ZoneEffect` e `OrbitEffect` **deixam de desenhar em código quando há um `Sprite` na cena** — é a vaga da DEC-013 sendo preenchida sem tocar em lógica;
   - `tests/test_acerto.gd` e `tests/test_progressao.gd` passaram a medir o desenho **na própria textura**, já na escala do sprite, em vez do raio do placeholder: se a arte mudar e a colisão ficar para trás, o teste diz.
 
+- **Dois defeitos vistos no celular, corrigidos:**
+  - **o Anel de Esporos nascia no inimigo** (`spawn_mode` NO_ALVO, até 320 px de distância) e, em `z_index -1`, ficava debaixo do mato e dos totens: medido, a arma disparava 6 vezes em 20 s e a zona estava lá — só que longe e meio coberta. Passou a nascer **em volta do druida** (`EM_VOLTA`, raio 150), como a vinha;
+  - **o druida parecia encolher ao morrer.** Não havia escala nenhuma no código: as duas folhas têm anatomias diferentes — medido linha a linha, o corpo da morte é 12% mais alto (91 px contra 83) e tem a cabeça quase pela metade (12 px de capuz contra 22), com a **mesma massa desenhada** (3538 pixels acesos contra 3634). Encolher tudo pioraria; `death_scale` virou `Vector2` e achata 10% na vertical e alarga 14% na horizontal, e uma cópia congelada da pose viva desvanece em 0,16 s por cima do primeiro quadro da morte, para a troca não acontecer num quadro só;
+  - `tests/test_phase2.gd` ganhou a medida: silhueta da morte com a mesma altura da caminhada (±6%) e pés na origem do druida (±4 px), ambas conferidas com defeito de propósito.
+
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;
