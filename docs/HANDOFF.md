@@ -2144,7 +2144,9 @@ das waves 2 e 3: nelas o que mata é acúmulo, não densidade momentânea; o efe
 foi só antecipar as mortes para o cerco.
 
 O gravado é o C5: elite com 500 de vida e 30 de dano, bruto com 170, Guardião
-com 3600, e as waves 3, 4 e 5 mais densas com elites mais frequentes. Ele ainda
+com 3600, e as waves 3, 4 e 5 mais densas com elites mais frequentes. Confirmado
+depois de gravado, com 20 partidas sem nenhum ajuste em memória: **8 vitórias em
+20**, 40% morrendo no cerco e 17% no Guardião — dentro do ruído do C5 medido. Ele ainda
 é mais fácil que a meta (1 em 2, não 1 em 3), e a diferença entre 10, 11 e 13
 vitórias está dentro do ruído de 20 partidas: o que separou o C5 foi o formato
 da curva. **Apertar mais depende de jogar** — o bot não julga se é divertido.
