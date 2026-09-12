@@ -1,8 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://bfsmenu0fs"]
+[gd_scene load_steps=6 format=3 uid="uid://bfsmenu0fs"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" path="res://assets/ui/opcao_normal.png" id="2_normal"]
 [ext_resource type="Texture2D" path="res://assets/ui/opcao_destaque.png" id="3_destaque"]
+[ext_resource type="Texture2D" path="res://assets/ui/titulo_jogo.png" id="4_titulo"]
+[ext_resource type="Texture2D" path="res://assets/ui/fundo_menu.png" id="5_fundo"]
 
 [node name="MainMenu" type="Control"]
 editor_description = "Cena principal do projeto (secao 16: voltar ao menu). JOGAR carrega a partida, SAIR fecha o jogo. Nao mexe em paused: quem despausa e o GameManager, antes de trocar de cena para ca."
@@ -36,6 +38,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+texture = ExtResource("5_fundo")
 expand_mode = 1
 stretch_mode = 6
 
@@ -61,6 +64,7 @@ custom_minimum_size = Vector2(0, 170)
 texture_filter = 2
 layout_mode = 2
 mouse_filter = 2
+texture = ExtResource("4_titulo")
 expand_mode = 1
 stretch_mode = 5
 

@@ -139,6 +139,15 @@ def main():
         w, h = salvar(recortar(ORIGEM + arquivo), destino)
         print("%-13s %dx%d  proporcao %.2f:1" % (rotulo, w, h, w / h))
 
+    # Menu principal: o nome do jogo vem sobre magenta; o fundo é ilustração
+    # opaca de tela cheia e só é normalizada aqui.
+    w, h = salvar(recortar(ORIGEM + "titulo jogo.png"), "assets/ui/titulo_jogo.png")
+    print("%-13s %dx%d  proporcao %.2f:1" % ("titulo jogo", w, h, w / h))
+    fundo = Image.open(ORIGEM + "fundo menu.png").convert("RGB")
+    fundo.save("assets/ui/fundo_menu.png")
+    print("%-13s %dx%d  proporcao %.2f:1" % ("fundo menu", fundo.size[0], fundo.size[1],
+                                             fundo.size[0] / fundo.size[1]))
+
     painel = recortar(ORIGEM + "Painel da tela de escolha — 720 × 520.png")
     w, h = salvar(painel, "assets/ui/painel_escolha.png")
     print("painel        %dx%d  proporcao %.2f:1" % (w, h, w / h))

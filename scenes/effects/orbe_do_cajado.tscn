@@ -1,10 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://bfsorbe0forest"]
+[gd_scene load_steps=5 format=3 uid="uid://bfsorbe0forest"]
 
 [ext_resource type="Script" path="res://scripts/effects/orbe_projetil.gd" id="1_efeito"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
+[ext_resource type="SpriteFrames" uid="uid://bfsorbeframes" path="res://assets/effects/orbe_sprite_frames.tres" id="3_frames"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_orbe"]
-radius = 10.0
+radius = 14.0
 
 [node name="OrbeDoCajado" type="Node2D"]
 editor_description = "Ataque inicial do druida (DEC-025): orbe verde disparado do cajado no inimigo mais proximo. Redondo, entao pode mirar em qualquer direcao (DEC-022). z_index 40: voa na altura do cajado, por cima do chao e dos props, como o corvo. Visual PLACEHOLDER em codigo (DEC-013); a colisao tem o raio do nucleo desenhado."
@@ -13,6 +14,14 @@ script = ExtResource("1_efeito")
 speed = 520.0
 lifetime = 1.1
 pierce = 1
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+editor_description = "Escala 0,55: a arte tem ~26 px de raio e a colisao 14. O OrbeProjetil so desenha em codigo quando nao ha este no (DEC-013)."
+texture_filter = 1
+scale = Vector2(0.55, 0.55)
+sprite_frames = ExtResource("3_frames")
+animation = &"fly"
+autoplay = "fly"
 
 [node name="Hitbox" type="Area2D" parent="."]
 editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox, golpe unico por alvo. O dano 1.0 e marcador: quem manda no numero e o WeaponData, por set_damage()."

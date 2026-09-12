@@ -14,6 +14,7 @@ config/name="Forest Survival"
 config/description="Survivor-like 2D top-down. Um druida guardiao defende a floresta de invasoes demoniacas."
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
+config/icon="res://assets/ui/icone_app.png"
 
 [display]
 

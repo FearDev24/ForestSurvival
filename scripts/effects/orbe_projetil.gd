@@ -18,5 +18,9 @@ extends ProjectileEffect
 
 
 func _draw() -> void:
+	# Com arte no lugar — um nó `Sprite` na cena —, o desenho em código sai:
+	# é a vaga da DEC-013 sendo preenchida sem mexer em lógica.
+	if get_node_or_null("Sprite") != null:
+		return
 	draw_circle(Vector2.ZERO, raio_desenho * 1.8, cor_brilho)
 	draw_circle(Vector2.ZERO, raio_desenho, cor)

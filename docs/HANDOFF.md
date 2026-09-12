@@ -2015,6 +2015,66 @@ aparelho está feito (abaixo); o que falta é medir **no celular**. A FASE 11
 (arte) segue esperando as peças que estão com o responsável — os pacotes de
 prompt já entregues estão em "O que também está pendente".
 
+
+## Arte entregue: o que entrou, e o que ainda falta
+
+A pasta `assets/ultimas solicitacoes` trouxe os ícones das armas, o nome do
+jogo, o fundo do menu, o ícone do app e três folhas de animação. Tudo isso está
+**integrado e verificado**; faltam os quatro vídeos de criatura (bruto, elite,
+Guardião andando e Guardião morrendo), cujos prompts já foram entregues.
+
+As peças chegaram com transparência de verdade, mas com o fundo **cercado de
+desenho** ainda em magenta — miolo do anel de esporos, vãos entre as asas do
+vagalume, contador das letras. É o mesmo caso já resolvido no painel: recortar
+por cor não basta, é preciso cortar por cor **e** conectividade, e o rosa que
+sobra da beirada antisserrilhada vira cinza de mesma luminância em vez de
+buraco.
+
+### Escala das animações: a arte decide, não o contrário
+
+`tools/preparar_efeitos.py` mede o raio visível de cada quadro e imprime. Foi
+essa medida que decidiu a escala de cada sprite e a colisão correspondente:
+
+| efeito   | raio da arte      | colisão antes | decisão                                  |
+| -------- | ----------------- | ------------- | ---------------------------------------- |
+| orbe     | 24 a 28 px        | 10            | sprite a 55%, colisão passa para 14      |
+| esporos  | 84 a 128 px       | 64            | só os dois quadros grandes, a 50%        |
+| vagalume | 10 a 16 px        | 11            | serve como está, sem escala              |
+
+O anel merece nota: ele **cresce** ao longo da folha, e a colisão de uma zona é
+um círculo fixo. Com os quatro quadros, os dois primeiros acertariam antes de a
+nuvem encostar no inimigo. Ficam os dois maiores, e a animação passa a pulsar
+em vez de crescer.
+
+Os três orbes dos vagalumes começam em quadros diferentes: piscando juntos
+pareceriam um efeito só.
+
+### O desenho em código sai quando a arte entra
+
+`OrbeProjetil`, `ZoneEffect` e `OrbitEffect` desenhavam círculos em `_draw()`.
+Agora cada um pergunta se existe um `Sprite` na cena e, havendo, não desenha
+nada — a DEC-013 previa exatamente essa troca, e ela não custou uma linha de
+lógica. O `ZoneEffect` também deixa de pedir redesenho por quadro nesse caso.
+
+### Os testes passaram a medir a textura
+
+`tests/test_acerto.gd` e `tests/test_progressao.gd` comparavam a colisão com o
+raio **exportado do placeholder** — que sobrevive intacto quando a arte entra.
+Continuariam passando com a arte em qualquer escala. Agora o raio sai da
+própria textura, quadro a quadro, mediana dos quadros e já multiplicado pela
+escala do sprite. Verificado com defeito de propósito: esporos a 25% (`colisão
+64 para nuvem de 32`), vagalume a 300% (`colisão 11 para orbe de 41`) e orbe a
+100% (`colisão 14 para desenho de 27`) — os três acusam.
+
+### Armadilha: PNG novo não existe até ser importado
+
+As três suítes falharam na primeira execução com "There is no animation with
+name 'idle'" e raio medido **zero**. A causa não era o `.tres`: os PNG novos não
+tinham `.import`, e sem ele a textura não existe para a Godot rodando headless —
+o `AtlasTexture` fica vazio e o `SpriteFrames` vem sem animação. `godot
+--headless --import` antes de rodar os testes resolve, e vale para qualquer
+asset que chegue por script em vez de pelo editor.
+
 ## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
 
 O que entrou:

@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bfsesporo0forest"]
+[gd_scene load_steps=4 format=3 uid="uid://bfsesporo0forest"]
 
 [ext_resource type="Script" path="res://scripts/effects/zone_effect.gd" id="1_efeito"]
 [ext_resource type="Script" path="res://scripts/components/hitbox_component.gd" id="2_hitbox"]
+[ext_resource type="SpriteFrames" uid="uid://bfsesporosframes" path="res://assets/effects/esporos_sprite_frames.tres" id="3_frames"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_esporo"]
 radius = 64.0
@@ -12,6 +13,14 @@ z_index = -1
 script = ExtResource("1_efeito")
 duration = 3.5
 visual_radius = 64.0
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+editor_description = "Escala 0,5: a arte tem 128 px de raio nos quadros usados e a zona vale 64. O ZoneEffect so desenha em codigo quando nao ha este no (DEC-013)."
+texture_filter = 1
+scale = Vector2(0.5, 0.5)
+sprite_frames = ExtResource("3_frames")
+animation = &"idle"
+autoplay = "idle"
 
 [node name="Hitbox" type="Area2D" parent="."]
 editor_description = "Ataque do jogador: layer 5 PlayerAttack, mask 4 EnemyHurtbox. hit_interval 0.5 - aqui o dano REPETE, que e o que distingue esta familia das outras duas. hit_on_enter true para quem pisa na zona sentir na hora. O dano 1.0 e marcador; quem manda e o WeaponData."

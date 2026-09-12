@@ -284,6 +284,15 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 - **Remoção do `idle_south`** (arte incorreta, a pedido): sheet, `.json`, `.import` e os 14 frames avulsos removidos; `druida_sprite_frames.tres` regerado com 4 animações e 57 frames; animação padrão da cena passou para `walk_south`. Nenhuma mudança de lógica foi necessária — a degradação já prevista em `player_visual.gd` cobriu a ausência de idle.
 - **Câmera afastada:** `camera_zoom` de 2.0 para 1.0. Em 1920 x 1080 a área visível passa de 640 x 360 para 1280 x 720 unidades de mundo, e o druida de 26,7% para 13,3% da altura da tela.
 
+- **Arte entregue integrada (pasta `assets/ultimas solicitacoes`, estado INTEGRATED):**
+  - `tools/preparar_icones_ui.py` ganhou as três armas que faltavam (`arma_orbe_do_cajado`, `arma_anel_de_esporos`, `arma_vagalumes_guardioes`): são 12 ícones, e as três `.tres` de upgrade passaram a apontar para eles;
+  - `tools/preparar_painel_ui.py` passou a produzir também `assets/ui/titulo_jogo.png` e `assets/ui/fundo_menu.png`, ligados nas vagas que o menu já reservava (DEC-013);
+  - `tools/preparar_app.py` (novo): do ícone cru saem `assets/ui/icone_app.png` (512), `android/icone_192.png` opaco e as duas camadas do ícone adaptativo (432), o desenho dentro dos 66% centrais que o lançador garante; registrados em `project.godot` e nos dois presets de exportação;
+  - `tools/preparar_efeitos.py` (novo): limpa o magenta **cercado de desenho** (miolo do anel, vãos das asas), mede o raio visível quadro a quadro e escreve os `SpriteFrames`. O anel de esporos cresce de 84 a 128 px de raio ao longo da folha e a zona precisa de tamanho constante: ficam só os dois quadros grandes;
+  - `orbe_do_cajado.tscn`, `spore_ring.tscn` e `guardian_fireflies.tscn` ganharam os sprites — o orbe a 55% (colisão 10 -> 14), os esporos a 50% (colisão 64), os vagalumes sem escala (colisão 11), cada um dos três orbes começando num quadro diferente para não piscarem juntos;
+  - `OrbeProjetil`, `ZoneEffect` e `OrbitEffect` **deixam de desenhar em código quando há um `Sprite` na cena** — é a vaga da DEC-013 sendo preenchida sem tocar em lógica;
+  - `tests/test_acerto.gd` e `tests/test_progressao.gd` passaram a medir o desenho **na própria textura**, já na escala do sprite, em vez do raio do placeholder: se a arte mudar e a colisão ficar para trás, o teste diz.
+
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

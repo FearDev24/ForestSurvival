@@ -34,11 +34,15 @@ func _physics_process(delta: float) -> void:
 		expired.emit()
 		queue_free()
 		return
-	# Só redesenha porque o placeholder pulsa. Com arte no lugar, sai.
-	queue_redraw()
+	# Só redesenha porque o placeholder pulsa. Com arte no lugar, não redesenha.
+	if get_node_or_null("Sprite") == null:
+		queue_redraw()
 
 
 func _draw() -> void:
+	# Com arte no lugar, o círculo em código sai de cena (DEC-013).
+	if get_node_or_null("Sprite") != null:
+		return
 	var restante := 1.0 - clampf(_vivo / maxf(0.01, duration), 0.0, 1.0)
 	# Pulso lento, e desvanece no fim para a zona não sumir de estalo.
 	var pulso := 0.92 + 0.08 * sin(_vivo * 6.0)

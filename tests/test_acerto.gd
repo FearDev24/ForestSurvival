@@ -141,6 +141,29 @@ func _colisao(efeito: Node2D) -> Rect2:
 	return _transformar(t, forma.shape.get_rect())
 
 
+## Raio visível da arte, quadro a quadro, já na escala do sprite.
+##
+## É a mesma ideia de `_desenho`: a medida sai da textura, não de um número
+## anotado aqui. Fica a mediana dos quadros — um efeito que pulsa não deve ser
+## julgado pelo quadro maior nem pelo menor.
+func _raio_da_arte(sprite: AnimatedSprite2D) -> float:
+	var raios: Array[float] = []
+	for q in sprite.sprite_frames.get_frame_count(sprite.animation):
+		var img := sprite.sprite_frames.get_frame_texture(sprite.animation, q).get_image()
+		var w := img.get_width()
+		var h := img.get_height()
+		var cx := (w - 1) * 0.5
+		var cy := (h - 1) * 0.5
+		var raio := 0.0
+		for y in h:
+			for x in w:
+				if img.get_pixel(x, y).a > 0.16:
+					raio = maxf(raio, maxf(absf(x - cx), absf(y - cy)))
+		raios.append(raio * absf(sprite.scale.x))
+	raios.sort()
+	return raios[raios.size() / 2]
+
+
 func _transformar(t: Transform2D, r: Rect2) -> Rect2:
 	var pontos := [r.position, r.position + Vector2(r.size.x, 0.0),
 		r.position + Vector2(0.0, r.size.y), r.end]
@@ -241,28 +264,37 @@ func _check_corvo() -> void:
 			_fail("Corvo: a colisão tem %.0f px de %s, o corpo tem %.0f" % [eixo[1], eixo[0], eixo[2]])
 
 
-## Os vagalumes: a colisão é o orbe desenhado e um pouco do brilho.
+## Os vagalumes: a colisão é o orbe desenhado e um pouco do brilho. Com a arte
+## no lugar, o desenho medido é o do sprite; sem ela, o círculo do placeholder.
 func _check_vagalumes() -> void:
 	var efeito := _efeitos["guardian_fireflies"] as Node2D
-	var desenhado: float = efeito.get("orb_radius")
 	for filho in efeito.get_children():
 		var forma := filho.get_node_or_null("CollisionShape2D") as CollisionShape2D
 		if forma == null:
 			continue
+		var sprite := filho.get_node_or_null("Sprite") as AnimatedSprite2D
+		var desenhado: float = _raio_da_arte(sprite) if sprite != null else efeito.get("orb_radius")
 		var raio := (forma.shape as CircleShape2D).radius
-		if raio < desenhado or raio > desenhado * 1.5:
+		if raio < desenhado * 0.7 or raio > desenhado * 1.5:
 			_fail("Vagalume: colisão de raio %.0f para um orbe desenhado com %.0f" % [raio, desenhado])
 			return
 
 
-## Os esporos: a colisão é o círculo desenhado.
+## Os esporos: a colisão é o círculo desenhado. A folha cresce de 84 a 128 px
+## de raio e a cena usa os dois quadros grandes; a colisão acompanha a arte.
 func _check_esporos() -> void:
 	var efeito := _efeitos["spore_ring"] as Node2D
-	var desenhado: float = efeito.get("visual_radius")
+	var sprite := efeito.get_node_or_null("Sprite") as AnimatedSprite2D
 	var forma := efeito.get_node("Hitbox/CollisionShape2D") as CollisionShape2D
 	var raio := (forma.shape as CircleShape2D).radius
-	if absf(raio - desenhado) > 1.0:
-		_fail("Esporos: colisão de raio %.0f para um anel desenhado com %.0f" % [raio, desenhado])
+	if sprite == null:
+		var desenhado: float = efeito.get("visual_radius")
+		if absf(raio - desenhado) > 1.0:
+			_fail("Esporos: colisão de raio %.0f para um anel desenhado com %.0f" % [raio, desenhado])
+		return
+	var arte := _raio_da_arte(sprite)
+	if raio < arte * 0.85 or raio > arte * 1.15:
+		_fail("Esporos: colisão de raio %.0f para uma nuvem desenhada com %.0f" % [raio, arte])
 
 
 # -------------------------------------------------------------------- recuo --

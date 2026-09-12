@@ -76,6 +76,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _draw() -> void:
+	# Com arte nos orbes — um `Sprite` em cada —, o desenho em código sai
+	# (DEC-013). Basta olhar o primeiro: a cena põe sprite em todos ou nenhum.
+	if not _orbes.is_empty() and _orbes[0].get_node_or_null("Sprite") != null:
+		return
 	var restante := 1.0 - clampf(_vivo / maxf(0.01, duration), 0.0, 1.0)
 	var cor := orb_color
 	# Desvanece no fim, para os orbes não sumirem de estalo.

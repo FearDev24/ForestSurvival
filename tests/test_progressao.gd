@@ -99,17 +99,41 @@ func _check_liberacao() -> void:
 	manager.set("_elapsed", 0.0)
 
 
-## O Orbe acerta onde é desenhado: a colisão cobre o núcleo e um pouco do brilho.
+## O Orbe acerta onde é desenhado: a colisão cobre o núcleo e um pouco do
+## brilho. Com a arte no lugar, o núcleo medido sai da própria textura, já na
+## escala do sprite — se a folha mudar, este teste diz que a colisão ficou para
+## trás. Sem arte, vale o raio do placeholder desenhado em código.
 func _check_orbe() -> void:
 	var cena := (load(ORBE_SCENE) as PackedScene).instantiate() as Node2D
-	var desenho: float = cena.get("raio_desenho")
+	var sprite := cena.get_node_or_null("Sprite") as AnimatedSprite2D
+	var desenho: float = _raio_da_arte(sprite) if sprite != null else cena.get("raio_desenho")
 	var forma := cena.get_node("Hitbox/CollisionShape2D") as CollisionShape2D
 	var raio := (forma.shape as CircleShape2D).radius
-	if raio < desenho or raio > desenho * 1.5:
-		_fail("Orbe: colisão de raio %.0f para um núcleo desenhado com %.0f" % [raio, desenho])
+	if raio < desenho * 0.85 or raio > desenho * 1.3:
+		_fail("Orbe: colisão de raio %.0f para um desenho de %.0f" % [raio, desenho])
 	if cena.z_index <= 0:
 		_fail("Orbe em z_index %d: ele voa na altura do cajado, por cima do chão" % cena.z_index)
 	cena.free()
+
+
+## Raio visível da arte, quadro a quadro, já na escala do sprite: fica a
+## mediana, porque o orbe pulsa entre 24 e 28 px de raio.
+func _raio_da_arte(sprite: AnimatedSprite2D) -> float:
+	var raios: Array[float] = []
+	for q in sprite.sprite_frames.get_frame_count(sprite.animation):
+		var img := sprite.sprite_frames.get_frame_texture(sprite.animation, q).get_image()
+		var w := img.get_width()
+		var h := img.get_height()
+		var cx := (w - 1) * 0.5
+		var cy := (h - 1) * 0.5
+		var raio := 0.0
+		for y in h:
+			for x in w:
+				if img.get_pixel(x, y).a > 0.16:
+					raio = maxf(raio, maxf(absf(x - cx), absf(y - cy)))
+		raios.append(raio * absf(sprite.scale.x))
+	raios.sort()
+	return raios[raios.size() / 2]
 
 
 ## Sai da altura do cajado e vai reto no inimigo, na diagonal inclusive — é o

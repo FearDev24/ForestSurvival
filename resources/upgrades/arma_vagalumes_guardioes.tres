@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="UpgradeData" load_steps=3 format=3 uid="uid://bfsupgvagalume"]
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=4 format=3 uid="uid://bfsupgvagalume"]
 
 [ext_resource type="Script" path="res://scripts/upgrades/upgrade_data.gd" id="1_data"]
 [ext_resource type="Resource" uid="uid://bfsarmavagalume" path="res://resources/weapons/vagalumes_guardioes.tres" id="2_arma"]
+[ext_resource type="Texture2D" path="res://assets/ui/icones/arma_vagalumes_guardioes.png" id="3_icone"]
 
 [resource]
 script = ExtResource("1_data")
@@ -11,3 +12,4 @@ description = "Três luzes giram em volta do druida."
 kind = 1
 weapon = ExtResource("2_arma")
 unlock_time = 270.0
+icon = ExtResource("3_icone")
