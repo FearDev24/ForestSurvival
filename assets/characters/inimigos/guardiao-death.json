@@ -1,0 +1,17 @@
+{
+ "generator": {
+  "name": "extrair_inimigo_video.py",
+  "version": "2"
+ },
+ "sheet": "guardiao-death.png",
+ "frameWidth": 348,
+ "frameHeight": 288,
+ "frames": 30,
+ "layout": "grid",
+ "columns": 11,
+ "rows": 3,
+ "pivot": {
+  "x": 0.5,
+  "y": 1.0
+ }
+}

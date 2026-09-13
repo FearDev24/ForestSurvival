@@ -341,6 +341,67 @@ func _check_render_order() -> void:
 
 ## Arte da morte e imagem de game over. Só a configuração: o resultado na tela
 ## foi conferido com render (ver HANDOFF).
+## Cada criatura com arte própria anda nas quatro direções, com o pé no chão.
+##
+## Os quadros das criaturas de vídeo não têm todos a mesma altura — 96 px o
+## diabrete, 160 o bruto, 176 a elite, 288 o Guardião — e o `Sprite` da cena
+## vem com um deslocamento fixo de -48, que só serve ao primeiro. Quem acerta o
+## resto é `_encostar_no_chao`, no `Visual`: sem ele o Guardião andaria
+## enterrado até o peito e o diabrete flutuaria. É isso que este teste mede — o
+## pixel mais baixo do desenho, em coordenada do inimigo, tem de cair na origem,
+## que é de onde saem o Y-sort e a colisão.
+func _check_arte_das_criaturas() -> void:
+	for arquivo in DirAccess.get_files_at("res://resources/enemies"):
+		if not arquivo.ends_with(".tres"):
+			continue
+		var dados := load("res://resources/enemies/" + arquivo) as EnemyData
+		if dados == null or dados.sprite_frames == null:
+			continue
+
+		for direcao in ["south", "north", "west", "east"]:
+			if not dados.sprite_frames.has_animation(&"walk_%s" % direcao):
+				_fail("%s não tem a caminhada para %s" % [dados.id, direcao])
+
+		# A morte encenada é só do Guardião (DEC-024), e não pode estar em loop:
+		# `animation_finished` nunca dispararia e a vitória ficaria esperando.
+		if dados.staged_death:
+			if not dados.sprite_frames.has_animation(&"death"):
+				_fail("%s morre encenado e não tem a animação 'death'" % dados.id)
+			elif dados.sprite_frames.get_animation_loop(&"death"):
+				_fail("A morte de %s está em loop: a vitória nunca chegaria" % dados.id)
+
+		var bicho := (load(ENEMY_SCENE) as PackedScene).instantiate()
+		root.add_child(bicho)
+		bicho.call("apply_data", dados)
+		var visual := bicho.get_node("Visual") as Node2D
+		var sprite := visual.get_node("Sprite") as AnimatedSprite2D
+		for direcao in ["south", "west"]:
+			visual.call("set_facing", Enemy.Facing.SOUTH if direcao == "south" else Enemy.Facing.WEST)
+			visual.call("set_moving", true)
+			var pe: Variant = _pe_do_desenho(sprite)
+			if pe == null:
+				_fail("%s (%s): quadro sem desenho nenhum" % [dados.id, direcao])
+			elif absf(float(pe) * visual.scale.y) > 3.0:
+				_fail("%s (%s): o pé fica %.0f px da origem — a criatura %s" % [
+					dados.id, direcao, float(pe) * visual.scale.y,
+					"flutua" if float(pe) < 0.0 else "afunda no chão"])
+		bicho.queue_free()
+
+
+## Y do pixel mais baixo do quadro atual, em coordenada do `Visual`.
+func _pe_do_desenho(sprite: AnimatedSprite2D) -> Variant:
+	var frames := sprite.sprite_frames
+	if frames == null or frames.get_frame_count(sprite.animation) == 0:
+		return null
+	var img := frames.get_frame_texture(sprite.animation, 0).get_image()
+	var altura := img.get_height()
+	for y in range(altura - 1, -1, -1):
+		for x in img.get_width():
+			if img.get_pixel(x, y).a > 0.16:
+				return sprite.position.y + (y - (altura - 1) * 0.5) * sprite.scale.y
+	return null
+
+
 ## A morte não pode mudar o tamanho do druida.
 ##
 ## As duas folhas não têm a mesma anatomia: medido linha a linha, o corpo da
@@ -417,6 +478,7 @@ func _check_death_presentation() -> void:
 		_fail("SpriteFrames do druida não encontrado: %s" % PLAYER_FRAMES)
 
 	_check_death_proporcao()
+	_check_arte_das_criaturas()
 
 	if not ResourceLoader.exists(GAME_SCENE):
 		return

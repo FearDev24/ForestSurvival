@@ -1,17 +1,19 @@
-[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://bfsinimigoboss"]
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3 uid="uid://bfsinimigoboss"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_data.gd" id="1_data"]
+[ext_resource type="SpriteFrames" uid="uid://bfsguardiaoframes" path="res://assets/characters/inimigos/guardiao_sprite_frames.tres" id="2_frames"]
 
 [resource]
 script = ExtResource("1_data")
+sprite_frames = ExtResource("2_frames")
 id = &"guardiao_profanado"
 display_name = "Guardião Profanado"
 max_health = 3600.0
 contact_damage = 34.0
 move_speed = 85.0
 xp_value = 80.0
-visual_scale = 2.80
+visual_scale = 1.0
 body_radius = 44.0
-tint = Color(0.85, 0.3, 0.35, 1)
+tint = Color(1, 1, 1, 1)
 staged_death = true
 knockback_scale = 0.0

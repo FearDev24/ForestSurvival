@@ -298,6 +298,18 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - **o druida parecia encolher ao morrer.** Não havia escala nenhuma no código: as duas folhas têm anatomias diferentes — medido linha a linha, o corpo da morte é 12% mais alto (91 px contra 83) e tem a cabeça quase pela metade (12 px de capuz contra 22), com a **mesma massa desenhada** (3538 pixels acesos contra 3634). Encolher tudo pioraria; `death_scale` virou `Vector2` e achata 10% na vertical e alarga 14% na horizontal, e uma cópia congelada da pose viva desvanece em 0,16 s por cima do primeiro quadro da morte, para a troca não acontecer num quadro só;
   - `tests/test_phase2.gd` ganhou a medida: silhueta da morte com a mesma altura da caminhada (±6%) e pés na origem do druida (±4 px), ambas conferidas com defeito de propósito.
 
+- **As quatro animações de criatura que faltavam (vídeo -> folha -> `SpriteFrames`):**
+  - `tools/extrair_inimigo_video.py` deixou de ser só do cão: altura do corpo, altura do quadro e número de quadros passaram a sair da configuração de cada inimigo, e entraram `bruto`, `elite` e `guardiao`;
+  - **só o maior pedaço ligado do desenho sobrevive** ao corte do verde: os vídeos novos têm uma estrelinha de marca de água ao lado do bicho, e ela entrava na caixa do recorte, que é quem decide enquadramento e escala;
+  - **o ciclo da passada passou a ser medido em pixel, não em silhueta.** De perfil, a meia-passada tem silhueta quase igual à passada inteira; por silhueta o Guardião dava 24 quadros no lugar de 50. Medidos: bruto 43, elite 31, Guardião 50. O ciclo sai do perfil, não da vista de frente, onde o bicho anda para a câmera e quase nada muda;
+  - o lado de cada perfil foi conferido, não suposto: no bruto e na elite os dois trechos de perfil são o mesmo lado (21% e 15% de diferença entre eles, contra 30% e 53% espelhados), e um lado sai espelhado do outro, como os nomes dos arquivos pediam; no Guardião são lados opostos de verdade (37% contra 21%), e a galhada clara diz qual é qual;
+  - **a queda do Guardião** (DEC-024) sai do vídeo de derrota como animação avulsa, com **janela de recorte única** para todos os quadros — recortar quadro a quadro, como na caminhada, centraria o corpo sempre e ele morreria sem sair do lugar. 30 quadros a 12 fps, em grade de 11 x 3 porque em fila a folha teria 10 mil px de largura (BUG-001);
+  - `tools/preparar_inimigo.py` escreve as três folhas novas e a animação `death`, sem loop — em loop o `animation_finished` nunca dispararia e a vitória ficaria esperando;
+  - `bruto_corrompido`, `elite_corrompida` e `guardiao_profanado` passaram a apontar para a arte própria, com `visual_scale` de volta a 1.0 e `tint` branco: as alturas das folhas foram escolhidas para que **nenhuma criatura mude de tamanho em tela** (67, 78 e 129 px, o que elas mediam com a folha do diabrete ampliada em 1,45, 1,70 e 2,80).
+
+### Fixed
+
+- **O Guardião nasceria enterrado até o peito.** O `Sprite` da cena tem deslocamento fixo de -48, certo para o quadro de 96 px do diabrete e errado para os de 160, 176 e 288 das criaturas de vídeo. `enemy_visual.gd` passou a encostar o pé na origem a partir da altura do quadro — inclusive **ao trocar a arte**, que era o caso que escapava: trocar o `SpriteFrames` mantendo o nome `walk_south` não troca de animação e não mexia no pivô. Achado por `tests/test_phase2.gd`, que passou a medir o pixel mais baixo do desenho em coordenada do inimigo (bruto 16 px, elite 20, Guardião 48 enterrados).
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

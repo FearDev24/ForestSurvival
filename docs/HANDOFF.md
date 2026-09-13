@@ -2127,6 +2127,97 @@ altura da caminhada (±6%) e pés na origem do druida (±4 px). Verificado com
 defeito de propósito — escala de volta a `(1, 1)` acusa "muda de tamanho: 91 px
 contra 83 (110%)", e `death_feet_row` errado acusa "os pés saem do chão: 32 px".
 
+
+## As quatro animações de criatura: do vídeo ao jogo
+
+Chegaram os vídeos do bruto, da elite, do Guardião andando e do Guardião
+morrendo — as últimas peças de criatura que faltavam. Mesmo formato do cão: 240
+quadros a 24 fps, fundo verde, quatro vistas de 60 (frente, perfil, perfil de
+novo, costas), com cortes secos medidos em 59, 120 e 180.
+
+### O que o vídeo não conta, e foi medido
+
+**Qual perfil veio no vídeo.** Os nomes dos arquivos dizem (`espelharEast`,
+`espelharWest`) e a medida confirma: no bruto e na elite os dois trechos de
+perfil são o mesmo lado — 21% e 15% de diferença entre eles, contra 30% e 53%
+comparando um com o outro espelhado. No Guardião são lados opostos de verdade
+(37% contra 21%), e aí não há espelho nenhum: a galhada clara fica a 0,33 da
+largura no trecho 2 (cabeça à esquerda, oeste) e a 0,68 no trecho 3 (leste).
+
+**Quantos quadros tem a passada.** Era detectada por silhueta, e por silhueta o
+Guardião dá 24 — metade do valor certo. De perfil, a meia-passada tem quase a
+mesma silhueta da passada inteira: as pernas trocam de lugar e o contorno mal
+muda. Comparando **pixel**, a perna de trás é mais escura que a da frente e o
+mínimo da passada inteira fica mais fundo: bruto 43, elite 31, Guardião 50,
+batendo com a medida feita à parte. O ciclo passou a sair do perfil, e não da
+vista de frente, onde o bicho anda para a câmera e quase nada se move.
+
+**A estrelinha.** Os vídeos novos têm uma marca de água clara flutuando ao lado
+do bicho. Ela não é verde, então passava pelo corte de fundo e entrava na caixa
+do recorte — que é quem decide enquadramento e escala. Agora só o maior pedaço
+ligado do desenho sobrevive.
+
+### Tamanho: as criaturas não mudaram de tamanho ao ganhar arte
+
+As três usavam a folha do diabrete ampliada — 1,45, 1,70 e 2,80 — e tingida de
+roxo, amarelo e vermelho. As alturas das folhas novas foram escolhidas para dar
+exatamente o mesmo tamanho em tela (67, 78 e 129 px), e com isso `visual_scale`
+volta a 1.0 e o `tint` a branco. Ou seja: **mudou a definição, não o jogo.** Se
+um dia o bruto tiver de parecer maior que o druida — hoje ele é menor —, isso é
+decisão de design e se faz em `altura_de_frente`, não em `visual_scale`.
+
+### A queda do Guardião
+
+Sai do vídeo de derrota como animação avulsa, não como ciclo. A diferença que
+importa: a janela de recorte é **uma só para todos os quadros**. Recortando
+quadro a quadro, como na caminhada, o corpo ficaria centrado a cada quadro e o
+Guardião morreria sem sair do lugar — apagando justamente o movimento que a
+animação existe para mostrar. São 30 quadros a 12 fps (2,5 s) tirados dos 186
+primeiros quadros do vídeo; o resto é pose parada, e segurar pose é trabalho do
+`AnimatedSprite2D`.
+
+A folha vai em **grade de 11 x 3**, e não em fila: 30 quadros de 348 px dariam
+10 mil px de largura, muito acima do limite de 4096 das GPUs Android antigas
+(BUG-001). O `.tres` calcula a região de cada quadro pela linha e coluna.
+
+A animação se chama `death` e **não está em loop** — `enemy_visual.gd` espera o
+`animation_finished` para saber que a queda acabou, e animação em loop nunca o
+emite: a vitória ficaria esperando para sempre. A queda provisória desenhada em
+código saiu de cena sozinha, sem que nada em `enemy.gd` mudasse, que era o que a
+DEC-013 prometia.
+
+### O defeito que o teste pegou antes de ir para o jogo
+
+O `Sprite` do inimigo tem deslocamento fixo de -48 na cena — metade do quadro de
+96 px do diabrete. As criaturas de vídeo têm quadros de 160, 176 e 288: o
+Guardião nasceria **enterrado até o peito** (48 px de afundamento em tela), e o
+bruto e a elite, 16 e 20 px.
+
+`enemy_visual.gd` passou a pôr o pé na origem a partir da altura do quadro. O
+caso que escapou na primeira tentativa: ele só ajustava ao **trocar de
+animação**, e trocar o `SpriteFrames` mantendo o nome `walk_south` não troca
+animação nenhuma. O ajuste passou a acontecer também em `set_frames`.
+
+`tests/test_phase2.gd` mede agora o pixel mais baixo do desenho em coordenada do
+inimigo, para cada criatura com arte própria, e cobra que ele caia na origem
+(±3 px) — é de lá que saem o Y-sort e a colisão. Foi esse teste que acusou os
+três casos acima.
+
+### O cão mudou um pouco
+
+Regerar o cão com o cortador novo dá folhas ligeiramente diferentes: o recorte
+do maior componente mexeu na caixa e, com ela, na escala. Comparadas lado a
+lado, as duas versões são a mesma arte; as novas ficaram no lugar para o gerador
+e a arte no repositório não divergirem. O ciclo dele ficou **travado em 24** na
+configuração, que é o valor com que ele entrou no jogo: o detector novo mede 22,
+os dois servem, e mexer numa arte já aprovada sem necessidade seria gratuito.
+
+### Os vídeos estão versionados
+
+Foram para `assets/characters/inimigos/_raw/`, ao lado do vídeo do cão e dentro
+do `.gdignore` que já existe ali — a Godot não tenta importar. São 21 MB de
+fonte para quem precisar regerar as folhas com outros números.
+
 ## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
 
 O que entrou:

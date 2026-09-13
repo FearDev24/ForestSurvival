@@ -75,6 +75,45 @@ INIMIGOS = {
             "east": "cao-east.png",
         },
     },
+    # As tres criaturas abaixo sairam de video, como o cao, e ja vem na escala
+    # de mundo certa: `visual_scale` vale 1 no `EnemyData` delas. Antes de terem
+    # arte propria, as tres usavam a folha do diabrete ampliada (1,45, 1,70 e
+    # 2,80), e as alturas de `extrair_inimigo_video.py` foram escolhidas para
+    # que nenhuma mudasse de tamanho em tela ao ganhar a sua.
+    "bruto": {
+        "uid": "bfsbrutoframes",
+        "saida": "bruto_sprite_frames.tres",
+        "folhas": {
+            "south": "bruto-south.png",
+            "north": "bruto-north.png",
+            "west": "bruto-west.png",
+            "east": "bruto-east.png",
+        },
+    },
+    "elite": {
+        "uid": "bfseliteframes",
+        "saida": "elite_sprite_frames.tres",
+        "folhas": {
+            "south": "elite-south.png",
+            "north": "elite-north.png",
+            "west": "elite-west.png",
+            "east": "elite-east.png",
+        },
+    },
+    "guardiao": {
+        "uid": "bfsguardiaoframes",
+        "saida": "guardiao_sprite_frames.tres",
+        "folhas": {
+            "south": "guardiao-south.png",
+            "north": "guardiao-north.png",
+            "west": "guardiao-west.png",
+            "east": "guardiao-east.png",
+        },
+        # A unica criatura com morte encenada (DEC-024). O nome `death` e o que
+        # `enemy_visual.gd` procura; havendo, a queda provisoria desenhada em
+        # codigo sai de cena sozinha.
+        "morte": {"arquivo": "guardiao-death.png", "animacao": "death", "velocidade": 12.0},
+    },
 }
 
 
@@ -230,15 +269,41 @@ def montar(nome):
     return True
 
 
+def ler_morte(config):
+    """A folha da queda, que vem em grade e nao em fila."""
+    morte = config.get("morte")
+    if morte is None:
+        return None
+    caminho = PASTA + morte["arquivo"]
+    if not os.path.exists(caminho):
+        raise SystemExit("folha da queda ausente: " + caminho)
+    d = json.load(open(caminho[:-4] + ".json", encoding="utf-8"))
+    im = Image.open(caminho)
+    colunas, linhas_ = int(d["columns"]), int(d["rows"])
+    lq, aq = int(d["frameWidth"]), int(d["frameHeight"])
+    if im.size != (lq * colunas, aq * linhas_):
+        raise SystemExit("%s mede %dx%d e a grade declarada pede %dx%d"
+                         % (morte["arquivo"], im.size[0], im.size[1], lq * colunas, aq * linhas_))
+    return {"arquivo": morte["arquivo"], "animacao": morte["animacao"],
+            "velocidade": morte.get("velocidade", VELOCIDADE),
+            "quadros": int(d["frames"]), "colunas": colunas, "lq": lq, "aq": aq}
+
+
 def escrever(config, dados):
     ordem = list(config["folhas"].keys())
+    morte = ler_morte(config)
     passos = 1 + len(ordem) + sum(dados[d]["quadros"] for d in ordem)
+    if morte is not None:
+        passos += 1 + morte["quadros"]
 
     linhas = ['[gd_resource type="SpriteFrames" load_steps=%d format=3 uid="uid://%s"]'
               % (passos, config["uid"]), ""]
     for i, direcao in enumerate(ordem):
         linhas.append('[ext_resource type="Texture2D" path="res://%s%s" id="%d_walk_%s"]'
                       % (PASTA, dados[direcao]["arquivo"], i + 1, direcao))
+    if morte is not None:
+        linhas.append('[ext_resource type="Texture2D" path="res://%s%s" id="%d_morte"]'
+                      % (PASTA, morte["arquivo"], len(ordem) + 1))
     linhas.append("")
 
     for i, direcao in enumerate(ordem):
@@ -248,6 +313,14 @@ def escrever(config, dados):
                        'atlas = ExtResource("%d_walk_%s")' % (i + 1, direcao),
                        "region = Rect2(%d, 0, %d, %d)" % (k * d["lq"], d["lq"], d["aq"]), ""]
 
+    if morte is not None:
+        for k in range(morte["quadros"]):
+            coluna, linha = k % morte["colunas"], k // morte["colunas"]
+            linhas += ['[sub_resource type="AtlasTexture" id="AtlasTexture_morte_%02d"]' % k,
+                       'atlas = ExtResource("%d_morte")' % (len(ordem) + 1),
+                       "region = Rect2(%d, %d, %d, %d)"
+                       % (coluna * morte["lq"], linha * morte["aq"], morte["lq"], morte["aq"]), ""]
+
     linhas += ["[resource]", "animations = ["]
     blocos = []
     for direcao in ordem:
@@ -256,6 +329,15 @@ def escrever(config, dados):
             for k in range(dados[direcao]["quadros"]))
         blocos.append('{\n"frames": [%s],\n"loop": true,\n"name": &"walk_%s",\n"speed": %.1f\n}'
                       % (quadros, direcao, VELOCIDADE))
+    if morte is not None:
+        quadros = ",\n".join(
+            '{\n"duration": 1.0,\n"texture": SubResource("AtlasTexture_morte_%02d")\n}' % k
+            for k in range(morte["quadros"]))
+        # `loop` falso de proposito: `enemy_visual.gd` espera o
+        # `animation_finished`, e animacao em loop nunca o emite -- a vitoria
+        # ficaria esperando para sempre.
+        blocos.append('{\n"frames": [%s],\n"loop": false,\n"name": &"%s",\n"speed": %.1f\n}' 
+                      % (quadros, morte["animacao"], morte["velocidade"]))
     linhas.append(", ".join(blocos) + "]")
     linhas.append("")
 

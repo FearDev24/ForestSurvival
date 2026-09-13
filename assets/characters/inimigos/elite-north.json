@@ -3,9 +3,9 @@
   "name": "extrair_inimigo_video.py",
   "version": "1"
  },
- "sheet": "cao-south.png",
- "frameWidth": 62,
- "frameHeight": 96,
+ "sheet": "elite-north.png",
+ "frameWidth": 72,
+ "frameHeight": 176,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

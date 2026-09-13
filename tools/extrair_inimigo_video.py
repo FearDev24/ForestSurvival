@@ -36,17 +36,21 @@ from PIL import Image
 
 PASTA = "assets/characters/inimigos/"
 
-## Altura do corpo, em pixels, que a vista de **frente** deve ter no arquivo.
-## Com o no `Visual` da cena em 0.5, isso da 40 px em tela -- pouco abaixo dos
-## 46 do diabrete, que e o que o `04_CONTENT_PLAN.md` pede para o cao.
+## Padroes, quando o inimigo nao diz outra coisa.
+##
+## `altura_de_frente` e a altura do corpo na vista de frente, em pixels de
+## arquivo. Com o no `Visual` da cena em 0.5 e `visual_scale` em 1, ela vale
+## metade disso em tela: 80 aqui sao os 40 px do cao.
+##
+## `altura_quadro` precisa caber o quadro mais alto da animacao -- o corpo sobe
+## e desce andando --, e e dela que sai o pivo: o pe encosta na base do quadro.
 ALTURA_DE_FRENTE = 80
-
-## Altura do quadro. Nao muda: e ela que faz o pe cair na origem do no, com o
-## `Sprite` em (0,-48) dentro do `Visual`.
 ALTURA_QUADRO = 96
-
-## Quantos quadros por direcao entram na folha final.
 QUADROS_POR_DIRECAO = 12
+
+## Limite de largura de textura das GPUs Android antigas (BUG-001). Uma folha
+## acima disso nao carrega no aparelho, e e melhor descobrir aqui.
+LARGURA_MAXIMA = 4096
 
 INIMIGOS = {
     "cao": {
@@ -71,6 +75,105 @@ INIMIGOS = {
         "linha_do_rotulo": 140,
         # Quadros de folga nas pontas de cada trecho, para nao pegar transicao.
         "folga": 16,
+        # Travado no valor com que as folhas do cao entraram no jogo. O detector
+        # mudou depois (passou a comparar pixel, por causa da meia-passada do
+        # Guardiao) e agora mede 22 aqui. Os dois valores servem; trocar sem
+        # necessidade so mexeria numa arte ja aprovada.
+        "ciclo": 24,
+    },
+    # Os tres videos abaixo tem o mesmo formato: 240 quadros a 24 fps, quatro
+    # vistas de 60 -- frente, perfil, perfil de novo, costas -- e uma estrelinha
+    # de marca d'agua flutuando ao lado do bicho, que sai no recorte do maior
+    # componente (ver `tirar_verde`). Nao tem texto: `linha_do_rotulo` e zero.
+    #
+    # Qual perfil o video traz esta no **nome do arquivo**, posto por quem
+    # gerou, e foi conferido por silhueta: no bruto e na elite os dois trechos
+    # de perfil sao o mesmo lado (21% e 15% de diferenca entre eles, contra 30%
+    # e 53% espelhados), entao um lado sai espelhado do outro. No Guardiao os
+    # trechos sao lados opostos de verdade (37% iguais contra 21% espelhados), e
+    # a galhada clara diz qual e qual: a 0,33 da largura no trecho 2 (cabeca a
+    # esquerda, oeste) e a 0,68 no trecho 3 (leste).
+    "bruto": {
+        "video": PASTA + "_raw/Bruto-espelharEast.mp4",
+        "prefixo": "bruto",
+        "trechos": {"south": (0, 59), "perfil": (59, 120), "north": (180, 240)},
+        "direcoes": {
+            "south": ("south", False),
+            "north": ("north", False),
+            "west": ("perfil", False),
+            "east": ("perfil", True),
+        },
+        "referencia": "south",
+        "ciclo_de": "perfil",
+        "linha_do_rotulo": 0,
+        # Um quadro de folga, e nao dezesseis: os cortes destes videos sao secos
+        # -- medidos em 59, 120 e 180 -- e o trecho inteiro faz falta, porque a
+        # passada do Guardiao leva 50 quadros e nao cabe num pedaco menor.
+        "folga": 1,
+        # 134 px de corpo dao 67 px em tela, que e o tamanho que o bruto ja
+        # tinha com a folha do diabrete ampliada em 1,45 -- a criatura nao muda
+        # de tamanho ao ganhar arte propria, so de definicao.
+        "altura_de_frente": 134,
+        "altura_quadro": 160,
+    },
+    "elite": {
+        "video": PASTA + "_raw/elite-espelharWest.mp4",
+        "prefixo": "elite",
+        "trechos": {"south": (0, 59), "perfil": (59, 120), "north": (180, 240)},
+        "direcoes": {
+            "south": ("south", False),
+            "north": ("north", False),
+            "west": ("perfil", True),
+            "east": ("perfil", False),
+        },
+        "referencia": "south",
+        "ciclo_de": "perfil",
+        "linha_do_rotulo": 0,
+        "folga": 1,
+        # 78 px em tela, o que ela media com 1,70 de ampliacao.
+        "altura_de_frente": 156,
+        "altura_quadro": 176,
+    },
+    "guardiao": {
+        "video": PASTA + "_raw/Guardião movimentaão.mp4",
+        "prefixo": "guardiao",
+        "trechos": {"south": (0, 59), "west": (59, 120), "east": (120, 180),
+                    "north": (180, 240)},
+        "direcoes": {
+            "south": ("south", False),
+            "north": ("north", False),
+            "west": ("west", False),
+            "east": ("east", False),
+        },
+        "referencia": "south",
+        "ciclo_de": "west",
+        "linha_do_rotulo": 0,
+        "folga": 1,
+        # 129 px em tela, o que ele media com 2,80 de ampliacao.
+        "altura_de_frente": 258,
+        "altura_quadro": 288,
+    },
+}
+
+## Animacoes avulsas: nao sao ciclo, tocam uma vez e acabam (DEC-024).
+##
+## O recorte aqui e **o mesmo para todos os quadros** -- a janela e a uniao das
+## caixas da faixa inteira. Recortar quadro a quadro, como na caminhada,
+## apagaria justamente o movimento: o corpo que tomba ficaria centrado a cada
+## quadro e o Guardiao morreria sem sair do lugar.
+MORTES = {
+    "guardiao": {
+        "video": PASTA + "_raw/guardian Defeat.mp4",
+        "prefixo": "guardiao",
+        "animacao": "death",
+        # Do cambaleio ate o corpo assentar. Depois disso o video so segura a
+        # pose, e segurar pose e trabalho do `AnimatedSprite2D`, nao de quadro.
+        "faixa": (0, 186),
+        "quadros": 30,
+        "linha_do_rotulo": 0,
+        # Quadros em que ele ainda esta de pe: e por eles que a escala da queda
+        # casa com a da caminhada.
+        "de_pe": (4, 40),
     },
 }
 
@@ -106,11 +209,28 @@ def tirar_verde(rgb, linha_do_rotulo):
 
     fundo = (g > r + 40) & (g > b + 40) & (g > 90)
     fundo[:linha_do_rotulo] = True
+    fundo |= ~maior_componente(~fundo)
 
     saida = np.dstack([a, np.where(fundo, 0, 255)]).astype(np.uint8)
     franja = (~fundo) & (g > np.maximum(r, b) + 8)
     saida[:, :, 1] = np.where(franja, np.maximum(r, b) + 8, g).astype(np.uint8)
     return saida
+
+
+def maior_componente(mascara):
+    """So o bicho sobrevive; respingo solto vira fundo.
+
+    Os videos novos tem uma estrelinha de marca d'agua flutuando ao lado do
+    bicho. Ela nao e verde, entao passa pelo corte de fundo -- e ai entra na
+    caixa do recorte, que e quem decide enquadramento e escala. Uma criatura
+    inteira e sempre um so pedaco ligado; a estrelinha, outro, menor.
+    """
+    total, rotulos, stats, _ = cv2.connectedComponentsWithStats(
+        mascara.astype(np.uint8), 8)
+    if total <= 1:
+        return mascara
+    maior = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+    return rotulos == maior
 
 
 def caixa(quadro):
@@ -120,22 +240,44 @@ def caixa(quadro):
     return int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
 
 
-def achar_ciclo(quadros, limite=32):
-    """O periodo em que a silhueta volta a se parecer consigo mesma."""
-    sils = []
+def achar_ciclo(quadros, limite=0):
+    """O periodo em que a caminhada volta ao mesmo pe.
+
+    Compara **pixel**, e nao silhueta. De perfil, a meia-passada tem silhueta
+    quase igual a da passada inteira -- as pernas trocam de lugar e o contorno
+    mal muda --, e por silhueta o cao dava 24 mas o Guardiao daria 24 no lugar
+    de 50. Em pixel a perna de tras e mais escura que a da frente, e o minimo
+    da passada inteira fica mais fundo que o da meia.
+
+    A escolha e o **melhor minimo local**, nao o menor valor absoluto: a curva
+    cai de novo perto do fim do trecho, onde sobram poucos pares para comparar.
+    """
+    amostras = []
     for q in quadros:
         c = caixa(q)
         if c is None:
             continue
-        rec = (q[c[1]:c[3] + 1, c[0]:c[2] + 1, 3] > 16).astype(np.uint8)
-        sils.append(cv2.resize(rec, (96, 64), interpolation=cv2.INTER_AREA) > 0)
+        corpo = q[c[1]:c[3] + 1, c[0]:c[2] + 1]
+        cinza = cv2.cvtColor(corpo[:, :, :3], cv2.COLOR_RGB2GRAY)
+        cinza = np.where(corpo[:, :, 3] > 16, cinza, 0)
+        amostras.append(cv2.resize(cinza, (96, 64), interpolation=cv2.INTER_AREA) / 255.0)
 
-    melhor, periodo = 9e9, 0
-    for p in range(6, min(limite, len(sils) - 1)):
-        difs = [np.mean(sils[i] != sils[i + p]) for i in range(len(sils) - p)]
-        if difs and np.mean(difs) < melhor:
-            melhor, periodo = np.mean(difs), p
-    return periodo, melhor
+    teto = min(limite, len(amostras) - 6) if limite > 0 else len(amostras) - 6
+    if teto < 8:
+        return 0, 1.0
+    erro = {}
+    for p in range(4, teto + 1):
+        erro[p] = float(np.mean([np.mean(np.abs(amostras[i] - amostras[i + p]))
+                                 for i in range(len(amostras) - p)]))
+
+    alto = max(erro.values())
+    locais = [p for p in range(6, teto)
+              if erro[p] < erro[p - 1] and erro[p] <= erro[p + 1] and erro[p] < 0.75 * alto]
+    if not locais:
+        p = min(erro, key=erro.get)
+        return p, erro[p]
+    melhor = min(locais, key=lambda p: erro[p])
+    return melhor, erro[melhor]
 
 
 def montar(nome):
@@ -157,17 +299,24 @@ def montar(nome):
     # diferentes. Detectar em cada uma daria numeros ligeiramente distintos --
     # a silhueta de perfil tem mais movimento e confunde a comparacao -- e um
     # periodo errado faz a caminhada dar um salto ao voltar ao primeiro quadro.
-    periodo = trechos[config["referencia"]]["periodo"]
-    outros = [t["periodo"] for r, t in trechos.items() if r != config["referencia"]]
+    # O ciclo sai da vista de **perfil**, nao da referencia de escala: de frente
+    # o bicho anda para a camera e a silhueta quase nao muda, que e o pior lugar
+    # para medir passada. A escala continua saindo da frente.
+    fonte_do_ciclo = config.get("ciclo_de", config["referencia"])
+    periodo = config.get("ciclo") or trechos[fonte_do_ciclo]["periodo"]
+    outros = [t["periodo"] for r, t in trechos.items() if r != fonte_do_ciclo]
     if any(abs(p - periodo) > 3 for p in outros):
-        print("  aviso: os trechos discordam do ciclo (%s); vale o da referencia, %d"
-              % (outros, periodo))
+        print("  aviso: os trechos discordam do ciclo (%s); vale o de %s, %d"
+              % (outros, fonte_do_ciclo, periodo))
 
     ref = trechos[config["referencia"]]
     alturas_ref = [caixa(q)[3] - caixa(q)[1] + 1 for q in ref["quadros"] if caixa(q)]
-    escala = ALTURA_DE_FRENTE / float(np.median(alturas_ref))
+    altura_alvo = config.get("altura_de_frente", ALTURA_DE_FRENTE)
+    altura_quadro = config.get("altura_quadro", ALTURA_QUADRO)
+    por_direcao = config.get("quadros", QUADROS_POR_DIRECAO)
+    escala = altura_alvo / float(np.median(alturas_ref))
     print("\n  escala unica: %.4f (frente %d px -> %d px)"
-          % (escala, int(np.median(alturas_ref)), ALTURA_DE_FRENTE))
+          % (escala, int(np.median(alturas_ref)), altura_alvo))
 
     saidas = {}
     for direcao, (rotulo, espelhar) in config["direcoes"].items():
@@ -175,8 +324,8 @@ def montar(nome):
         # Espalha os quadros por **um ciclo inteiro**, e nao de um em um: pegar
         # os doze primeiros de um ciclo de vinte e tres mostraria metade da
         # passada e a animacao saltaria ao voltar para o inicio.
-        indices = [int(round(i * periodo / QUADROS_POR_DIRECAO)) % len(trecho["quadros"])
-                   for i in range(QUADROS_POR_DIRECAO)]
+        indices = [int(round(i * periodo / por_direcao)) % len(trecho["quadros"])
+                   for i in range(por_direcao)]
 
         recortes = []
         for i in indices:
@@ -193,11 +342,22 @@ def montar(nome):
         largura = max(r.size[0] for r in recortes) + 4
         largura += largura % 2  # par: quadro impar deixa o corpo meio pixel fora do centro
 
-        folha = Image.new("RGBA", (largura * len(recortes), ALTURA_QUADRO), (0, 0, 0, 0))
+        if largura * len(recortes) > LARGURA_MAXIMA:
+            raise SystemExit(
+                "a folha de %s-%s ficaria com %d px de largura, acima do limite de %d"
+                " das GPUs Android antigas (BUG-001): reduza `quadros` ou `altura_de_frente`"
+                % (config["prefixo"], direcao, largura * len(recortes), LARGURA_MAXIMA))
+        mais_alto = max(r.size[1] for r in recortes)
+        if mais_alto > altura_quadro:
+            raise SystemExit(
+                "o corpo de %s-%s chega a %d px e o quadro tem %d: aumente `altura_quadro`"
+                % (config["prefixo"], direcao, mais_alto, altura_quadro))
+
+        folha = Image.new("RGBA", (largura * len(recortes), altura_quadro), (0, 0, 0, 0))
         for i, r in enumerate(recortes):
             folha.alpha_composite(r, (
                 i * largura + (largura - r.size[0]) // 2,
-                ALTURA_QUADRO - r.size[1],
+                altura_quadro - r.size[1],
             ))
 
         arquivo = "%s-%s.png" % (config["prefixo"], direcao)
@@ -209,17 +369,87 @@ def montar(nome):
         # e deduzir isso da imagem daria 64 para todo mundo.
         json.dump({
             "generator": {"name": "extrair_inimigo_video.py", "version": "1"},
-            "sheet": arquivo, "frameWidth": largura, "frameHeight": ALTURA_QUADRO,
+            "sheet": arquivo, "frameWidth": largura, "frameHeight": altura_quadro,
             "frames": len(recortes), "layout": "horizontal",
             "columns": len(recortes), "rows": 1,
             "pivot": {"x": 0.5, "y": 1.0},
         }, open(PASTA + arquivo[:-4] + ".json", "w", encoding="utf-8"), indent=1)
         saidas[direcao] = (arquivo, len(recortes), largura, max(r.size[1] for r in recortes))
         print("  %-6s %-16s %2d quadros de %dx%d | corpo %d px%s"
-              % (direcao, arquivo, len(recortes), largura, ALTURA_QUADRO,
+              % (direcao, arquivo, len(recortes), largura, altura_quadro,
                  max(r.size[1] for r in recortes), "  (espelhado)" if espelhar else ""))
 
     return saidas
+
+
+def montar_morte(nome):
+    """A queda: uma animacao so, que toca uma vez e acaba (DEC-024)."""
+    config = MORTES[nome]
+    caminho_da_caminhada = INIMIGOS[nome]
+    quadros = ler_video(config["video"], config["linha_do_rotulo"])
+    a, b = config["faixa"]
+    faixa = quadros[a:b]
+    print("  video: %d quadros, usando %d a %d" % (len(quadros), a, b))
+
+    # A escala nao pode sair daqui sozinha: a queda e a caminhada tem de ter o
+    # mesmo tamanho de mundo. Os quadros em que ele ainda esta de pe sao a
+    # regua, e o alvo e a mesma altura de frente da caminhada.
+    de_pe = [caixa(q) for q in quadros[config["de_pe"][0]:config["de_pe"][1]]]
+    alturas = [c[3] - c[1] + 1 for c in de_pe if c]
+    altura_alvo = caminho_da_caminhada.get("altura_de_frente", ALTURA_DE_FRENTE)
+    altura_quadro = caminho_da_caminhada.get("altura_quadro", ALTURA_QUADRO)
+    escala = altura_alvo / float(np.median(alturas))
+    print("  de pe: %d px -> escala %.4f (a mesma altura da caminhada, %d px)"
+          % (int(np.median(alturas)), escala, altura_alvo))
+
+    # Janela unica para todos os quadros. Recortar quadro a quadro, como na
+    # caminhada, centraria o corpo a cada quadro e o Guardiao morreria sem sair
+    # do lugar -- justamente o movimento que esta animacao existe para mostrar.
+    caixas = [caixa(q) for q in faixa]
+    x0 = min(c[0] for c in caixas if c)
+    y0 = min(c[1] for c in caixas if c)
+    x1 = max(c[2] for c in caixas if c)
+    y1 = max(c[3] for c in caixas if c)
+
+    indices = [int(round(i * (len(faixa) - 1) / (config["quadros"] - 1)))
+               for i in range(config["quadros"])]
+    recortes = []
+    for i in indices:
+        janela = Image.fromarray(faixa[i][y0:y1 + 1, x0:x1 + 1])
+        recortes.append(janela.resize((
+            max(1, int(round(janela.size[0] * escala))),
+            max(1, int(round(janela.size[1] * escala))),
+        ), Image.LANCZOS))
+
+    largura = recortes[0].size[0] + 2
+    largura += largura % 2
+    if max(r.size[1] for r in recortes) > altura_quadro:
+        raise SystemExit("a queda de %s chega a %d px e o quadro da caminhada tem %d"
+                         % (nome, max(r.size[1] for r in recortes), altura_quadro))
+
+    # Em grade, e nao em fila: trinta quadros de 346 px dariam uma folha de
+    # 10 mil px de largura, muito acima do limite das GPUs Android (BUG-001).
+    colunas = max(1, min(len(recortes), LARGURA_MAXIMA // largura))
+    linhas_da_grade = (len(recortes) + colunas - 1) // colunas
+    folha = Image.new("RGBA", (largura * colunas, altura_quadro * linhas_da_grade), (0, 0, 0, 0))
+    for i, r in enumerate(recortes):
+        folha.alpha_composite(r, (
+            (i % colunas) * largura + (largura - r.size[0]) // 2,
+            (i // colunas) * altura_quadro + (altura_quadro - r.size[1]),
+        ))
+
+    arquivo = "%s-%s.png" % (config["prefixo"], config["animacao"])
+    folha.save(PASTA + arquivo)
+    json.dump({
+        "generator": {"name": "extrair_inimigo_video.py", "version": "2"},
+        "sheet": arquivo, "frameWidth": largura, "frameHeight": altura_quadro,
+        "frames": len(recortes), "layout": "grid",
+        "columns": colunas, "rows": linhas_da_grade,
+        "pivot": {"x": 0.5, "y": 1.0},
+    }, open(PASTA + arquivo[:-4] + ".json", "w", encoding="utf-8"), indent=1)
+    print("  %-6s %-20s %2d quadros de %dx%d em grade de %dx%d"
+          % (config["animacao"], arquivo, len(recortes), largura, altura_quadro,
+             colunas, linhas_da_grade))
 
 
 def main():
@@ -228,6 +458,9 @@ def main():
             raise SystemExit("inimigo desconhecido: " + nome)
         print(nome + ":")
         montar(nome)
+        if nome in MORTES:
+            print("\n  queda:")
+            montar_morte(nome)
         print("\n  agora: python tools/preparar_inimigo.py %s" % nome)
 
 

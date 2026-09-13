@@ -79,6 +79,10 @@ func set_frames(frames: SpriteFrames) -> void:
 	if sprite == null:
 		return
 	sprite.sprite_frames = frames
+	# Antes do `_apply`: ele só mexe no pivô quando **troca de animação**, e
+	# trocar a arte mantendo o nome `walk_south` não trocaria nada. Era assim
+	# que o Guardião nascia enterrado até o peito.
+	_encostar_no_chao(sprite.animation)
 	_apply()
 
 
@@ -115,6 +119,7 @@ func play_death() -> void:
 		_queda_provisoria()
 		return
 
+	_encostar_no_chao(_DEATH_ANIMATION)
 	sprite.play(_DEATH_ANIMATION)
 	if frames.get_animation_loop(_DEATH_ANIMATION):
 		# Em loop, `animation_finished` nunca dispara e a vitória nunca viria.
@@ -176,12 +181,30 @@ func _apply() -> void:
 	if _sprite.animation != animation:
 		_sprite.animation = animation
 		_sprite.frame = 0
+		_encostar_no_chao(animation)
 
 	if freeze:
 		_sprite.frame = 0
 		_sprite.pause()
 	elif not _sprite.is_playing():
 		_sprite.play()
+
+
+## Põe o pé do desenho na origem do nó, seja qual for a altura do quadro.
+##
+## As folhas saem do vídeo com o corpo encostado na base do quadro, e o
+## `AnimatedSprite2D` desenha centrado: subir meia altura faz o pé cair na
+## origem, que é de onde o Y-sort e a colisão partem. A cena traz -48 porque o
+## diabrete veio em quadro de 96; o bruto tem 160, a elite 176 e o Guardião 288,
+## e fixar um número aqui enterraria uns e faria outros flutuar.
+func _encostar_no_chao(animacao: StringName) -> void:
+	var frames := _sprite.sprite_frames
+	if frames == null or frames.get_frame_count(animacao) == 0:
+		return
+	var textura := frames.get_frame_texture(animacao, 0)
+	if textura == null:
+		return
+	_sprite.position.y = -textura.get_height() * 0.5
 
 
 ## Escolhe a animação mais específica que existir, degradando em ordem:
