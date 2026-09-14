@@ -2281,6 +2281,30 @@ As duas explicações possíveis, e o teste separa uma da outra:
    vegetação.
 
 
+
+### O que as 20 partidas disseram depois das mudanças
+
+| | C5 gravado | criaturas maiores | chefe novo |
+| --- | --- | --- | --- |
+| vitórias | 8/20 | 7/20 | **8/20** |
+| tempo médio | — | 503 s | **414 s** |
+| pior caso | — | 660 s (teto) | **521 s** |
+| morte no cerco | 40% | — | 35% |
+| morte no Guardião | 17% | — | 20% |
+| dano da elite | 38% | 47% | 40% |
+
+**O placar não se mexeu, e a forma da partida sim.** Oito vitórias contra sete
+está dentro do ruído de vinte partidas, e a morte no Guardião subir de 17% para
+20% é uma morte a mais: não é evidência de nada. O que mudou de verdade é a
+distribuição — o tempo médio caiu 90 s e **nenhuma partida chegou ao teto de
+660 s**, contra uma na rodada anterior. Faz sentido com a mudança: o chefe que
+não encalha mais chega ao druida, e a luta acaba, para um lado ou para o outro,
+em vez de se arrastar.
+
+Previsão registrada antes de ver o número, para não virar explicação depois do
+fato: eu esperava o chefe mais mortal. Ficou, mas por uma margem que estas vinte
+partidas não conseguem distinguir de acaso.
+
 ## O Guardião: atravessa, ilumina e ocupa a tela
 
 Três pedidos do jogador depois de jogar no aparelho, e um defeito que eles
