@@ -67,7 +67,8 @@ var _tocadores: Array[AudioStreamPlayer] = []
 var _proximo := 0
 var _fluxos := {}
 var _ultima_vez := {}
-var _musica: AudioStreamPlayer = null
+var _musicas: Array[AudioStreamPlayer] = []
+var _tocando_agora := 0
 var _faixa_atual: StringName = &""
 
 ## Pedidos feitos antes de haver onde tocar. Ver `_garantir`.
@@ -205,17 +206,19 @@ func _musica_tocar(nome: StringName) -> void:
 	if nome == _faixa_atual:
 		return
 	_faixa_atual = nome
+	_montar_musica()
 
-	if _musica == null:
-		_musica = AudioStreamPlayer.new()
-		_musica.bus = &"Musica"
-		# A trilha não para na tela de level up nem na de pausa: o silêncio
-		# repentino a cada escolha seria pior que a música continuar.
-		_musica.process_mode = Node.PROCESS_MODE_ALWAYS
-		add_child(_musica)
+	var entrando: AudioStreamPlayer = _musicas[1 - _tocando_agora]
+	var saindo: AudioStreamPlayer = _musicas[_tocando_agora]
+
+	if saindo.playing:
+		# A que sai desvanece e só então para: corte seco no meio de uma frase
+		# musical é mais audível que a troca inteira.
+		var fim := create_tween()
+		fim.tween_property(saindo, "volume_db", -60.0, _FUSAO)
+		fim.tween_callback(saindo.stop)
 
 	if nome == &"":
-		_musica.stop()
 		return
 
 	var caminho := PASTA_MUSICA + String(nome) + ".ogg"
@@ -226,13 +229,32 @@ func _musica_tocar(nome: StringName) -> void:
 	if fluxo is AudioStreamOggVorbis:
 		# Em volta, e sem pausa entre uma volta e outra.
 		(fluxo as AudioStreamOggVorbis).loop = true
-	_musica.stream = fluxo
-	_musica.volume_db = -60.0
-	_musica.play()
+	entrando.stream = fluxo
+	entrando.volume_db = -60.0
+	entrando.play()
+	_tocando_agora = 1 - _tocando_agora
 
-	# Entra subindo: começar no volume cheio junto com a partida é um susto.
-	var tween := create_tween()
-	tween.tween_property(_musica, "volume_db", 0.0, _FUSAO)
+	var inicio := create_tween()
+	inicio.tween_property(entrando, "volume_db", 0.0, _FUSAO)
+
+
+## Dois tocadores para a trilha, e não um.
+##
+## A troca na chegada do Guardião é **cruzada**: a faixa que sai desvanece
+## enquanto a que entra sobe. Com um tocador só, trocar o `stream` corta a
+## primeira no meio, e o silêncio de um quadro aparece justo no instante em que
+## o chefe entra em tela.
+func _montar_musica() -> void:
+	if not _musicas.is_empty():
+		return
+	for i in 2:
+		var tocador := AudioStreamPlayer.new()
+		tocador.bus = &"Musica"
+		# A trilha não para na tela de level up nem na de pausa: o silêncio
+		# repentino a cada escolha seria pior que a música continuar.
+		tocador.process_mode = Node.PROCESS_MODE_ALWAYS
+		add_child(tocador)
+		_musicas.append(tocador)
 
 
 func _fluxo(nome: StringName) -> AudioStream:

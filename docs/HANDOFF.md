@@ -2378,6 +2378,21 @@ Nenhuma dessas três coisas é conserto óbvio: mexer em qualquer uma muda o
 desenho da habilidade. Fica para o jogador decidir o que ela deveria parecer.
 
 
+
+## Uma armadilha nova: comentário em `.tres`
+
+`# assim` dentro de um arquivo de recurso **engole a propriedade seguinte**, sem
+erro nenhum. O recurso carrega, todo o resto está lá, e só aquele campo volta
+vazio — no caso, a trilha que a wave do Guardião pede.
+
+O formato de recurso da Godot não tem comentário de linha com `#`. Comentário
+sobre um dado mora no `@export` que o declara, dentro do script; o `.tres` é só
+valor.
+
+Vale para qualquer `.tres` do projeto — inimigos, armas, upgrades, waves. Se um
+campo "não está pegando" e o arquivo carrega sem reclamar, procure o comentário
+logo acima.
+
 ## Som: doze efeitos, e o que quase derrubou tudo
 
 O jogo não tinha áudio nenhum — nem no roadmap. Agora tem os doze efeitos

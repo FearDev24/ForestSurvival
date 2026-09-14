@@ -11,6 +11,7 @@
 script = ExtResource("1_data")
 id = &"wave_5_guardiao"
 start_time = 420.0
+trilha = &"trilha_floresta"
 enemies = Array[Resource]([ExtResource("2_imp_co"), ExtResource("3_cao_de"), ExtResource("4_bruto_")])
 spawn_interval = 0.35
 population_cap = 200

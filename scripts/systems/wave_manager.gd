@@ -128,6 +128,8 @@ func _atualizar_wave() -> void:
 	var wave := get_current_wave()
 	_time_since_spawn = 0.0
 	_time_since_elite = 0.0
+	if wave.trilha != &"":
+		Audio.musica(wave.trilha)
 	wave_started.emit(_index, wave)
 
 	if wave.burst_on_start > 0:

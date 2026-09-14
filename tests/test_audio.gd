@@ -66,6 +66,7 @@ func _process(_delta: float) -> bool:
 	_check_represa()
 	_check_eventos()
 	_check_musica()
+	_check_trilha_do_chefe()
 
 	_report()
 	quit(0 if _failures.is_empty() else 1)
@@ -230,6 +231,49 @@ func _tocando() -> int:
 		if tocador != null and tocador.playing and tocador.bus != &"Musica":
 			total += 1
 	return total
+
+
+## A chegada do Guardião troca a trilha, e a troca é da wave, não do relógio.
+##
+## Quem manda é o `WaveData`: qualquer wave pode pedir a sua faixa, e ninguém
+## precisa perguntar a que altura da partida estamos. A troca é cruzada — a que
+## sai desvanece enquanto a que entra sobe —, por isso as duas podem estar
+## tocando no mesmo instante.
+func _check_trilha_do_chefe() -> void:
+	var ondas := _game.get_node("WaveManager") as WaveManager
+	var chefe: WaveData = null
+	for wave in ondas.waves:
+		if wave.boss != null:
+			chefe = wave
+	if chefe == null:
+		_fail("Nenhuma wave traz o Guardião")
+		return
+	if chefe.trilha == &"":
+		_fail("A wave do Guardião não pede trilha nenhuma: a música não mudaria na chegada dele")
+		return
+	if not ResourceLoader.exists("res://assets/audio/musica/%s.ogg" % chefe.trilha):
+		_fail("A wave do Guardião pede a faixa '%s', que não existe" % chefe.trilha)
+		return
+
+	# Começa na outra faixa, para a troca ter o que trocar.
+	var outra: StringName = &""
+	for faixa in Audio.FAIXAS:
+		if faixa != chefe.trilha:
+			outra = faixa
+	Audio.musica(outra)
+	ondas.enabled = true
+	ondas.set("_elapsed", chefe.start_time + 1.0)
+	ondas.call("_atualizar_wave")
+
+	if _audio.get("_faixa_atual") != chefe.trilha:
+		_fail("Entrando na wave do Guardião a trilha continuou em '%s'" % _audio.get("_faixa_atual"))
+	var tocando := 0
+	for filho in _audio.get_children():
+		var p := filho as AudioStreamPlayer
+		if p != null and p.bus == &"Musica" and p.playing:
+			tocando += 1
+	if tocando < 1:
+		_fail("Depois da troca não há trilha tocando")
 
 
 func _fail(message: String) -> void:

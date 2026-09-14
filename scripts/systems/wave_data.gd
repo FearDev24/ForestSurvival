@@ -33,6 +33,12 @@ extends Resource
 ## o jogador sente a wave mudar em vez de só notar depois.
 @export var burst_on_start: int = 0
 
+## Trilha que entra quando esta wave começa. Vazio mantém a que está tocando.
+##
+## É por aqui que a música muda na chegada do Guardião: a wave diz, e ninguém
+## precisa perguntar a que altura da partida estamos.
+@export var trilha: StringName = &""
+
 @export_group("Especiais")
 ## Elite desta wave. Nulo desliga.
 @export var elite: EnemyData

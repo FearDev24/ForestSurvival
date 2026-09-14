@@ -355,6 +355,13 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - clima de música é a única coisa por aqui que **nenhuma medida decide** — por isso o menu troca em vez de alguém cravar o valor. O que dá para medir: a floresta tem centro espectral em 1095 Hz e a aventura em 2159, o que confirma "mais clara";
   - **a emenda cruzada da ferramenta serviu para alguma coisa depois de tudo**: a faixa de aventura saltava 13,1 vezes o normal ao voltar ao início — estalo audível a cada volta — e caiu para 0,1 com 3 s de emenda. A floresta segue sem emenda, porque já fechava sozinha;
   - `tests/test_menu.gd` pegou a mudança no mesmo minuto (ele cobra quais placas o menu oferece) e passou a cobrar também que apertar a placa gire a faixa, que a faixa nova exista em disco e que o rótulo acompanhe.
+- **A trilha troca na chegada do Guardião.** Quem manda é o dado: `WaveData.trilha` diz qual faixa entra quando a wave começa, e a wave 5 pede a floresta pesada. Qualquer wave pode pedir a sua, e ninguém precisa perguntar a que altura da partida estamos.
+  - a troca é **cruzada**, com dois tocadores: a que sai desvanece enquanto a que entra sobe. Com um tocador só, trocar o `stream` corta a primeira no meio e abre um silêncio justo no instante em que o chefe aparece;
+  - quando a faixa própria do Guardião chegar (`docs/PROMPTS_AUDIO.md`), é trocar o nome nesse campo.
+
+### Fixed
+
+- **Comentário com `#` dentro de um `.tres` engole a propriedade seguinte, em silêncio.** Foi assim que `trilha = &"trilha_floresta"` sumiu da wave do Guardião: o recurso carregava, o `boss` estava lá, e só o campo depois do comentário voltava vazio. O formato de recurso da Godot não aceita `#`; comentário sobre dado mora no script que o declara. Quem achou foi o teste novo, que cobra que a wave do chefe peça uma faixa **e que essa faixa exista em disco**.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;
