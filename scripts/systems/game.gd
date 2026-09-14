@@ -48,6 +48,11 @@ func _ready() -> void:
 	_weapons.configure(_player, _enemy_container, _effect_container, _stats)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	_pickup_area.collected.connect(_level.add_xp)
+	# Som dos três eventos que o Game já tem na mão. O resto toca de onde nasce:
+	# a arma no disparo, a criatura ao morrer.
+	_pickup_area.collected.connect(func(_valor: float) -> void: Audio.tocar(&"coleta_orbe"))
+	_level.leveled_up.connect(func(_nivel: int) -> void: Audio.tocar(&"nivel"))
+	_player_health.damaged.connect(func(_quanto: float) -> void: Audio.tocar(&"dano_druida"))
 	_upgrade_pool.configure(_stats, _weapons, _game_manager)
 	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)

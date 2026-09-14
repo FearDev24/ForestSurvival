@@ -67,6 +67,12 @@ extends Resource
 ## áreas próprias, em camadas próprias, e continuam valendo.
 @export var passa_por_tudo: bool = false
 
+## Som ao morrer, pelo nome do arquivo em `assets/audio/`, sem extensão.
+@export var som_morte: StringName = &"criatura_morre"
+
+## Som ao nascer. Vazio na horda inteira: só o chefe se anuncia.
+@export var som_nascimento: StringName = &""
+
 @export_group("Aura")
 
 ## Cor da luz que acompanha a criatura. Alfa zero desliga.

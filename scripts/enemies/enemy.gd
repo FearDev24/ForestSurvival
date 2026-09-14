@@ -114,6 +114,7 @@ func apply_data(enemy_data: EnemyData) -> void:
 		_redimensionar_corpo(enemy_data.body_radius)
 
 	modulate = enemy_data.tint
+	Audio.tocar(enemy_data.som_nascimento)
 	_atravessar(enemy_data)
 	_acender_aura(enemy_data)
 
@@ -249,6 +250,8 @@ func _on_health_died() -> void:
 
 	died.emit()
 
+	if data != null:
+		Audio.tocar(data.som_morte)
 	if data != null and data.staged_death:
 		_encenar_queda()
 		return

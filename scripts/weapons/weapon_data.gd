@@ -20,6 +20,12 @@ extends Resource
 ## arma mira, `aim()` — o contrato de `AbilityEffect`.
 @export var effect_scene: PackedScene
 
+## Som do disparo, pelo nome do arquivo em `assets/audio/`, sem extensão.
+##
+## Vazio é arma muda, e isso é escolha: os Vagalumes ficam girando a partida
+## inteira, e um som por volta viraria zumbido de fundo.
+@export var som: StringName = &""
+
 @export_group("Combate")
 ## Dano no nível 1.
 @export var base_damage: float = 10.0

@@ -20,4 +20,5 @@ effect_duration = 0.0
 max_level = 5
 damage_per_level = 5.0
 cooldown_multiplier_per_level = 0.92
+som = &"arma_corvo"
 effect_scene = ExtResource("2_efeito")

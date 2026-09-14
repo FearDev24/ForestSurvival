@@ -326,6 +326,17 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - o volume de pico é por som e não é normalização cega: a coleta toca centenas de vezes por partida e sai em 0,22 da escala, contra 0,95 da queda do chefe, que toca uma vez;
   - a ferramenta imprime duração, pico, RMS e tamanho, e a conferência de espectro apanhou dois defeitos antes de qualquer ouvido: o rugido do Guardião tinha **centro em 3992 Hz e só 28% de energia grave** — zumbia em vez de rugir — e a coleta punha 70% da energia acima de 2 kHz, sendo o som mais repetido do jogo. Depois do passa-baixa e da troca de onda quadrada por triangular: rugido em 270 Hz com 68% de grave, coleta com 28% de agudo;
   - **a trilha e a ambiência não saem daqui.** Floresta com instrumentos de verdade é geração externa, como a arte.
+- **O som entrou no jogo.** `Audio` (`scripts/systems/audio.gd`) é o único lugar que conhece arquivo de áudio; quem toca pede `Audio.tocar(&"coleta_orbe")`. Ligado nos pontos que já emitiam os eventos: a arma no disparo, a criatura ao morrer, o orbe ao ser coletado, o level up, o dano no druida e a escolha de upgrade.
+  - `WeaponData.som` e `EnemyData.som_morte` / `som_nascimento`: qual som é de quem é **dado**, não código. O Guardião ruge ao nascer e a queda dele tem som próprio; os Vagalumes ficam mudos de propósito, porque giram a partida inteira;
+  - barramentos `SFX` e `Musica` em `default_bus_layout.tres`, com `Audio.volume()` como gancho para as opções;
+  - roda de doze tocadores: um `AudioStreamPlayer` só toca um som por vez, e numa horda morrendo junto o segundo cortaria o primeiro;
+  - **represa de 45 ms por som**: quarenta criaturas morrendo no mesmo quadro somariam amplitude e saturariam, além de gastar CPU do celular;
+  - os tocadores rodam em `PROCESS_MODE_ALWAYS` porque a tela de level up **pausa a árvore** e o som do botão tem de sair mesmo assim;
+  - `tests/test_audio.gd` (décima oitava suíte): os doze arquivos, os nomes citados nas `.tres`, a represa, e — o que nenhum teste de arquivo pega — que os **cinco eventos realmente tocam**.
+
+### Fixed
+
+- **`Audio` como autoload quebraria as dezoito suítes.** O identificador global de um autoload não existe para o compilador quando a Godot roda com `--script`, que é como todos os testes deste projeto rodam: `Audio.tocar()` dentro de `weapon.gd` não compilava, e junto com ele caía qualquer teste que tocasse em arma. Virou `class_name` com métodos estáticos, que resolve em qualquer modo; o nó nasce na primeira chamada e mora na raiz, fora das cenas.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

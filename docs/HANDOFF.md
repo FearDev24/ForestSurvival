@@ -2368,6 +2368,72 @@ O que sobra é **leitura**, e isso é decisão de design:
 Nenhuma dessas três coisas é conserto óbvio: mexer em qualquer uma muda o
 desenho da habilidade. Fica para o jogador decidir o que ela deveria parecer.
 
+
+## Som: doze efeitos, e o que quase derrubou tudo
+
+O jogo não tinha áudio nenhum — nem no roadmap. Agora tem os doze efeitos
+curtos, sintetizados por `tools/preparar_sons.py`, e a ligação com os eventos.
+
+### O desenho
+
+`Audio` é o único lugar que conhece arquivo. Quem toca pede pelo nome:
+`Audio.tocar(&"coleta_orbe")`. Qual som é de quem está nos dados —
+`WeaponData.som`, `EnemyData.som_morte` e `som_nascimento` —, não no código, de
+modo que dar voz a uma arma nova é preencher um campo.
+
+Três problemas que um `AudioStreamPlayer` solto em cada cena não resolveria, e
+que estão resolvidos num lugar só:
+
+- **fila:** um tocador só toca um som por vez, e numa horda morrendo junto o
+  segundo cortaria o primeiro. São doze tocadores em roda;
+- **represa:** o mesmo som não recomeça antes de 45 ms. Quarenta criaturas
+  morrendo no mesmo quadro somam amplitude — satura e ainda gasta CPU;
+- **pausa:** a tela de level up pausa a árvore, e o som do botão tem de sair.
+  Os tocadores rodam em `PROCESS_MODE_ALWAYS`; os sons de partida não escapam
+  por aí porque quem os pede está pausado junto.
+
+### O autoload que teria quebrado as dezoito suítes
+
+A forma natural seria um autoload chamado `Audio`. Ele funciona no jogo e **não
+compila em teste**: o identificador global de autoload não existe para o
+compilador quando a Godot roda com `--script`, que é exatamente como as suítes
+deste projeto rodam. `Audio.tocar()` dentro de `weapon.gd` derrubava a
+compilação de `weapon.gd`, de `weapon_manager.gd` e de todo teste que tocasse em
+arma — o erro aparecia longe da causa.
+
+Virou `class_name Audio` com métodos estáticos. O nó nasce na primeira chamada e
+mora na raiz da árvore, fora das cenas, sobrevivendo à troca entre menu e
+partida. Detalhe que custou uma rodada: `class_name` só passa a existir para o
+compilador depois de `godot --headless --import`, que é o que atualiza o cache
+de classes globais.
+
+E uma armadilha nova para a lista: **durante `SceneTree._initialize()` nem o nó
+da raiz está "dentro da árvore"**, e `AudioStreamPlayer.play()` recusa com
+"Playback can only happen when a node is inside the scene tree". Em teste, som
+só a partir do primeiro `_process`.
+
+### O que o teste cobra
+
+`tests/test_audio.gd` é a décima oitava suíte. Além dos arquivos, ela mede duas
+coisas que passariam despercebidas:
+
+- **nome de som errado numa `.tres` é mudo em silêncio** — nada quebra, e
+  ninguém descobre jogando. O teste confere todo nome citado por arma e criatura;
+- **os cinco eventos tocam de verdade**: coletar orbe, subir de nível, tomar
+  dano, matar criatura e disparar arma. Os doze WAV podem estar perfeitos e o
+  jogo continuar mudo por falta de uma conexão.
+
+Verificado com defeito de propósito: tirar a conexão da coleta acusa "coletar um
+orbe não tocou som nenhum"; trocar o som do raio por um nome inexistente acusa
+"a arma cajado_raio pede o som 'arma_inexistente', que não existe".
+
+### O que falta de áudio
+
+- **trilha e ambiência**: o barramento `Musica` existe e está vazio. Floresta
+  com instrumentos de verdade é geração externa, como a arte;
+- **opções de volume**: `Audio.volume()` é o gancho, e não há tela que o chame;
+- **som de vitória e de derrota**: as duas telas de resultado seguem mudas.
+
 ## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
 
 O que entrou:

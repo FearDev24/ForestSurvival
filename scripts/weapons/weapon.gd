@@ -51,6 +51,9 @@ func _physics_process(delta: float) -> void:
 		return # Sem alvo o cooldown não é gasto.
 
 	_time_since_attack = 0.0
+	# Uma vez por salva, e não por alvo: com `amount` 3 saem três efeitos, e três
+	# cópias do mesmo som no mesmo frame só somam amplitude.
+	Audio.tocar(data.som)
 	for alvo in alvos:
 		_attack(alvo)
 

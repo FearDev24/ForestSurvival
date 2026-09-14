@@ -284,6 +284,9 @@ func _titulo_da_opcao(upgrade: UpgradeData) -> String:
 
 
 func _on_escolha(id: StringName) -> void:
+	# A árvore está pausada aqui: o `Audio` roda em PROCESS_MODE_ALWAYS de
+	# propósito, senão o toque no botão sairia mudo.
+	Audio.tocar(&"escolha")
 	if _pool != null:
 		_pool.apply(id)
 	choice_made.emit(id)

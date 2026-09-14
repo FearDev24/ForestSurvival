@@ -16,5 +16,6 @@ aim_mode = 0
 max_level = 5
 damage_per_level = 10.0
 cooldown_multiplier_per_level = 0.88
+som = &"arma_raio"
 effect_scene = ExtResource("2_efeito")
 metadata/_custom_type_script = "uid://bfsweapondata"

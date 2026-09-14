@@ -17,4 +17,5 @@ effect_duration = 4.0
 max_level = 5
 damage_per_level = 3.0
 cooldown_multiplier_per_level = 0.9
+som = &""
 effect_scene = ExtResource("2_efeito")
