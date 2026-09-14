@@ -2010,10 +2010,19 @@ tropeçou.
 
 # Próxima tarefa
 
-**FASE 12 — Mobile, na branch `fase-12-mobile`.** O que dava para fazer sem
-aparelho está feito (abaixo); o que falta é medir **no celular**. A FASE 11
-(arte) segue esperando as peças que estão com o responsável — os pacotes de
-prompt já entregues estão em "O que também está pendente".
+**Nenhuma fase está em andamento.** A 11 (arte) e a 12 (mobile) fecharam: a arte
+entregue está integrada e medida, o jogo se joga por toque no aparelho, e o som
+entrou junto — dezoito suítes passando.
+
+O que decide a próxima fase é **jogar**. As três coisas que ainda podem mudar o
+desenho do jogo — a leitura do Anel de Esporos, o tamanho das criaturas em tela
+e a dificuldade — não se resolvem por medição: a sonda joga melhor que qualquer
+pessoa num quadro e pior no seguinte, e não julga se foi divertido.
+
+Pelo roadmap, o que vem é a **FASE 13 — Meta-progressão** (save local, moeda,
+desbloqueios, upgrades permanentes). Antes dela vale a pena olhar a lista acima
+de pendências fora do roadmap, que é curta e quase toda de decisão, não de
+trabalho.
 
 
 ## Arte entregue: o que entrou, e o que ainda falta
@@ -2830,18 +2839,36 @@ dura uma luta de minuto e meio.
 
 ## O que também está pendente, fora do roadmap
 
-- **arte do menu principal** — o menu existe (`scenes/ui/main_menu.tscn`, cena principal do projeto) e funciona com texto e cor. Faltam o nome do jogo desenhado (vaga `TituloArte`) e a ilustração de fundo (vaga `FundoArte`); quando chegarem, entram nas vagas sem tocar em código (DEC-013);
-- **arte da morte do Guardião** — o fluxo já existe (DEC-024, emenda): o boss cai com uma queda provisória no `Visual` e a vitória espera ela terminar. Quando o vídeo chegar, a arte entra como animação `death` **sem loop** no `SpriteFrames` do Guardião e substitui a provisória sozinha. As criaturas comuns somem ao morrer, e isso é o final, não falta;
-- **arte própria do bruto, da elite e do Guardião** — os três ainda são o diabrete recolorido e aumentado (1,45×, 1,7× e 2,8×);
-- **arte da zona de esporos e dos vagalumes** — as duas ainda são formas desenhadas em código;
-- **ícones do Anel de Esporos, dos Vagalumes e do Orbe do Cajado** — a tela de escolha reserva a coluna e desenha só o texto;
-- **arte do Orbe do Cajado** — o disparo é um círculo desenhado em código; hoje sai do centro do corpo do druida, e com a arte dá para mover a saída para a ponta do cajado (`spawn_offset`);
+A lista de arte que morava aqui **acabou**: menu, morte do Guardião, arte
+própria do bruto, da elite e do Guardião, esporos, vagalumes, os três ícones que
+faltavam e o Orbe entraram todos, e a FASE 11 está fechada no roadmap. O que
+sobrou:
+
+- **`idle` do druida** — parado, ele congela no primeiro quadro da caminhada.
+  É a peça de personagem que falta, e está registrada na FASE 11;
+- **orbe de XP, joystick e botão de pausa** — os três continuam sendo formas
+  desenhadas em código, e continuam declarados como PLACEHOLDER nas cenas. O
+  orbe aparece às centenas em tela, então é o que mais pesa dos três;
+- **trilha e ambiência** — o barramento `Musica` existe e está vazio. Os doze
+  efeitos sonoros entraram (`tools/preparar_sons.py`), mas floresta com
+  instrumentos de verdade é geração externa, como a arte;
+- **som de vitória e de derrota** — as duas telas de resultado seguem mudas;
+- **opções de volume** — `Audio.volume()` é o gancho, e não há tela que o chame;
+- **teto dos orbes de XP** — 397 no chão numa partida medida no aparelho. É
+  decisão de design, não conserto: juntar acima de um limite muda como o jogador
+  é recompensado por circular pelo mapa;
+- **leitura do Anel de Esporos** — a habilidade funciona (medido três vezes, no
+  PC e no aparelho, e vista na gravação da partida do jogador). O que falta é
+  decidir o que ela deveria parecer: alcance, duração, tamanho, ou acompanhar o
+  druida em vez de ficar onde nasceu;
+- **nome de pacote definitivo** antes da Play Store — hoje é
+  `com.feardev24.forestsurvival`.
 
 ## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As dezessete suítes continuam passando (`test_foundation`,
-`test_phase1` a `test_phase10`, `test_phase12`, `test_hud`, `test_menu`,
-`test_acerto`, `test_bot` e `test_progressao`).
+Ver `docs/ROADMAP.md`. As **dezoito** suítes continuam passando
+(`test_foundation`, `test_phase1` a `test_phase10`, `test_phase12`, `test_hud`,
+`test_menu`, `test_acerto`, `test_bot`, `test_progressao` e `test_audio`).
 
 # Não alterar sem registrar decisão
 

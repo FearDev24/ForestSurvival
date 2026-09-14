@@ -9,8 +9,8 @@ extends Node2D
 ## `hit_interval` enquanto o alvo continua dentro (`docs/03_SYSTEMS.md` §4). A
 ## zona só precisa existir por um tempo e sumir — por isso este script é curto.
 ##
-## O visual é PLACEHOLDER desenhado em código (DEC-013): um círculo de esporos
-## que pulsa e some no fim. Trocar por arte não deve exigir mudança aqui.
+## O visual vem da cena. O desenho em código abaixo — um círculo que pulsa e
+## some no fim — é o que sobra quando não há sprite nenhum (DEC-013).
 
 ## Emitido quando a zona acaba.
 signal expired

@@ -8,7 +8,7 @@
 radius = 14.0
 
 [node name="OrbeDoCajado" type="Node2D"]
-editor_description = "Ataque inicial do druida (DEC-025): orbe verde disparado do cajado no inimigo mais proximo. Redondo, entao pode mirar em qualquer direcao (DEC-022). z_index 40: voa na altura do cajado, por cima do chao e dos props, como o corvo. Visual PLACEHOLDER em codigo (DEC-013); a colisao tem o raio do nucleo desenhado."
+editor_description = "Ataque inicial do druida (DEC-025): orbe verde disparado do cajado no inimigo mais proximo. Redondo, entao pode mirar em qualquer direcao (DEC-022). z_index 40: voa na altura do cajado, por cima do chao e dos props, como o corvo. Arte a 55% da folha; a colisao tem o raio do nucleo desenhado, medido na textura pelo tests/test_progressao.gd. Sem sprite na cena, o OrbeProjetil volta a desenhar em codigo (DEC-013)."
 z_index = 40
 script = ExtResource("1_efeito")
 speed = 520.0

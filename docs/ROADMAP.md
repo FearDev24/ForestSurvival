@@ -248,13 +248,17 @@ Detalhes, tabelas e o que ficou de fora em `docs/HANDOFF.md`, "FASE 10".
 
 # FASE 11 — Arte
 
-- [ ] player final
-- [ ] animações
-- [ ] inimigos
-- [ ] mapa
-- [ ] efeitos
-- [ ] ícones
-- [ ] UI
+- [x] player final — druida em quatro direções, mais a morte
+- [x] animações — caminhada das cinco criaturas e a queda do Guardião, todas tiradas de vídeo por `tools/extrair_inimigo_video.py`
+- [x] inimigos — diabrete, cão, bruto, elite e Guardião com arte própria; nenhum é mais o diabrete recolorido
+- [x] mapa — tileset da floresta, com pedra, totem, toco e vegetação
+- [x] efeitos — as seis habilidades desenhadas; nenhuma é mais forma em código
+- [x] ícones — doze, um por arma e por passiva
+- [x] UI — barras, painéis, placas, títulos das três telas, nome do jogo, fundo do menu e ícone do app
+- [ ] `idle` do druida — parado, ele congela no primeiro quadro da caminhada. É o único personagem que deveria ter pose parada (DEC-019), e a folha nunca chegou
+
+Fechada com a arte entregue e integrada. O `idle` fica aberto de propósito: é
+uma folha de sprite que falta, não um sistema — e o jogo não depende dela.
 
 # FASE 12 — Mobile
 

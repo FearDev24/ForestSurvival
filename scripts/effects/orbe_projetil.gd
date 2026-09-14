@@ -7,7 +7,7 @@ extends ProjectileEffect
 ## deixou reservado para "arte desenhada para girar". Viaja e acerta como o
 ## corvo: é da mesma família (`ProjectileEffect`), só troca o desenho.
 ##
-## Visual: PLACEHOLDER desenhado em código (DEC-013). A colisão tem o raio do
+## Visual: a arte está na cena; este desenho só vale se ela sair (DEC-013). A colisão tem o raio do
 ## que é desenhado (`raio_desenho`), e `tests/test_progressao.gd` confere que os
 ## dois continuam casando — a mesma regra das outras habilidades.
 

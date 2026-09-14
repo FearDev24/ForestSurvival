@@ -8,7 +8,7 @@
 radius = 64.0
 
 [node name="SporeRing" type="Node2D"]
-editor_description = "Terceira familia de arma: ataque que fica. Visual PLACEHOLDER desenhado em codigo (DEC-013). z_index baixo porque a zona esta no chao: o druida e os inimigos passam por cima dela."
+editor_description = "Terceira familia de arma: ataque que fica. Arte a 50% da folha, so os dois quadros grandes: a zona tem colisao de tamanho fixo e quadro pequeno acertaria antes de a nuvem encostar. Sem sprite, o ZoneEffect volta a desenhar em codigo (DEC-013). z_index baixo porque a zona esta no chao: o druida e os inimigos passam por cima dela."
 z_index = -1
 script = ExtResource("1_efeito")
 duration = 3.5

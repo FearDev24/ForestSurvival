@@ -13,7 +13,8 @@ extends Node2D
 ##
 ## Contrato com a arma: `set_damage()`, `set_duration()` e `set_follow()`.
 ##
-## O visual é PLACEHOLDER desenhado em código (DEC-013): vagalumes com rastro.
+## O visual vem da cena — um vagalume em cada orbe. O desenho em código abaixo
+## é o que sobra quando não há sprite nenhum (DEC-013).
 
 ## Emitido quando os orbes somem.
 signal expired

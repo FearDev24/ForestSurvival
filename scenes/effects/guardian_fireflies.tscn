@@ -9,7 +9,7 @@
 radius = 11.0
 
 [node name="GuardianFireflies" type="Node2D"]
-editor_description = "Quarta familia: ataque que acompanha o druida. Tres orbes, definidos aqui e nao no WeaponData: quantidade de orbe e forma da cena, os numeros do golpe e que sao dado. Visual PLACEHOLDER desenhado em codigo (DEC-013)."
+editor_description = "Quarta familia: ataque que acompanha o druida. Tres orbes, definidos aqui e nao no WeaponData: quantidade de orbe e forma da cena, os numeros do golpe e que sao dado. Cada orbe tem o seu vagalume, comecando em quadro diferente para nao piscarem juntos. Sem sprite na cena, o OrbitEffect volta a desenhar em codigo (DEC-013)."
 z_index = 45
 script = ExtResource("1_efeito")
 duration = 4.0
