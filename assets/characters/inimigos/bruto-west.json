@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "bruto-west.png",
- "frameWidth": 114,
- "frameHeight": 160,
+ "frameWidth": 196,
+ "frameHeight": 264,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

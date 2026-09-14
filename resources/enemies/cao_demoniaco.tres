@@ -13,5 +13,5 @@ move_speed = 150.0
 xp_value = 1.0
 sprite_frames = ExtResource("2_frames")
 visual_scale = 1.0
-body_radius = 11.0
+body_radius = 25.0
 tint = Color(1, 1, 1, 1)

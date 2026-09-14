@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "cao-east.png",
- "frameWidth": 138,
- "frameHeight": 96,
+ "frameWidth": 312,
+ "frameHeight": 224,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

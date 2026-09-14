@@ -2218,6 +2218,68 @@ Foram para `assets/characters/inimigos/_raw/`, ao lado do vídeo do cão e dentr
 do `.gdignore` que já existe ali — a Godot não tenta importar. São 21 MB de
 fonte para quem precisar regerar as folhas com outros números.
 
+
+## Escala das criaturas: o que a arte nova revelou
+
+Ao converter os vídeos, as alturas foram escolhidas para que nenhuma criatura
+mudasse de tamanho em tela. Isso foi conservador e errado: preservou um erro que
+vinha da época em que todas eram o diabrete ampliado.
+
+| criatura | antes | agora | raio de colisão |
+| -------- | ----- | ----- | --------------- |
+| diabrete | 46 px | 46 px | 14 (não mudou)  |
+| cão      | 40    | 92    | 11 -> 25        |
+| bruto    | 67    | 118   | 22 -> 39        |
+| elite    | 78    | 104   | 26 -> 35        |
+| Guardião | 129   | 175   | 44 -> 60        |
+
+O druida mede 86 px. Ou seja: o cão de inferno era **menor que o diabrete**, que
+é a criatura mais fraca do jogo, e o bruto — cujo nome é o argumento — era menor
+que o personagem que ele deveria intimidar.
+
+O raio de colisão acompanhou na mesma proporção de propósito. Ele é dado de
+gameplay e não sai da arte (DEC-013), mas um desenho que cresce 76% com a
+colisão parada é exatamente o defeito que o jogador já relatou uma vez: a
+habilidade que passa "por dentro" do bicho sem bater. **Isso mexe na
+dificuldade** — corpo maior dá dano de contato de mais longe e é mais fácil de
+acertar —, e por isso a sonda foi rodada de novo depois da mudança.
+
+### A folha que não cabia
+
+O perfil do Guardião a 350 px de corpo tem 364 px de quadro, e doze deles dariam
+4368 px de largura — acima do limite de 4096 das GPUs Android antigas (BUG-001).
+A saída barata seria cortar quadros de animação. Em vez disso a folha passou a
+**se dobrar em grade** quando não cabe numa linha (o Guardião ficou em 11 x 2), e
+o `.tres` calcula a região de cada quadro pela linha e coluna — que era o que a
+queda já fazia. O extrator só recusa quando nem em grade cabe.
+
+## Os esporos no aparelho: o que já se sabe e o que falta
+
+No desktop a zona **aparece**, e isso está medido: 6 disparos em 20 s, sprite
+tocando, capturada na tela, e depois da mudança para `EM_VOLTA` ela nasce a
+140 px do druida. No celular o jogador continua não vendo.
+
+Antes de mexer em qualquer coisa, falta olhar no aparelho — e para isso o
+`BotMobile` ganhou `--bot-armas=`, que dá ao bot as armas pedidas no começo da
+partida. Sem isso seria preciso esperar os 150 s da fase que libera o Anel
+(DEC-025) e torcer para o bot escolher a arma.
+
+O APK do bot está exportado com `--bot --bot-partidas=1 --bot-invulneravel
+--bot-minutos=3 --bot-armas=anel_de_esporos`; falta instalar e tirar as fotos da
+tela com a zona viva. **`export_presets.cfg` está com esses argumentos de teste
+e não deve ser commitado assim** — o valor gravado é o de duas partidas de nove
+minutos sem armas forçadas.
+
+As duas explicações possíveis, e o teste separa uma da outra:
+
+1. **Não desenha no aparelho.** Aí é diferença de plataforma e vira bug.
+2. **Desenha e não se lê como habilidade.** A arte são cogumelos cor de terra
+   sobre terra, em `z_index -1`, ou seja, **debaixo** do mato e dos totens — e o
+   tileset da floresta tem cogumelos como decoração de chão. É possível que o
+   jogador esteja olhando para a zona e vendo cenário. Nesse caso o conserto não
+   é técnico: é aumentar brilho e contraste da nuvem, ou tirá-la de baixo da
+   vegetação.
+
 ## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
 
 O que entrou:

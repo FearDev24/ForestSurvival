@@ -4,12 +4,12 @@
   "version": "1"
  },
  "sheet": "guardiao-east.png",
- "frameWidth": 270,
- "frameHeight": 288,
+ "frameWidth": 364,
+ "frameHeight": 392,
  "frames": 12,
- "layout": "horizontal",
- "columns": 12,
- "rows": 1,
+ "layout": "grid",
+ "columns": 11,
+ "rows": 2,
  "pivot": {
   "x": 0.5,
   "y": 1.0

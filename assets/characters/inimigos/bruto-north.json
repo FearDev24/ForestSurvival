@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "bruto-north.png",
- "frameWidth": 134,
- "frameHeight": 160,
+ "frameWidth": 234,
+ "frameHeight": 264,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

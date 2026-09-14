@@ -117,15 +117,22 @@ INIMIGOS = {
 }
 
 
-def medir(caminho, largura_quadro, altura_quadro):
-    """Altura do corpo, largura e linha dos pes, quadro a quadro."""
+def medir(caminho, largura_quadro, altura_quadro, colunas=0, total=0):
+    """Altura do corpo, largura e linha dos pes, quadro a quadro.
+
+    A folha vem em fila ou em grade: a do Guardiao nao cabe em 4096 px numa
+    linha so. `colunas` e `total` vem do JSON; sem eles, vale a fila.
+    """
     import numpy as np
 
     a = np.array(Image.open(caminho).convert("RGBA"))
-    total = a.shape[1] // largura_quadro
+    colunas = colunas or a.shape[1] // largura_quadro
+    total = total or colunas
     alturas, bases = [], []
     for i in range(total):
-        cel = a[:, i * largura_quadro:(i + 1) * largura_quadro]
+        linha, coluna = i // colunas, i % colunas
+        cel = a[linha * altura_quadro:(linha + 1) * altura_quadro,
+                coluna * largura_quadro:(coluna + 1) * largura_quadro]
         ys, xs = np.where(cel[:, :, 3] > 16)
         if len(ys) == 0:
             continue
@@ -135,15 +142,17 @@ def medir(caminho, largura_quadro, altura_quadro):
 
 
 def ler_quadros(caminho_png):
-    """Tamanho e contagem de quadros, do JSON quando existe, da imagem quando nao."""
+    """Tamanho, contagem e grade dos quadros, do JSON quando existe."""
     caminho_json = caminho_png[:-4] + ".json"
-    largura, altura = 64, 96
+    largura, altura, colunas, total = 64, 96, 0, 0
     if os.path.exists(caminho_json):
         d = json.load(open(caminho_json, encoding="utf-8"))
         largura = int(d.get("frameWidth", largura))
         altura = int(d.get("frameHeight", altura))
+        colunas = int(d.get("columns", 0))
+        total = int(d.get("frames", 0))
     im = Image.open(caminho_png)
-    return largura, altura, im.size
+    return largura, altura, im.size, colunas, total
 
 
 def normalizar(config, dados):
@@ -221,14 +230,17 @@ def montar(nome):
         if not os.path.exists(caminho):
             raise SystemExit("folha ausente: " + caminho)
 
-        lq, aq, tamanho = ler_quadros(caminho)
+        lq, aq, tamanho, colunas, quantos = ler_quadros(caminho)
+        colunas = colunas or tamanho[0] // lq
+        linhas_da_grade = (quantos + colunas - 1) // colunas if quantos else 1
         if tamanho[0] % lq != 0:
             avisos.append("%s: largura %d nao e multiplo de %d — o ultimo quadro sai cortado"
                           % (arquivo, tamanho[0], lq))
-        if tamanho[1] != aq:
-            avisos.append("%s: altura %d difere do quadro declarado %d" % (arquivo, tamanho[1], aq))
+        if tamanho[1] != aq * linhas_da_grade:
+            avisos.append("%s: altura %d nao bate com %d linha(s) de %d"
+                          % (arquivo, tamanho[1], linhas_da_grade, aq))
 
-        total, alturas, bases = medir(caminho, lq, aq)
+        total, alturas, bases = medir(caminho, lq, aq, colunas, quantos)
         if not alturas:
             raise SystemExit("%s: nenhuma folha com desenho" % arquivo)
 
@@ -237,7 +249,7 @@ def montar(nome):
                           % (arquivo, max(bases) - min(bases), TOLERANCIA_BASE))
 
         dados[direcao] = {
-            "arquivo": arquivo, "quadros": total, "lq": lq, "aq": aq,
+            "arquivo": arquivo, "quadros": total, "lq": lq, "aq": aq, "colunas": colunas,
             "altura": sum(alturas) / len(alturas), "alturas": (min(alturas), max(alturas)),
         }
 
@@ -309,9 +321,11 @@ def escrever(config, dados):
     for i, direcao in enumerate(ordem):
         d = dados[direcao]
         for k in range(d["quadros"]):
+            colunas = d.get("colunas") or d["quadros"]
             linhas += ['[sub_resource type="AtlasTexture" id="AtlasTexture_walk_%s_%02d"]' % (direcao, k),
                        'atlas = ExtResource("%d_walk_%s")' % (i + 1, direcao),
-                       "region = Rect2(%d, 0, %d, %d)" % (k * d["lq"], d["lq"], d["aq"]), ""]
+                       "region = Rect2(%d, %d, %d, %d)"
+                       % ((k % colunas) * d["lq"], (k // colunas) * d["aq"], d["lq"], d["aq"]), ""]
 
     if morte is not None:
         for k in range(morte["quadros"]):

@@ -7,195 +7,195 @@
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_00"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(0, 0, 74, 176)
+region = Rect2(0, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_01"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(74, 0, 74, 176)
+region = Rect2(96, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_02"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(148, 0, 74, 176)
+region = Rect2(192, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_03"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(222, 0, 74, 176)
+region = Rect2(288, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_04"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(296, 0, 74, 176)
+region = Rect2(384, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_05"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(370, 0, 74, 176)
+region = Rect2(480, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_06"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(444, 0, 74, 176)
+region = Rect2(576, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_07"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(518, 0, 74, 176)
+region = Rect2(672, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_08"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(592, 0, 74, 176)
+region = Rect2(768, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_09"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(666, 0, 74, 176)
+region = Rect2(864, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_10"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(740, 0, 74, 176)
+region = Rect2(960, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_south_11"]
 atlas = ExtResource("1_walk_south")
-region = Rect2(814, 0, 74, 176)
+region = Rect2(1056, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_00"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(0, 0, 72, 176)
+region = Rect2(0, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_01"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(72, 0, 72, 176)
+region = Rect2(96, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_02"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(144, 0, 72, 176)
+region = Rect2(192, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_03"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(216, 0, 72, 176)
+region = Rect2(288, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_04"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(288, 0, 72, 176)
+region = Rect2(384, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_05"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(360, 0, 72, 176)
+region = Rect2(480, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_06"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(432, 0, 72, 176)
+region = Rect2(576, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_07"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(504, 0, 72, 176)
+region = Rect2(672, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_08"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(576, 0, 72, 176)
+region = Rect2(768, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_09"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(648, 0, 72, 176)
+region = Rect2(864, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_10"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(720, 0, 72, 176)
+region = Rect2(960, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_north_11"]
 atlas = ExtResource("2_walk_north")
-region = Rect2(792, 0, 72, 176)
+region = Rect2(1056, 0, 96, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_00"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(0, 0, 118, 176)
+region = Rect2(0, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_01"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(118, 0, 118, 176)
+region = Rect2(156, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_02"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(236, 0, 118, 176)
+region = Rect2(312, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_03"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(354, 0, 118, 176)
+region = Rect2(468, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_04"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(472, 0, 118, 176)
+region = Rect2(624, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_05"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(590, 0, 118, 176)
+region = Rect2(780, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_06"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(708, 0, 118, 176)
+region = Rect2(936, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_07"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(826, 0, 118, 176)
+region = Rect2(1092, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_08"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(944, 0, 118, 176)
+region = Rect2(1248, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_09"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(1062, 0, 118, 176)
+region = Rect2(1404, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_10"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(1180, 0, 118, 176)
+region = Rect2(1560, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_west_11"]
 atlas = ExtResource("3_walk_west")
-region = Rect2(1298, 0, 118, 176)
+region = Rect2(1716, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_00"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(0, 0, 118, 176)
+region = Rect2(0, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_01"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(118, 0, 118, 176)
+region = Rect2(156, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_02"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(236, 0, 118, 176)
+region = Rect2(312, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_03"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(354, 0, 118, 176)
+region = Rect2(468, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_04"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(472, 0, 118, 176)
+region = Rect2(624, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_05"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(590, 0, 118, 176)
+region = Rect2(780, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_06"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(708, 0, 118, 176)
+region = Rect2(936, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_07"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(826, 0, 118, 176)
+region = Rect2(1092, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_08"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(944, 0, 118, 176)
+region = Rect2(1248, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_09"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(1062, 0, 118, 176)
+region = Rect2(1404, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_10"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(1180, 0, 118, 176)
+region = Rect2(1560, 0, 156, 232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_walk_east_11"]
 atlas = ExtResource("4_walk_east")
-region = Rect2(1298, 0, 118, 176)
+region = Rect2(1716, 0, 156, 232)
 
 [resource]
 animations = [

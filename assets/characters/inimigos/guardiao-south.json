@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "guardiao-south.png",
- "frameWidth": 180,
- "frameHeight": 288,
+ "frameWidth": 244,
+ "frameHeight": 392,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

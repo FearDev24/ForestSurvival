@@ -12,7 +12,12 @@ extends Node
 ##   --bot-partidas=N      quantas partidas seguidas (padrão 2);
 ##   --bot-invulneravel    o druida não cai: a partida chega à horda cheia e ao
 ##                         Guardião, que é o caso que o desempenho precisa medir;
-##   --bot-minutos=M       teto de tempo de jogo por partida (padrão 9).
+##   --bot-minutos=M       teto de tempo de jogo por partida (padrão 9);
+##   --bot-armas=a,b       dá estas armas ao druida no começo da partida, pelo
+##                         id do `WeaponData`. Serve para olhar uma habilidade
+##                         **no aparelho** sem esperar a fase que a libera: o
+##                         Anel de Esporos, por exemplo, só é oferecido aos
+##                         150 s (DEC-025).
 ##
 ## Lido pelo `adb logcat -s godot`:
 ##   FS_BOT_INICIO / FS_BOT_FIM / FS_BOT_ACABOU — cada partida e o fim do teste;
@@ -27,6 +32,7 @@ const GAME_SCENE := "res://scenes/game/game.tscn"
 var _partidas := 2
 var _invulneravel := false
 var _minutos := 9.0
+var _armas_pedidas: PackedStringArray = []
 var _atual := 0
 var _jogo: Node = null
 var _piloto: BotPiloto = null
@@ -47,7 +53,10 @@ func _ready() -> void:
 			_minutos = maxf(1.0, float(arg.get_slice("=", 1)))
 		elif arg == "--bot-invulneravel":
 			_invulneravel = true
-	print("FS_BOT_CONFIG partidas=%d invulneravel=%s minutos=%.0f" % [_partidas, str(_invulneravel), _minutos])
+		elif arg.begins_with("--bot-armas="):
+			_armas_pedidas = arg.get_slice("=", 1).split(",", false)
+	print("FS_BOT_CONFIG partidas=%d invulneravel=%s minutos=%.0f armas=%s" % [
+		_partidas, str(_invulneravel), _minutos, ",".join(_armas_pedidas)])
 	_proxima_partida()
 
 
@@ -91,8 +100,23 @@ func _preparar(jogo: Node) -> void:
 		for filho in jogo.get_node("Player").get_children():
 			if filho is HurtboxComponent:
 				(filho as HurtboxComponent).set_vulnerable(false)
+	_dar_armas(jogo)
 	(jogo.get_node("GameManager") as GameManager).ended.connect(_on_fim)
 	print("FS_BOT_INICIO partida=%d semente=%d invulneravel=%s" % [_atual, _atual, str(_invulneravel)])
+
+
+## Entrega as armas pedidas em `--bot-armas`, e diz no log quais entraram.
+func _dar_armas(jogo: Node) -> void:
+	if _armas_pedidas.is_empty():
+		return
+	var armas := jogo.get_node("Player/WeaponManager") as WeaponManager
+	for id in _armas_pedidas:
+		var caminho := "res://resources/weapons/%s.tres" % id
+		if not ResourceLoader.exists(caminho):
+			print("FS_BOT_ARMA ausente=%s" % id)
+			continue
+		armas.add_weapon(load(caminho) as WeaponData)
+		print("FS_BOT_ARMA dada=%s" % id)
 
 
 func _on_fim(vitoria: bool, tempo: float, nivel: int) -> void:

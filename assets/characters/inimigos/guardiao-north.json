@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "guardiao-north.png",
- "frameWidth": 166,
- "frameHeight": 288,
+ "frameWidth": 224,
+ "frameHeight": 392,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

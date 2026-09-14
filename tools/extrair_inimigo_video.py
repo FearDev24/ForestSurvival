@@ -70,6 +70,10 @@ INIMIGOS = {
             "east": ("perfil", True),
         },
         # A vista de frente e a regua da escala.
+        # 184 px de corpo dao 92 px em tela, acima dos 86 do druida. O cao media
+        # 40 -- menor que o diabrete, que e a criatura mais fraca do jogo.
+        "altura_de_frente": 184,
+        "altura_quadro": 224,
         "referencia": "south",
         # Acima desta linha fica o texto da direcao, nao o bicho.
         "linha_do_rotulo": 140,
@@ -110,11 +114,12 @@ INIMIGOS = {
         # -- medidos em 59, 120 e 180 -- e o trecho inteiro faz falta, porque a
         # passada do Guardiao leva 50 quadros e nao cabe num pedaco menor.
         "folga": 1,
-        # 134 px de corpo dao 67 px em tela, que e o tamanho que o bruto ja
-        # tinha com a folha do diabrete ampliada em 1,45 -- a criatura nao muda
-        # de tamanho ao ganhar arte propria, so de definicao.
-        "altura_de_frente": 134,
-        "altura_quadro": 160,
+        # 236 px de corpo dao 118 px em tela, contra os 86 do druida. A arte
+        # propria trouxe a chance de corrigir o tamanho: com a folha do diabrete
+        # ampliada o bruto media 67 px, menor que o personagem que ele deveria
+        # intimidar.
+        "altura_de_frente": 236,
+        "altura_quadro": 264,
     },
     "elite": {
         "video": PASTA + "_raw/elite-espelharWest.mp4",
@@ -130,9 +135,9 @@ INIMIGOS = {
         "ciclo_de": "perfil",
         "linha_do_rotulo": 0,
         "folga": 1,
-        # 78 px em tela, o que ela media com 1,70 de ampliacao.
-        "altura_de_frente": 156,
-        "altura_quadro": 176,
+        # 104 px em tela: maior que o druida, e mais esguia que o bruto.
+        "altura_de_frente": 208,
+        "altura_quadro": 232,
     },
     "guardiao": {
         "video": PASTA + "_raw/Guardião movimentaão.mp4",
@@ -149,9 +154,10 @@ INIMIGOS = {
         "ciclo_de": "west",
         "linha_do_rotulo": 0,
         "folga": 1,
-        # 129 px em tela, o que ele media com 2,80 de ampliacao.
-        "altura_de_frente": 258,
-        "altura_quadro": 288,
+        # 175 px em tela. Com o bruto em 118 o chefe tinha de subir junto: ele
+        # precisa continuar sendo, de longe, a maior coisa em tela.
+        "altura_de_frente": 350,
+        "altura_quadro": 392,
     },
 }
 
@@ -342,22 +348,28 @@ def montar(nome):
         largura = max(r.size[0] for r in recortes) + 4
         largura += largura % 2  # par: quadro impar deixa o corpo meio pixel fora do centro
 
-        if largura * len(recortes) > LARGURA_MAXIMA:
-            raise SystemExit(
-                "a folha de %s-%s ficaria com %d px de largura, acima do limite de %d"
-                " das GPUs Android antigas (BUG-001): reduza `quadros` ou `altura_de_frente`"
-                % (config["prefixo"], direcao, largura * len(recortes), LARGURA_MAXIMA))
         mais_alto = max(r.size[1] for r in recortes)
         if mais_alto > altura_quadro:
             raise SystemExit(
                 "o corpo de %s-%s chega a %d px e o quadro tem %d: aumente `altura_quadro`"
                 % (config["prefixo"], direcao, mais_alto, altura_quadro))
 
-        folha = Image.new("RGBA", (largura * len(recortes), altura_quadro), (0, 0, 0, 0))
+        # Em fila enquanto couber; em grade quando nao couber. O perfil do
+        # Guardiao tem 367 px de quadro e doze deles passariam de 4096, que e o
+        # limite de textura das GPUs Android antigas (BUG-001). Dobrar a folha
+        # em linhas custa nada e e melhor do que jogar fora quadros de animacao.
+        colunas = max(1, min(len(recortes), LARGURA_MAXIMA // largura))
+        linhas_da_grade = (len(recortes) + colunas - 1) // colunas
+        if linhas_da_grade * altura_quadro > LARGURA_MAXIMA:
+            raise SystemExit(
+                "a folha de %s-%s nao cabe em %d px nem em grade: reduza `altura_de_frente`"
+                % (config["prefixo"], direcao, LARGURA_MAXIMA))
+
+        folha = Image.new("RGBA", (largura * colunas, altura_quadro * linhas_da_grade), (0, 0, 0, 0))
         for i, r in enumerate(recortes):
             folha.alpha_composite(r, (
-                i * largura + (largura - r.size[0]) // 2,
-                altura_quadro - r.size[1],
+                (i % colunas) * largura + (largura - r.size[0]) // 2,
+                (i // colunas) * altura_quadro + (altura_quadro - r.size[1]),
             ))
 
         arquivo = "%s-%s.png" % (config["prefixo"], direcao)
@@ -370,13 +382,15 @@ def montar(nome):
         json.dump({
             "generator": {"name": "extrair_inimigo_video.py", "version": "1"},
             "sheet": arquivo, "frameWidth": largura, "frameHeight": altura_quadro,
-            "frames": len(recortes), "layout": "horizontal",
-            "columns": len(recortes), "rows": 1,
+            "frames": len(recortes),
+            "layout": "horizontal" if linhas_da_grade == 1 else "grid",
+            "columns": colunas, "rows": linhas_da_grade,
             "pivot": {"x": 0.5, "y": 1.0},
         }, open(PASTA + arquivo[:-4] + ".json", "w", encoding="utf-8"), indent=1)
         saidas[direcao] = (arquivo, len(recortes), largura, max(r.size[1] for r in recortes))
-        print("  %-6s %-16s %2d quadros de %dx%d | corpo %d px%s"
+        print("  %-6s %-16s %2d quadros de %dx%d em %dx%d | corpo %d px%s"
               % (direcao, arquivo, len(recortes), largura, altura_quadro,
+                 colunas, linhas_da_grade,
                  max(r.size[1] for r in recortes), "  (espelhado)" if espelhar else ""))
 
     return saidas

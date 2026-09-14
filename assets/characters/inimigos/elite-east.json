@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "elite-east.png",
- "frameWidth": 118,
- "frameHeight": 176,
+ "frameWidth": 156,
+ "frameHeight": 232,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

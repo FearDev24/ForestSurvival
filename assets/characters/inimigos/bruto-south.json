@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "bruto-south.png",
- "frameWidth": 140,
- "frameHeight": 160,
+ "frameWidth": 242,
+ "frameHeight": 264,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

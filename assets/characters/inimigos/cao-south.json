@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "cao-south.png",
- "frameWidth": 62,
- "frameHeight": 96,
+ "frameWidth": 136,
+ "frameHeight": 224,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,

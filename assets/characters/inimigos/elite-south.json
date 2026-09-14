@@ -4,8 +4,8 @@
   "version": "1"
  },
  "sheet": "elite-south.png",
- "frameWidth": 74,
- "frameHeight": 176,
+ "frameWidth": 96,
+ "frameHeight": 232,
  "frames": 12,
  "layout": "horizontal",
  "columns": 12,
