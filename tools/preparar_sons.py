@@ -31,13 +31,8 @@ DESTINO = "assets/audio/"
 ## mais baixo.
 VOLUMES = {
     "coleta_orbe": 0.22,
-    "arma_orbe": 0.30,
-    "arma_corvo": 0.34,
-    "arma_vinha": 0.40,
-    "arma_esporos": 0.34,
     "criatura_morre": 0.34,
     "escolha": 0.45,
-    "arma_raio": 0.60,
     "dano_druida": 0.62,
     "nivel": 0.65,
     "guardiao_rugido": 0.90,
@@ -253,11 +248,6 @@ def guardiao_queda():
 
 
 SONS = {
-    "arma_raio": arma_raio,
-    "arma_vinha": arma_vinha,
-    "arma_corvo": arma_corvo,
-    "arma_orbe": arma_orbe,
-    "arma_esporos": arma_esporos,
     "criatura_morre": criatura_morre,
     "coleta_orbe": coleta_orbe,
     "nivel": nivel,

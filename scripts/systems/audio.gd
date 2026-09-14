@@ -30,6 +30,10 @@ extends Node
 ## partida não escapam por aí: quem os pede está pausado junto com o resto.
 
 const PASTA := "res://assets/audio/"
+const PASTA_MUSICA := "res://assets/audio/musica/"
+
+## Segundos de desvanecimento ao trocar de faixa ou ao parar.
+const _FUSAO := 1.2
 
 ## Quantos sons podem soar ao mesmo tempo.
 ##
@@ -46,6 +50,11 @@ var _tocadores: Array[AudioStreamPlayer] = []
 var _proximo := 0
 var _fluxos := {}
 var _ultima_vez := {}
+var _musica: AudioStreamPlayer = null
+var _faixa_atual: StringName = &""
+
+## Pedidos feitos antes de haver onde tocar. Ver `_garantir`.
+var _na_fila: Array = []
 
 
 ## Toca um som pelo nome do arquivo, sem extensão.
@@ -57,6 +66,16 @@ static func tocar(nome: StringName, volume_db := 0.0) -> void:
 	var eu := _garantir()
 	if eu != null:
 		eu._tocar(nome, volume_db)
+
+
+## Põe uma faixa a tocar em volta, no barramento `Musica`.
+##
+## Chamar com a faixa que já está tocando não faz nada — senão a trilha
+## recomeçaria a cada troca de cena. Nome vazio para o silêncio.
+static func musica(nome: StringName) -> void:
+	var eu := _garantir()
+	if eu != null:
+		eu._musica_tocar(nome)
 
 
 ## Volume de um barramento, de 0 a 1. É o gancho para as opções de som.
@@ -78,12 +97,28 @@ static func _garantir() -> Audio:
 		return null
 	_instancia = Audio.new()
 	_instancia.name = "Audio"
-	arvore.root.add_child(_instancia)
+	# A raiz pode estar **ocupada montando filhos** — é o caso quando o primeiro
+	# som vem do `_ready` de alguém, que é exatamente quando a partida pede a
+	# trilha. Nesse caso a entrada na árvore fica para o fim do quadro, e o que
+	# for pedido nesse meio-tempo espera na fila em vez de se perder: sem isso a
+	# música da partida simplesmente não tocava.
+	if arvore.root.is_node_ready():
+		arvore.root.add_child(_instancia)
+	else:
+		arvore.root.add_child.call_deferred(_instancia)
 	return _instancia
 
 
 func _ready() -> void:
 	_montar()
+	# Despeja o que foi pedido antes de existir lugar para tocar.
+	var fila := _na_fila.duplicate()
+	_na_fila.clear()
+	for pedido in fila:
+		if pedido[0] == &"musica":
+			_musica_tocar(pedido[1])
+		else:
+			_tocar(pedido[1], pedido[2])
 
 
 ## Os tocadores nascem na primeira vez que fazem falta, não em `_ready`.
@@ -105,6 +140,9 @@ func _montar() -> void:
 
 
 func _tocar(nome: StringName, volume_db: float) -> void:
+	if not is_inside_tree():
+		_na_fila.append([&"som", nome, volume_db])
+		return
 	_montar()
 
 	var agora := Time.get_ticks_msec() / 1000.0
@@ -134,6 +172,43 @@ func _livre() -> AudioStreamPlayer:
 	var escolhido := _tocadores[_proximo]
 	_proximo = (_proximo + 1) % _tocadores.size()
 	return escolhido
+
+
+func _musica_tocar(nome: StringName) -> void:
+	if not is_inside_tree():
+		_na_fila.append([&"musica", nome, 0.0])
+		return
+	if nome == _faixa_atual:
+		return
+	_faixa_atual = nome
+
+	if _musica == null:
+		_musica = AudioStreamPlayer.new()
+		_musica.bus = &"Musica"
+		# A trilha não para na tela de level up nem na de pausa: o silêncio
+		# repentino a cada escolha seria pior que a música continuar.
+		_musica.process_mode = Node.PROCESS_MODE_ALWAYS
+		add_child(_musica)
+
+	if nome == &"":
+		_musica.stop()
+		return
+
+	var caminho := PASTA_MUSICA + String(nome) + ".ogg"
+	if not ResourceLoader.exists(caminho):
+		push_warning("Faixa ausente: %s" % caminho)
+		return
+	var fluxo := load(caminho) as AudioStream
+	if fluxo is AudioStreamOggVorbis:
+		# Em volta, e sem pausa entre uma volta e outra.
+		(fluxo as AudioStreamOggVorbis).loop = true
+	_musica.stream = fluxo
+	_musica.volume_db = -60.0
+	_musica.play()
+
+	# Entra subindo: começar no volume cheio junto com a partida é um susto.
+	var tween := create_tween()
+	tween.tween_property(_musica, "volume_db", 0.0, _FUSAO)
 
 
 func _fluxo(nome: StringName) -> AudioStream:

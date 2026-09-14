@@ -18,6 +18,6 @@ grounded = true
 max_level = 5
 damage_per_level = 6.0
 cooldown_multiplier_per_level = 0.9
-som = &"arma_vinha"
+som = &""
 effect_scene = ExtResource("2_efeito")
 metadata/_custom_type_script = "uid://bfsweapondata"

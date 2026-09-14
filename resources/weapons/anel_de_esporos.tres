@@ -20,5 +20,5 @@ effect_duration = 3.5
 max_level = 5
 damage_per_level = 2.0
 cooldown_multiplier_per_level = 0.94
-som = &"arma_esporos"
+som = &""
 effect_scene = ExtResource("2_efeito")

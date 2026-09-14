@@ -42,20 +42,14 @@ DESTINO = "assets/audio/"
 
 ## Nome no jogo -> arquivo de origem, duracao maxima em segundos, e por que.
 ##
+## As cinco habilidades sairam desta tabela a pedido do jogador: com cinco armas
+## disparando em recargas diferentes, o combate virava tapete de ruido. Agora o
+## combate e mudo e quem sustenta a partida e a musica de fundo.
+##
 ## A escolha saiu do nome e da medida (duracao, pico, centro espectral), nao do
 ## ouvido: quem escreveu isto nao consegue ouvir. Trocar um por outro e trocar
 ## uma linha desta tabela e rodar de novo.
 MAPA = {
-    # Estalo metalico pesado, o mais proximo de um raio caindo.
-    "arma_raio": ("impactPlate_heavy_000.ogg", 0.60),
-    # Corte assobiado: e o chicote da vinha.
-    "arma_vinha": ("knifeSlice.ogg", 0.45),
-    # Pano batendo, que e o que uma asa faz.
-    "arma_corvo": ("cloth1.ogg", 0.50),
-    # Impacto leve e curto, para o orbe que sai do cajado.
-    "arma_orbe": ("impactGeneric_light_000.ogg", 0.25),
-    # Passo na grama: farfalhar de vegetacao, para a zona que brota.
-    "arma_esporos": ("footstep_grass_000.ogg", 0.45),
     # Corpo mole, grave e curto.
     "criatura_morre": ("impactSoft_medium_000.ogg", 0.30),
     # Clique curto e brilhante; e o som que mais toca na partida.

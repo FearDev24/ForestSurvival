@@ -341,6 +341,16 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - a escolha de qual arquivo serve a qual evento está numa tabela de uma linha por som, com o porquê ao lado — trocar é trocar a linha e rodar de novo;
   - `assets/_raw/audio/` guarda os arquivos de origem e as licenças dos pacotes, e `assets/audio/CREDITOS.md` diz de onde veio cada som;
   - **o rugido e a queda do Guardião continuam sintetizados**: nenhum pacote de impacto tem garganta de criatura, e são justamente os dois sons que precisam soar orgânicos. Ficam marcados para geração externa, com prompt, como a arte.
+- **Combate mudo e trilha de fundo**, a pedido do jogador: cinco armas disparando em recargas diferentes viravam tapete de ruído. As cinco `arma_*` saíram — dos dados, dos arquivos e das tabelas das ferramentas — e o que sustenta a partida passou a ser a música.
+  - `Audio.musica()` toca uma faixa em volta no barramento `Musica`, entrando com 1,2 s de subida; pedir a faixa que já toca não faz nada, então trocar de cena não reinicia a trilha. O tocador roda em `PROCESS_MODE_ALWAYS`: silêncio a cada level up seria pior que música continuando;
+  - `tools/importar_musica.py` traz a faixa, normaliza e **mede o salto na volta do laço** — quantas vezes a diferença entre a última amostra e a primeira é maior que a diferença típica entre vizinhas, que é o que se ouve como estalo a cada volta;
+  - trilha: *Dark Forest Theme*, de cynicmusic (opengameart.org, **CC0**), 93 s;
+  - `tests/test_audio.gd` passou a cobrar os dois lados: os quatro eventos que tocam, e que **disparar arma não toca nada**.
+
+### Fixed
+
+- **A trilha da partida nunca teria tocado.** O primeiro som vinha do `_ready` do `Game`, e nesse instante a raiz está *ocupada montando filhos*: `add_child` falha, o nó do áudio fica fora da árvore e `play()` é recusado. Agora ele entra adiado quando a raiz está ocupada, e o que for pedido nesse meio-tempo espera numa fila em vez de se perder.
+- A emenda cruzada que eu tinha feito na trilha **piorava** o laço (salto de 0,5 para 1,8 vez o normal): a faixa já fechava sozinha. A medida derrubou o conserto, e ele ficou desligado — no código, para a próxima faixa, com o número impresso dizendo quando ligar.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

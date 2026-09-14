@@ -22,10 +22,13 @@ const GAME_SCENE := "res://scenes/game/game.tscn"
 const PASTA := "res://assets/audio/"
 
 const ESPERADOS := [
-	&"arma_raio", &"arma_vinha", &"arma_corvo", &"arma_orbe", &"arma_esporos",
 	&"criatura_morre", &"coleta_orbe", &"nivel", &"escolha", &"dano_druida",
 	&"guardiao_rugido", &"guardiao_queda",
 ]
+
+## As armas são mudas por decisão do jogador: cinco delas disparando em recargas
+## diferentes viravam tapete de ruído, e quem sustenta a partida é a trilha.
+const FAIXA := &"trilha_floresta"
 
 var _failures: Array[String] = []
 var _game: Node = null
@@ -62,6 +65,7 @@ func _process(_delta: float) -> bool:
 	_check_nomes_nas_resources()
 	_check_represa()
 	_check_eventos()
+	_check_musica()
 
 	_report()
 	quit(0 if _failures.is_empty() else 1)
@@ -145,13 +149,18 @@ func _check_eventos() -> void:
 		["o druida tomar dano", func() -> void:
 			(_game.get_node("Player/Health") as HealthComponent).damage(5.0)],
 		["uma criatura morrer", func() -> void: _matar_criatura()],
-		["a arma disparar", func() -> void: _disparar()],
 	]
 	for evento in eventos:
 		_calar()
 		(evento[1] as Callable).call()
 		if _tocando() == 0:
 			_fail("%s não tocou som nenhum" % evento[0])
+
+	# E o contrário, que também é decisão: combate é mudo.
+	_calar()
+	_disparar()
+	if _tocando() != 0:
+		_fail("Uma arma tocou som: o combate deveria ser mudo")
 
 
 func _matar_criatura() -> void:
@@ -172,16 +181,42 @@ func _disparar() -> void:
 	var armas := _game.get_node("Player/WeaponManager") as WeaponManager
 	for filho in armas.get_children():
 		var arma := filho as Weapon
-		if arma != null and arma.data != null and arma.data.som != &"":
+		if arma != null and arma.data != null:
 			arma._physics_process(99.0)
 			return
-	_fail("Nenhuma arma com som para disparar")
+	_fail("Nenhuma arma para disparar")
+
+
+## A trilha toca em volta, no barramento próprio, e sobrevive à pausa.
+##
+## O barramento separado é o que permite baixar a música sem baixar o resto, e o
+## laço é o que a faz durar mais que 93 segundos de partida.
+func _check_musica() -> void:
+	Audio.musica(FAIXA)
+	var tocador := _audio.get_node_or_null("AudioStreamPlayer") as AudioStreamPlayer
+	for filho in _audio.get_children():
+		var p := filho as AudioStreamPlayer
+		if p != null and p.bus == &"Musica":
+			tocador = p
+	if tocador == null:
+		_fail("A trilha não criou tocador nenhum no barramento Musica")
+		return
+	if not tocador.playing:
+		_fail("A trilha não está tocando")
+	if tocador.stream == null:
+		_fail("O tocador da trilha está sem faixa")
+	elif tocador.stream is AudioStreamOggVorbis and not (tocador.stream as AudioStreamOggVorbis).loop:
+		_fail("A trilha não está em laço: ela acabaria no meio da partida")
+	if tocador.process_mode != Node.PROCESS_MODE_ALWAYS:
+		_fail("A trilha para quando a árvore pausa: o silêncio a cada level up seria pior")
 
 
 func _calar() -> void:
 	for filho in _audio.get_children():
 		var tocador := filho as AudioStreamPlayer
-		if tocador != null:
+		# A trilha não entra: ela toca a partida inteira, e calá-la aqui era o
+		# que fazia a checagem seguinte achar que ela nunca tinha começado.
+		if tocador != null and tocador.bus != &"Musica":
 			tocador.stop()
 	# A represa é por som e por instante: sem limpar, o teste seguinte mediria
 	# o silêncio do anterior.
@@ -192,7 +227,7 @@ func _tocando() -> int:
 	var total := 0
 	for filho in _audio.get_children():
 		var tocador := filho as AudioStreamPlayer
-		if tocador != null and tocador.playing:
+		if tocador != null and tocador.playing and tocador.bus != &"Musica":
 			total += 1
 	return total
 
@@ -203,7 +238,7 @@ func _fail(message: String) -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("ÁUDIO OK — doze sons no lugar, nomes conferidos, represa segurando e os cinco eventos tocando.")
+		print("ÁUDIO OK — sete sons no lugar, combate mudo, trilha em laço e os quatro eventos tocando.")
 		return
 	printerr("ÁUDIO FALHOU:")
 	for failure in _failures:
