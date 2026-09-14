@@ -322,6 +322,10 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 
 - **A luz do chefe custava quadro em toda criatura.** O `PointLight2D` tinha entrado na cena base do inimigo, apagado; com 500 inimigos o quadro saltou de 16,7 para 29 ms e o teste de carga da FASE 3 reprovou. A luz passou a nascer em código, só para quem a pede, e o teste voltou a 16,8 ms. `tests/test_phase2.gd` passou a cobrar os dois lados: quem pede aura nasce com ela acesa e com textura, e **quem não pede não pode ter o nó**.
 - A primeira versão da aura usava `blend_mode = 1`, que é **subtrair**, não somar: o chefe ficava mais escuro que antes de ter luz. A captura mostrou, e o valor voltou ao padrão.
+- **`tools/preparar_sons.py`: os doze efeitos sonoros, sintetizados por código.** Não há biblioteca nem arquivo de origem — cada som é oscilador, ruído e envelope, do mesmo jeito que os efeitos eram desenhados em código antes da arte chegar. São as cinco armas, a morte da criatura, a coleta de orbe, o level up, a escolha de upgrade, o dano no druida, e o rugido e a queda do Guardião. O ganho é o mesmo das folhas de animação: mudar o tom de um acerto é mudar um número e rodar de novo.
+  - o volume de pico é por som e não é normalização cega: a coleta toca centenas de vezes por partida e sai em 0,22 da escala, contra 0,95 da queda do chefe, que toca uma vez;
+  - a ferramenta imprime duração, pico, RMS e tamanho, e a conferência de espectro apanhou dois defeitos antes de qualquer ouvido: o rugido do Guardião tinha **centro em 3992 Hz e só 28% de energia grave** — zumbia em vez de rugir — e a coleta punha 70% da energia acima de 2 kHz, sendo o som mais repetido do jogo. Depois do passa-baixa e da troca de onda quadrada por triangular: rugido em 270 Hz com 68% de grave, coleta com 28% de agudo;
+  - **a trilha e a ambiência não saem daqui.** Floresta com instrumentos de verdade é geração externa, como a arte.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;
