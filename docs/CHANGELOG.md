@@ -351,6 +351,10 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 
 - **A trilha da partida nunca teria tocado.** O primeiro som vinha do `_ready` do `Game`, e nesse instante a raiz está *ocupada montando filhos*: `add_child` falha, o nó do áudio fica fora da árvore e `play()` é recusado. Agora ele entra adiado quando a raiz está ocupada, e o que for pedido nesse meio-tempo espera numa fila em vez de se perder.
 - A emenda cruzada que eu tinha feito na trilha **piorava** o laço (salto de 0,5 para 1,8 vez o normal): a faixa já fechava sozinha. A medida derrubou o conserto, e ele ficou desligado — no código, para a próxima faixa, com o número impresso dizendo quando ligar.
+- **Duas trilhas, e o menu troca entre elas.** A primeira faixa ficou sombria demais para o clima que o jogo quer; entrou *A Knight's Challenge* (umplix, opengameart, **CC0**) como versão de aventura, e a floresta escura continua disponível. A escolha vive na sessão (não há save ainda) e o rótulo da placa mostra qual está valendo.
+  - clima de música é a única coisa por aqui que **nenhuma medida decide** — por isso o menu troca em vez de alguém cravar o valor. O que dá para medir: a floresta tem centro espectral em 1095 Hz e a aventura em 2159, o que confirma "mais clara";
+  - **a emenda cruzada da ferramenta serviu para alguma coisa depois de tudo**: a faixa de aventura saltava 13,1 vezes o normal ao voltar ao início — estalo audível a cada volta — e caiu para 0,1 com 3 s de emenda. A floresta segue sem emenda, porque já fechava sozinha;
+  - `tests/test_menu.gd` pegou a mudança no mesmo minuto (ele cobra quais placas o menu oferece) e passou a cobrar também que apertar a placa gire a faixa, que a faixa nova exista em disco e que o rótulo acompanhe.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

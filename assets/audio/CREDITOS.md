@@ -26,12 +26,18 @@ partida passou a ser a trilha.
 
 | faixa | origem | autor | licença |
 | --- | --- | --- | --- |
-| `musica/trilha_floresta.ogg` | *Dark Forest Theme* (`GameMusic_ForestTheme_24_0.mp3`), opengameart.org/content/dark-forest-theme | cynicmusic | CC0 |
+| `musica/trilha_floresta.ogg` | *Dark Forest Theme*, opengameart.org/content/dark-forest-theme | cynicmusic | CC0 |
+| `musica/trilha_aventura.ogg` | *A Knight's Challenge*, opengameart.org/content/a-knights-challenge | umplix | CC0 |
 
-Entra por `tools/importar_musica.py`, que normaliza o pico e mede o salto na
-volta do laço. Medido: esta faixa já fecha o laço sozinha (salto de 0,5 vez o
-normal, e sem fade-out no fim), então a emenda cruzada da ferramenta está
-desligada para ela.
+**São duas de propósito**, e o menu troca entre elas: o clima da trilha é a
+única coisa aqui que nenhuma medida decide. A floresta é escura e triste (centro
+espectral em 1095 Hz); a aventura é bem mais clara (2159 Hz) e puxa para a
+frente.
+
+As duas entram por `tools/importar_musica.py`, que normaliza o pico e mede o
+salto na volta do laço. A floresta já fechava sozinha (0,5 vez o salto normal) e
+não leva emenda; a aventura saltava **13,1 vezes** — estalo audível a cada
+volta — e com 3 s de emenda cruzada caiu para 0,1.
 
 **Licença dos três pacotes:** CC0 1.0 Universal. Criados e distribuídos por
 Kenney (www.kenney.nl). As licenças completas estão em

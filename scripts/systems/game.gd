@@ -49,7 +49,7 @@ func _ready() -> void:
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	# A trilha começa com a partida e fica; trocar de cena para o menu e voltar
 	# não a reinicia, porque o `Audio` ignora pedido da faixa que já toca.
-	Audio.musica(&"trilha_floresta")
+	Audio.musica(Audio.faixa_escolhida)
 	_pickup_area.collected.connect(_level.add_xp)
 	# Som dos três eventos que o Game já tem na mão. O resto toca de onde nasce:
 	# a arma no disparo, a criatura ao morrer.

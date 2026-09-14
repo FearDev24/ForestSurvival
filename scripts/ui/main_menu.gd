@@ -43,7 +43,10 @@ func _ready() -> void:
 func _montar() -> void:
 	for antigo in _opcoes.get_children():
 		antigo.queue_free()
-	for texto in ["JOGAR", "SAIR"]:
+	# A terceira placa existe para comparar as duas trilhas no aparelho, que é o
+	# único lugar onde dá para julgar clima de música. Sai quando o jogador
+	# decidir qual fica.
+	for texto in ["JOGAR", _texto_da_trilha(), "SAIR"]:
 		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque, 28)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
@@ -64,7 +67,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Rótulo da placa da trilha, que mostra qual está escolhida.
+func _texto_da_trilha() -> String:
+	return "TRILHA: %s" % Audio.NOMES_DAS_FAIXAS.get(Audio.faixa_escolhida, "?")
+
+
 func _on_escolha(texto: String) -> void:
+	if texto.begins_with("TRILHA"):
+		Audio.proxima_faixa()
+		_montar()
+		return
 	match texto:
 		"JOGAR":
 			get_tree().change_scene_to_file(GAME_SCENE)
