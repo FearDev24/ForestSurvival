@@ -55,6 +55,32 @@ extends Resource
 ## parecer um boss.
 @export var knockback_scale: float = 1.0
 
+## Atravessa pedra, totem e as outras criaturas.
+##
+## O Guardião tem 220 px de corpo e a floresta é cheia de obstáculo do tamanho
+## dele: empurrando pedra e horda ao mesmo tempo, ele encalhava e o jogador
+## ficava esperando o chefe chegar. A alternativa séria seria navegação com
+## desvio, o que é um sistema inteiro para um inimigo só.
+##
+## Tira o corpo das duas pontas: ele deixa de ser barrado e deixa de barrar.
+## Dano de contato e vulnerabilidade não passam por aqui — Hitbox e Hurtbox são
+## áreas próprias, em camadas próprias, e continuam valendo.
+@export var passa_por_tudo: bool = false
+
+@export_group("Aura")
+
+## Cor da luz que acompanha a criatura. Alfa zero desliga.
+##
+## Serve para o chefe se anunciar no meio da horda: ele não é só o maior, é o
+## único que ilumina o chão em volta.
+@export var aura_color: Color = Color(0, 0, 0, 0)
+
+## Raio da luz, em pixels de mundo. Zero desliga.
+@export var aura_radius: float = 0.0
+
+## Quanto a luz pulsa, em segundos de ida e volta. Zero deixa fixa.
+@export var aura_pulso: float = 0.0
+
 
 ## Um tipo sem id ou sem vida não deveria existir; vale conferir na carga,
 ## porque `.tres` é editado à mão com frequência.

@@ -2280,6 +2280,70 @@ As duas explicações possíveis, e o teste separa uma da outra:
    é técnico: é aumentar brilho e contraste da nuvem, ou tirá-la de baixo da
    vegetação.
 
+
+## O Guardião: atravessa, ilumina e ocupa a tela
+
+Três pedidos do jogador depois de jogar no aparelho, e um defeito que eles
+trouxeram junto.
+
+**Atravessa tudo.** Ele encalhava no cenário e na horda. Com 220 px de corpo,
+quase toda pedra e todo totem da floresta o param, e a horda que ele empurra
+forma uma parede. `passa_por_tudo` zera **camada e máscara** do corpo: zerar só
+a máscara o faria atravessar a pedra e continuar empurrando os outros; zerar só
+a camada faria o contrário. Medido: 276 px andados em 3 s, com a velocidade dele
+em 85 px/s — ou seja, nada o segurou, e ele passou por cima de uma fileira de
+diabretes.
+
+A alternativa séria seria navegação com desvio de obstáculo, que é um sistema
+inteiro para um inimigo só. E um chefe que empurra a floresta em vez de contorná-la
+é leitura melhor do que um chefe que fica preso atrás de uma pedra.
+
+**Ilumina.** `aura_color`, `aura_radius` e `aura_pulso` no `EnemyData`. A
+textura é um `GradientTexture2D` radial gerado pela própria Godot — não há PNG
+para trocar, então isso não é vaga de arte (DEC-013 não se aplica).
+
+Primeira tentativa saiu ao contrário: `blend_mode = 1` em `Light2D` é
+**subtrair**, não somar, e o chefe ficou mais escuro do que antes de ter luz. A
+captura mostrou na hora; o padrão (somar) é o certo.
+
+**Ocupa a tela.** De 175 para 220 px — quase o dobro do bruto (118) e dois
+druidas e meio. Raio de colisão de 60 para 75, acompanhando.
+
+### O defeito que a luz trouxe
+
+O `PointLight2D` entrou na **cena base** do inimigo, apagado, para o `EnemyData`
+acender quando quisesse. Isso pôs uma luz em cada criatura: com 500 na tela o
+quadro saltou de 16,7 ms para 29 ms, e o teste de carga da FASE 3 reprovou na
+hora. A luz passou a nascer em código, só para quem pede, e a medida voltou a
+16,8 ms.
+
+`tests/test_phase2.gd` cobra os dois lados agora — quem pede aura nasce com ela
+acesa e com textura, e **quem não pede não pode ter o nó**. Sem essa segunda
+metade, a correção poderia ser desfeita sem ninguém notar até o aparelho travar.
+
+## Os esporos: a gravação da partida encerrou a dúvida
+
+O jogador relatou três vezes que o Anel de Esporos "não aparece". A cada vez a
+medida dizia o contrário, e faltava olhar a partida dele. Nove minutos de tela
+gravados pelo cabo (`adb shell screenrecord`) resolveram: **a zona aparece, e
+aparece grande.** Os dois quadros salvos em `scratchpad` mostram o anel de
+cogumelos amarelo com uns 200 px de diâmetro, um deles encostado no bruto.
+
+Então não é bug, e a lista de coisas já verificadas é longa: a arma é oferecida
+na fase certa, entra no `WeaponManager`, dispara, e o efeito desenha — no PC e
+no aparelho, este último provado com o bot rodando no celular.
+
+O que sobra é **leitura**, e isso é decisão de design:
+
+- a zona nasce em volta do druida, no chão, e dura 3,5 s;
+- ela só dispara com inimigo a menos de 320 px: medido, 2 disparos em 10 s numa
+  partida real, contra os 3,8 que a recarga de 2,6 s permitiria;
+- no meio de raio, vinha, corvo e orbe, um anel parado no chão é o efeito mais
+  discreto do jogo — e o tileset da floresta tem cogumelos como decoração.
+
+Nenhuma dessas três coisas é conserto óbvio: mexer em qualquer uma muda o
+desenho da habilidade. Fica para o jogador decidir o que ela deveria parecer.
+
 ## FASE 12 — Mobile: o jogo se joga por toque e exporta para Android
 
 O que entrou:

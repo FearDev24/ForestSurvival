@@ -4,12 +4,12 @@
   "version": "2"
  },
  "sheet": "guardiao-death.png",
- "frameWidth": 470,
- "frameHeight": 392,
+ "frameWidth": 592,
+ "frameHeight": 500,
  "frames": 30,
  "layout": "grid",
- "columns": 8,
- "rows": 4,
+ "columns": 6,
+ "rows": 5,
  "pivot": {
   "x": 0.5,
   "y": 1.0

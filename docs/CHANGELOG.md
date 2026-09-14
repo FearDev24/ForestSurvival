@@ -313,6 +313,15 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 - **As criaturas voltaram a ter tamanhos que fazem sentido entre si.** Elas tinham sido geradas no tamanho que já mediam com a folha do diabrete ampliada, e isso preservou um erro antigo: o cão media 40 px em tela, **menos que o diabrete** (46), e bruto e elite, 67 e 78, eram menores que o druida (86) — sendo que os três deveriam intimidá-lo. Passaram a 92, 118 e 104, e o Guardião subiu junto, de 129 para 175, para continuar sendo de longe a maior coisa em tela. O raio de colisão de cada um acompanhou na mesma proporção (cão 11 -> 25, bruto 22 -> 39, elite 26 -> 35, Guardião 44 -> 60): colisão que fica para trás do desenho devolve o "a habilidade não bate no inimigo" que já tinha sido reclamado uma vez.
 - **As folhas de caminhada passaram a se dobrar em grade quando não cabem numa linha.** O perfil do Guardião tem 364 px de quadro; doze deles dariam 4368 px, acima do limite de 4096 das GPUs Android antigas (BUG-001). Antes a saída seria jogar fora quadros de animação; agora a folha vira 11 x 2 e o `.tres` calcula a região pela linha e coluna, como a queda já fazia.
 - `--bot-armas=id1,id2` no `BotMobile`: o bot do celular começa a partida com as armas pedidas. Serve para olhar uma habilidade **no aparelho** sem esperar a fase que a libera — o Anel de Esporos só é oferecido aos 150 s (DEC-025).
+- **O Guardião virou chefe de verdade:**
+  - `passa_por_tudo` no `EnemyData` zera camada **e** máscara do corpo. Ele encalhava em pedra, totem e na própria horda — mede 220 px e a floresta é cheia de obstáculo do tamanho dele. Zerar só a máscara o faria atravessar a pedra e continuar empurrando a horda; zerar só a camada faria o contrário. Dano e vulnerabilidade não passam por aí (Hitbox e Hurtbox são áreas próprias);
+  - `aura_color`, `aura_radius` e `aura_pulso`: o chefe é o único que ilumina o chão em volta, com pulso de 2,4 s. A textura é um gradiente radial gerado pela Godot (`assets/effects/aura_gradiente.tres`), não um asset;
+  - escala de 175 para **220 px** em tela, com o raio de colisão acompanhando (60 -> 75).
+
+### Fixed
+
+- **A luz do chefe custava quadro em toda criatura.** O `PointLight2D` tinha entrado na cena base do inimigo, apagado; com 500 inimigos o quadro saltou de 16,7 para 29 ms e o teste de carga da FASE 3 reprovou. A luz passou a nascer em código, só para quem a pede, e o teste voltou a 16,8 ms. `tests/test_phase2.gd` passou a cobrar os dois lados: quem pede aura nasce com ela acesa e com textura, e **quem não pede não pode ter o nó**.
+- A primeira versão da aura usava `blend_mode = 1`, que é **subtrair**, não somar: o chefe ficava mais escuro que antes de ter luz. A captura mostrou, e o valor voltou ao padrão.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

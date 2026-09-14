@@ -154,10 +154,10 @@ INIMIGOS = {
         "ciclo_de": "west",
         "linha_do_rotulo": 0,
         "folga": 1,
-        # 175 px em tela. Com o bruto em 118 o chefe tinha de subir junto: ele
-        # precisa continuar sendo, de longe, a maior coisa em tela.
-        "altura_de_frente": 350,
-        "altura_quadro": 392,
+        # 220 px em tela: quase o dobro do bruto (118) e dois druidas e meio.
+        # Um chefe tem de ser reconhecivel de longe, no meio da horda.
+        "altura_de_frente": 440,
+        "altura_quadro": 500,
     },
 }
 

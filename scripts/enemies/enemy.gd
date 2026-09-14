@@ -58,6 +58,10 @@ var _target: Node2D = null
 ## Recuo quando uma habilidade acerta sem matar: o jogador precisa ver que o
 ## golpe pegou. Leve de propósito — uns 18 px — e com intervalo, para uma zona
 ## que acerta várias vezes não virar uma parede que empurra a horda.
+## Gradiente radial da aura do chefe. E recurso gerado pela Godot, nao arte: nao
+## ha PNG nenhum para trocar aqui.
+const AURA_TEXTURA := "res://assets/effects/aura_gradiente.tres"
+
 const _RECUO_VELOCIDADE := 260.0
 const _RECUO_DURACAO := 0.14
 const _RECUO_INTERVALO := 0.2
@@ -110,6 +114,54 @@ func apply_data(enemy_data: EnemyData) -> void:
 		_redimensionar_corpo(enemy_data.body_radius)
 
 	modulate = enemy_data.tint
+	_atravessar(enemy_data)
+	_acender_aura(enemy_data)
+
+
+## Tira o corpo da física, nos dois sentidos.
+##
+## Zerar só a máscara faria o Guardião atravessar a pedra e continuar empurrando
+## a horda; zerar só a camada faria o contrário. As duas pontas saem juntas, e o
+## dano continua: Hitbox e Hurtbox são áreas próprias, em camadas próprias.
+func _atravessar(enemy_data: EnemyData) -> void:
+	if not enemy_data.passa_por_tudo:
+		return
+	collision_layer = 0
+	collision_mask = 0
+
+
+## Acende a luz do chefe, se o `EnemyData` pedir.
+##
+## O raio vem em pixels de mundo e a textura do gradiente tem 256: a escala é a
+## razão entre os dois. `energy` sai do alfa da cor, que é onde se regula a
+## força sem mexer no tom.
+func _acender_aura(enemy_data: EnemyData) -> void:
+	if enemy_data.aura_radius <= 0.0 or enemy_data.aura_color.a <= 0.0:
+		return
+
+	# A luz nasce aqui, e nao na cena: um `PointLight2D` apagado em cada inimigo
+	# custa quadro quando a horda passa de quinhentos -- foi o teste da FASE 3
+	# que mostrou, saltando de 16,7 para 29 ms por quadro.
+	var luz := PointLight2D.new()
+	luz.name = "Aura"
+	luz.texture = load(AURA_TEXTURA)
+	add_child(luz)
+	# No meio do corpo, e nao nos pes: a luz nasce da criatura. A altura sai do
+	# proprio sprite, que ja esta posicionado pela altura do quadro.
+	var visual := get_node_or_null("Visual") as Node2D
+	var sprite := visual.get_node_or_null("Sprite") as Node2D if visual != null else null
+	if sprite != null:
+		luz.position.y = sprite.position.y * visual.scale.y
+
+	luz.color = Color(enemy_data.aura_color, 1.0)
+	luz.energy = enemy_data.aura_color.a
+	luz.texture_scale = enemy_data.aura_radius * 2.0 / 256.0
+	if enemy_data.aura_pulso > 0.0:
+		var tween := create_tween().set_loops()
+		tween.tween_property(luz, "energy", enemy_data.aura_color.a * 0.55,
+			enemy_data.aura_pulso * 0.5).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(luz, "energy", enemy_data.aura_color.a,
+			enemy_data.aura_pulso * 0.5).set_trans(Tween.TRANS_SINE)
 
 
 ## Troca o raio das formas de colisão.

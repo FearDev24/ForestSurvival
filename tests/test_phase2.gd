@@ -373,6 +373,7 @@ func _check_arte_das_criaturas() -> void:
 		var bicho := (load(ENEMY_SCENE) as PackedScene).instantiate()
 		root.add_child(bicho)
 		bicho.call("apply_data", dados)
+		_check_corpo_e_aura(bicho, dados)
 		var visual := bicho.get_node("Visual") as Node2D
 		var sprite := visual.get_node("Sprite") as AnimatedSprite2D
 		for direcao in ["south", "west"]:
@@ -386,6 +387,36 @@ func _check_arte_das_criaturas() -> void:
 					dados.id, direcao, float(pe) * visual.scale.y,
 					"flutua" if float(pe) < 0.0 else "afunda no chão"])
 		bicho.queue_free()
+
+
+## Quem atravessa tudo sai da física pelas duas pontas, e quem tem aura acende.
+##
+## Zerar só a máscara faria o Guardião passar pela pedra e continuar empurrando
+## a horda; zerar só a camada faria o contrário. O chefe encalhava no cenário —
+## ele mede 220 px e a floresta é cheia de obstáculo do tamanho dele.
+func _check_corpo_e_aura(bicho: Node, dados: EnemyData) -> void:
+	var corpo := bicho as CharacterBody2D
+	if dados.passa_por_tudo:
+		if corpo.collision_layer != 0 or corpo.collision_mask != 0:
+			_fail("%s deveria atravessar tudo, mas tem layer %d e mask %d" % [
+				dados.id, corpo.collision_layer, corpo.collision_mask])
+	elif corpo.collision_mask == 0:
+		_fail("%s não atravessa tudo e mesmo assim não colide com nada" % dados.id)
+
+	# A luz **não pode existir** em quem não pediu: um `PointLight2D` apagado em
+	# cada inimigo levou o quadro de 16,7 para 29 ms com quinhentos na tela.
+	var luz := bicho.get_node_or_null("Aura") as PointLight2D
+	var pedida: bool = dados.aura_radius > 0.0 and dados.aura_color.a > 0.0
+	if not pedida:
+		if luz != null:
+			_fail("%s não pede aura e mesmo assim ganhou uma luz" % dados.id)
+		return
+	if luz == null:
+		_fail("%s pede aura e nasceu sem luz nenhuma" % dados.id)
+	elif is_zero_approx(luz.energy):
+		_fail("%s: aura acesa com energia zero" % dados.id)
+	elif luz.texture == null:
+		_fail("%s: aura sem textura — a luz não desenha nada" % dados.id)
 
 
 ## Y do pixel mais baixo do quadro atual, em coordenada do `Visual`.
