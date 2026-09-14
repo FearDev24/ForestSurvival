@@ -2849,9 +2849,13 @@ sobrou:
 - **orbe de XP, joystick e botão de pausa** — os três continuam sendo formas
   desenhadas em código, e continuam declarados como PLACEHOLDER nas cenas. O
   orbe aparece às centenas em tela, então é o que mais pesa dos três;
-- **trilha e ambiência** — o barramento `Musica` existe e está vazio. Os doze
-  efeitos sonoros entraram (`tools/preparar_sons.py`), mas floresta com
-  instrumentos de verdade é geração externa, como a arte;
+- **trilha e ambiência** — o barramento `Musica` existe e está vazio, e não há
+  código de música ainda: quando o arquivo chegar, entra um tocador só, com
+  troca suave na virada da wave do Guardião. Os prompts de geração estão em
+  `docs/PROMPTS_AUDIO.md`;
+- **rugido e queda do Guardião** — são os dois únicos efeitos ainda
+  sintetizados; nenhum pacote de impacto tem garganta de criatura. Prompts em
+  `docs/PROMPTS_AUDIO.md`, e entram por `tools/importar_sons.py` quando vierem;
 - **som de vitória e de derrota** — as duas telas de resultado seguem mudas;
 - **opções de volume** — `Audio.volume()` é o gancho, e não há tela que o chame;
 - **teto dos orbes de XP** — 397 no chão numa partida medida no aparelho. É
