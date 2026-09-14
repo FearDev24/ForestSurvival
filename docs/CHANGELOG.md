@@ -337,6 +337,10 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 ### Fixed
 
 - **`Audio` como autoload quebraria as dezoito suítes.** O identificador global de um autoload não existe para o compilador quando a Godot roda com `--script`, que é como todos os testes deste projeto rodam: `Audio.tocar()` dentro de `weapon.gd` não compilava, e junto com ele caía qualquer teste que tocasse em arma. Virou `class_name` com métodos estáticos, que resolve em qualquer modo; o nó nasce na primeira chamada e mora na raiz, fora das cenas.
+- **Dez dos doze sons passaram a vir de biblioteca gravada, não de síntese.** Os sintetizados soavam chiptune — oscilador puro contra uma arte pixel quase pintada —, e os dois registros brigavam. Vieram três pacotes **CC0** da Kenney (Impact Sounds, RPG Audio, UI Audio), e `tools/importar_sons.py` converte: corta o silêncio das pontas (meio segundo de nada é meio segundo de atraso entre o golpe na tela e o som), encurta o que é longo demais, iguala a 44,1 kHz mono e aplica o mesmo volume de pico por som do gerador sintético.
+  - a escolha de qual arquivo serve a qual evento está numa tabela de uma linha por som, com o porquê ao lado — trocar é trocar a linha e rodar de novo;
+  - `assets/_raw/audio/` guarda os arquivos de origem e as licenças dos pacotes, e `assets/audio/CREDITOS.md` diz de onde veio cada som;
+  - **o rugido e a queda do Guardião continuam sintetizados**: nenhum pacote de impacto tem garganta de criatura, e são justamente os dois sons que precisam soar orgânicos. Ficam marcados para geração externa, com prompt, como a arte.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;
