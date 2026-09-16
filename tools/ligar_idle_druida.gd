@@ -11,7 +11,8 @@ extends SceneTree
 
 const FRAMES := "res://assets/characters/druida_sprite_frames.tres"
 const PASTA := "res://assets/characters/"
-const DIRECOES := ["south", "north", "west", "east"]
+## Sem oeste: no jogo, oeste é leste espelhado (`player_visual.gd`).
+const DIRECOES := ["south", "north", "east"]
 
 
 func _initialize() -> void:

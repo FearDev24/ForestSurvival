@@ -444,7 +444,8 @@ func _check_idle_do_druida() -> void:
 	var frames := load(PLAYER_FRAMES) as SpriteFrames
 	var jogador := (load(PLAYER_SCENE) as PackedScene).instantiate()
 	var sprite := jogador.get_node("Visual/Sprite") as AnimatedSprite2D
-	for direcao in ["south", "north", "west", "east"]:
+	# Sem oeste: é leste espelhado, e `_check_oeste_espelha_leste` cobra isso.
+	for direcao in ["south", "north", "east"]:
 		var idle := StringName("idle_%s" % direcao)
 		if not frames.has_animation(idle):
 			_fail("O druida não tem %s: parado, congelaria no primeiro quadro da caminhada" % idle)
@@ -465,6 +466,80 @@ func _check_idle_do_druida() -> void:
 		if absf(parado["pe"] - (parado["altura_do_quadro"] - 1.0)) > 2.0:
 			_fail("%s: o pé está na linha %.0f de um quadro de %.0f — o druida flutuaria parado" % [
 				idle, parado["pe"], parado["altura_do_quadro"]])
+	jogador.free()
+
+
+## Nenhum resto do fundo verde do vídeo nos quadros de idle.
+##
+## O druida é recortado de um vídeo com fundo verde, e ele mesmo carrega verde
+## de verdade: a esfera no topo do cajado. Uma primeira versão do recorte guardou
+## junto bolsões de fundo presos entre o cajado e o manto, e depois um aro verde
+## vazado pela redução da imagem. Aqui se cobra, quadro a quadro, que cor de
+## chroma só apareça no terço de cima da silhueta, onde fica a esfera.
+func _check_idle_sem_chroma() -> void:
+	var frames := load(PLAYER_FRAMES) as SpriteFrames
+	for direcao in ["south", "north", "east"]:
+		var idle := StringName("idle_%s" % direcao)
+		if not frames.has_animation(idle):
+			continue
+		for q in frames.get_frame_count(idle):
+			var img := frames.get_frame_texture(idle, q).get_image()
+			var topo := -1
+			var base := -1
+			for y in img.get_height():
+				for x in img.get_width():
+					if img.get_pixel(x, y).a > 0.16:
+						if topo < 0:
+							topo = y
+						base = y
+						break
+			if topo < 0:
+				continue
+			var corte := topo + int((base - topo) * 0.30)
+			var restos := 0
+			for y in range(corte + 1, img.get_height()):
+				for x in img.get_width():
+					var c := img.get_pixel(x, y)
+					if c.a > 0.0 and c.h > 0.29 and c.h < 0.39 and c.s > 0.47 and c.v > 0.39:
+						restos += 1
+			if restos > 0:
+				_fail("%s, quadro %d: %d pixels com a cor do fundo verde fora da esfera" % [idle, q, restos])
+
+
+## Virado para oeste, o druida é o leste espelhado — mesmo tamanho dos dois lados.
+##
+## As folhas de oeste foram desenhadas menores (81 px de corpo contra 85) e o
+## jogador via o druida mudar de tamanho ao virar. O teste cobra o mecanismo, e
+## cobra que nenhuma folha de oeste volte ao `SpriteFrames`: ela seria usada no
+## lugar do espelho só se alguém mudasse o código, mas voltaria a esconder a
+## diferença de tamanho atrás de um arquivo.
+func _check_oeste_espelha_leste() -> void:
+	var frames := load(PLAYER_FRAMES) as SpriteFrames
+	for sobra in [&"walk_west", &"idle_west"]:
+		if frames.has_animation(sobra):
+			_fail("%s voltou ao SpriteFrames: oeste deve ser leste espelhado" % sobra)
+
+	# Fora da árvore de propósito: dentro dela, um segundo druida no grupo
+	# "player" roubava o alvo dos inimigos do resto deste teste.
+	var jogador := (load(PLAYER_SCENE) as PackedScene).instantiate()
+	var visual := jogador.get_node("Visual")
+	var sprite := visual.get_node("Sprite") as AnimatedSprite2D
+	# Dentro de `_initialize` o `_ready` não dispara, e o `@onready` do sprite
+	# fica nulo — a armadilha de sempre deste projeto. No jogo ele já existe.
+	visual.set("_sprite", sprite)
+	for caso in [[Player.Facing.WEST, true], [Player.Facing.EAST, false]]:
+		for andando in [true, false]:
+			visual.call("set_facing", Player.Facing.SOUTH)
+			visual.call("set_moving", andando)
+			visual.call("set_facing", caso[0])
+			var esperado := "%s_east" % ("walk" if andando else "idle")
+			var lado := "oeste" if caso[1] else "leste"
+			if String(sprite.animation) != esperado:
+				_fail("Virado para %s %s, tocou %s em vez de %s" % [
+					lado, "andando" if andando else "parado", sprite.animation, esperado])
+			if sprite.flip_h != caso[1]:
+				_fail("Virado para %s %s, o espelho está %s" % [
+					lado, "andando" if andando else "parado", "ligado" if sprite.flip_h else "desligado"])
 	jogador.free()
 
 
@@ -545,6 +620,8 @@ func _check_death_presentation() -> void:
 
 	_check_death_proporcao()
 	_check_idle_do_druida()
+	_check_idle_sem_chroma()
+	_check_oeste_espelha_leste()
 	_check_arte_das_criaturas()
 
 	if not ResourceLoader.exists(GAME_SCENE):

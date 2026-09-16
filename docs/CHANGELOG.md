@@ -373,6 +373,11 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - **a esfera verde do cajado sobreviveu ao chroma**: o corte das criaturas tratava todo verde vivo como fundo e ainda desbotava a franja, e o cajado saía oco. Aqui fundo é só o verde ligado à borda do quadro; verde cercado pelo desenho fica, salvo se tiver exatamente a cor chapada do fundo;
   - velocidade tirada do laço do vídeo (9 a 11 fps), e não os 15 fps da caminhada, para respirar no tempo do vídeo;
   - `tests/test_phase2.gd` cobra as quatro animações em laço, a altura contra a caminhada da mesma direção (±6%) e o pé na última linha do quadro. Foi ele que pegou a diferença de 88 contra 83.
+- **Oeste é leste espelhado, e o idle está limpo do fundo verde.**
+  - o druida mudava de tamanho ao virar: a folha de caminhada para oeste tinha sido desenhada menor (81 px de corpo contra 85, e 10% menos desenho), e o idle herdou a diferença. `player_visual.gd` passou a desenhar oeste com as animações de leste e `flip_h` — mesmos pixels, mesmo tamanho por construção. As folhas de oeste saíram, e `tests/test_phase2.gd` cobra o espelho e que nenhuma animação `_west` volte ao `SpriteFrames`;
+  - **resíduos do chroma** apareciam em vários quadros do idle, e cada um tinha uma causa. Bolsões de fundo presos entre o cajado e o manto passavam pela regra que salvava a esfera ("verde cercado fica"): agora só fica verde cercado que é compacto, está no terço de cima e tem núcleo aceso. O núcleo precisa ser branco-esverdeado, porque num quadro a gola de pele creme contou como núcleo e arrastou o centro da esfera para longe. A redução passou a ser feita com alfa pré-multiplicado, para a cor invisível do fundo não vazar para a borda. E o halo de alfa quase zero que o LANCZOS deixa é zerado. Resultado medido: nos 48 quadros, verde de chroma só na esfera;
+  - `tests/test_phase2.gd` percorre todos os quadros de idle e acusa cor de fundo fora do terço de cima da silhueta. Validei pintando 5 pixels verdes num quadro: o teste acusou.
+  - **armadilha nova:** a Godot **trava** ao carregar um `SpriteFrames` que aponta para PNG apagado, em vez de dar erro. Para tirar animações cujas folhas já sumiram, é preciso editar o `.tres` pelo texto.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

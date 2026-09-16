@@ -28,9 +28,10 @@ vivo como fundo, e depois ainda tira o verde da franja. As criaturas nao tinham
 verde nenhum; o druida tem a esfera brilhante no topo do cajado, e ela sumia --
 o cajado saia oco nas quatro direcoes. Aqui o fundo e so o verde **ligado a
 borda do quadro**. Verde cercado pelo desenho (a esfera dentro do anel de
-galhos) fica, a menos que tenha a cor chapada do fundo -- e o fundo deste video
-e chapado de verdade: 90% dos pixels dele na mesma tonalidade, saturacao e brilho
-com variacao de 5 pontos. A franja so perde o verde fora da esfera.
+galhos) fica **so se tiver forma e lugar de esfera**: compacto e no terco de
+cima da silhueta. Guardar todo verde cercado deixava lascas de fundo presas
+entre o cabo do cajado e o manto em ate metade dos quadros. A franja perde o
+verde em tudo, menos na esfera.
 
 **O ritmo e o do video.** A caminhada toca a 15 fps; o idle nao. A velocidade
 sai do comprimento do laco, para respirar no tempo em que o video respira.
@@ -59,7 +60,8 @@ FPS_VIDEO = 24.0
 ## Trechos medidos (maior salto de silhueta entre quadros vizinhos).
 TRECHOS = {
     "south": (0, 59),
-    "west": (59, 120),
+    # O perfil para oeste do video nao e usado: no jogo, oeste e leste espelhado
+    # (mesmo tamanho por construcao). Ver `player_visual.gd`.
     "east": (120, 179),
     "north": (179, 240),
 }
@@ -68,7 +70,6 @@ TRECHOS = {
 CAMINHADAS = {
     "south": ("druida-sul-walk-south.png", 64),
     "north": ("druida-north-walk-north.png", 64),
-    "west": ("druida-west-walk-west.png", 64),
     "east": ("druida-east-walk-east.png", 64),
 }
 
@@ -84,6 +85,13 @@ _FUNDO_TOM = 61
 _FUNDO_SAT_MIN = 222
 _FUNDO_VAL = (214, 240)
 
+## Menor bolsao verde que pode ser a esfera, em pixels do video (1280x720).
+_ESFERA_AREA_MINIMA = 60
+
+## Raio da esfera a partir do nucleo, em pixels do video. A esfera inteira cabe
+## em uns 56 px de diametro; o brilho dela fica dentro do anel de galhos.
+_ESFERA_RAIO = 36
+
 
 def tirar_verde(rgb):
     """Fundo fora, esfera do cajado preservada. Ver o cabecalho."""
@@ -97,17 +105,56 @@ def tirar_verde(rgb):
     borda = borda[borda != 0]
     fundo = np.isin(rotulos, borda)
 
-    # Verde cercado: sai so o que tem a cor chapada do fundo; o resto e desenho.
+    # Verde cercado pelo desenho: so fica o que tem forma e lugar de esfera.
+    #
+    # A primeira versao guardava todo verde cercado, e guardou junto os bolsoes
+    # de fundo presos entre o cabo do cajado e o manto -- lascas verdes em ate
+    # metade dos quadros das costas e do perfil. A esfera e diferente de uma
+    # lasca em duas coisas medidas: e compacta (ocupa boa parte da propria caixa,
+    # e nao e comprida) e fica no terco de cima da silhueta, no topo do cajado.
     cercado = verde & ~fundo
+    esfera = np.zeros_like(cercado)
     hsv = cv2.cvtColor(rgb[:, :, :3].astype(np.uint8), cv2.COLOR_RGB2HSV).astype(int)
-    chapado = (np.abs(hsv[:, :, 0] - _FUNDO_TOM) <= 3) & (hsv[:, :, 1] >= _FUNDO_SAT_MIN)         & (hsv[:, :, 2] >= _FUNDO_VAL[0]) & (hsv[:, :, 2] <= _FUNDO_VAL[1])
-    fundo |= cercado & chapado
+    corpo = ~fundo & ~cercado
+    linhas = np.where(corpo.any(axis=1))[0]
+    if len(linhas) > 0:
+        topo, base = int(linhas[0]), int(linhas[-1])
+        n, rot, st, centro = cv2.connectedComponentsWithStats(cercado.astype(np.uint8), connectivity=8)
+        for k in range(1, n):
+            x, y, w, h, area = st[k]
+            if area < _ESFERA_AREA_MINIMA:
+                continue
+            compacta = area / float(w * h) >= 0.35 and 0.5 <= w / float(h) <= 2.0
+            no_alto = (centro[k][1] - topo) / max(1.0, float(base - topo)) <= 0.30
+            # E acesa: a esfera tem nucleo quase branco dentro da caixa dela. Um
+            # bolsao de fundo entre o cajado e o capuz tambem e compacto e alto --
+            # nas costas passavam lascas assim em sete quadros --, mas nao brilha.
+            caixa_hsv = hsv[y:y + h, x:x + w]
+            # Branco-esverdeado, e nao so claro: num quadro das costas a caixa da
+            # mancha pegava a gola de pele, creme e quase branca, e o "nucleo"
+            # descia ate ela -- arrastando o centro da esfera para longe dela.
+            nucleo = (caixa_hsv[:, :, 2] >= 235) & (caixa_hsv[:, :, 1] <= 140)                 & (caixa_hsv[:, :, 0] >= 35) & (caixa_hsv[:, :, 0] <= 85)
+            if not (compacta and no_alto and nucleo.any()):
+                continue
+            # So o que fica perto do nucleo. Num quadro das costas, bolsoes de
+            # fundo descendo pelo cabo encostavam no brilho da esfera e viravam
+            # uma mancha so com ela -- passavam inteiros pelo filtro.
+            ny, nx = np.where(nucleo)
+            cy, cx = y + ny.mean(), x + nx.mean()
+            yy, xx = np.mgrid[0:rgb.shape[0], 0:rgb.shape[1]]
+            perto = (yy - cy) ** 2 + (xx - cx) ** 2 <= _ESFERA_RAIO ** 2
+            esfera |= (rot == k) & perto
+
+    chapado = (np.abs(hsv[:, :, 0] - _FUNDO_TOM) <= 3) & (hsv[:, :, 1] >= _FUNDO_SAT_MIN) \
+        & (hsv[:, :, 2] >= _FUNDO_VAL[0]) & (hsv[:, :, 2] <= _FUNDO_VAL[1])
+    esfera &= ~chapado
+    fundo |= cercado & ~esfera
     fundo |= ~maior_componente(~fundo)
 
     saida = np.dstack([a, np.where(fundo, 0, 255)]).astype(np.uint8)
-    # Franja: o verde que a compressao espalha na borda do desenho. So fora do
-    # que estava cercado -- la dentro o verde e da esfera.
-    franja = (~fundo) & (~cercado) & (g > np.maximum(r, b) + 8)
+    # Franja: o verde que a compressao espalha na borda do desenho. Tudo perde o
+    # verde, menos a esfera.
+    franja = (~fundo) & (~esfera) & (g > np.maximum(r, b) + 8)
     saida[:, :, 1] = np.where(franja, np.maximum(r, b) + 8, g).astype(np.uint8)
     return saida
 
@@ -173,12 +220,25 @@ def melhor_laco(quadros):
 
 
 def recortar(quadro, escala):
+    """Recorta e reduz, com alfa pre-multiplicado.
+
+    O fundo recortado fica transparente mas **guarda a cor verde**. Reduzir em
+    RGBA comum mistura essa cor invisivel com os pixels do desenho em volta, e o
+    verde volta como aro nas bordas de buracos estreitos -- entre o cajado e o
+    capuz, por exemplo. Em `RGBa` (pre-multiplicado) pixel transparente pesa
+    zero na mistura.
+    """
     c = caixa(quadro)
-    corpo = Image.fromarray(quadro[c[1]:c[3] + 1, c[0]:c[2] + 1])
-    return corpo.resize((
+    corpo = Image.fromarray(quadro[c[1]:c[3] + 1, c[0]:c[2] + 1]).convert("RGBa")
+    reduzido = corpo.resize((
         max(1, int(round(corpo.size[0] * escala))),
         max(1, int(round(corpo.size[1] * escala))),
-    ), Image.LANCZOS)
+    ), Image.LANCZOS).convert("RGBA")
+    # O LANCZOS deixa um halo de alfa quase zero em volta do desenho. Invisivel
+    # (ate 5/255), mas com cor verde de chroma: fora, para nao sobrar rastro.
+    a = np.array(reduzido)
+    a[a[:, :, 3] < 10] = 0
+    return Image.fromarray(a)
 
 
 def altura_escalada(imagem):

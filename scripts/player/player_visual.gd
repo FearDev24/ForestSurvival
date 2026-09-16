@@ -15,12 +15,20 @@ extends Node2D
 ## frames dura a morte — só é avisado quando a apresentação da morte terminou.
 
 ## Sufixo de animação por direção.
+##
+## Oeste usa as animações de **leste, espelhadas** (`_ESPELHADAS`). As folhas de
+## oeste que existiam foram desenhadas menores — 81 px de corpo contra 85 do
+## leste, e 10% menos desenho —, e o jogador via o druida mudar de tamanho ao
+## virar. Espelhar garante o mesmo tamanho por construção: são os mesmos pixels.
 const _DIRECTION_SUFFIX := {
 	Player.Facing.SOUTH: "south",
 	Player.Facing.NORTH: "north",
-	Player.Facing.WEST: "west",
+	Player.Facing.WEST: "east",
 	Player.Facing.EAST: "east",
 }
+
+## Direções desenhadas com a arte de outra, espelhada na horizontal.
+const _ESPELHADAS := [Player.Facing.WEST]
 
 ## Direção usada quando a pedida não tem nenhuma animação (regra 9 do
 ## `ASSET_WORKFLOW`: falta de direção permite fallback temporário).
@@ -72,6 +80,7 @@ var _animacao_viva: StringName = &""
 var _quadro_vivo := 0
 var _posicao_viva := Vector2.ZERO
 var _escala_viva := Vector2.ONE
+var _espelho_vivo := false
 
 @onready var _sprite: AnimatedSprite2D = $Sprite
 
@@ -102,7 +111,10 @@ func play_death() -> void:
 	_quadro_vivo = _sprite.frame
 	_posicao_viva = _sprite.position
 	_escala_viva = _sprite.scale
+	_espelho_vivo = _sprite.flip_h
 
+	# A morte só existe virada para o sul: nunca espelhada.
+	_sprite.flip_h = false
 	_apply_death_transform(animation)
 	_sprite.animation = animation
 	_sprite.frame = 0
@@ -158,6 +170,7 @@ func _cruzar_para_morte() -> void:
 	fantasma.frame = _quadro_vivo
 	fantasma.position = _posicao_viva
 	fantasma.scale = _escala_viva
+	fantasma.flip_h = _espelho_vivo
 	fantasma.z_index = _sprite.z_index + 1
 	add_child(fantasma)
 
@@ -198,6 +211,8 @@ func _apply() -> void:
 	# primeiro quadro da caminhada só vale se alguma faltar: preserva a direção
 	# certa e não inventa pose.
 	var freeze := not _moving and animation.begins_with("walk_")
+
+	_sprite.flip_h = _facing in _ESPELHADAS
 
 	if _sprite.animation != animation:
 		_sprite.animation = animation
