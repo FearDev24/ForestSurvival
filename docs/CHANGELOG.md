@@ -362,6 +362,11 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 ### Fixed
 
 - **Comentário com `#` dentro de um `.tres` engole a propriedade seguinte, em silêncio.** Foi assim que `trilha = &"trilha_floresta"` sumiu da wave do Guardião: o recurso carregava, o `boss` estava lá, e só o campo depois do comentário voltava vazio. O formato de recurso da Godot não aceita `#`; comentário sobre dado mora no script que o declara. Quem achou foi o teste novo, que cobra que a wave do chefe peça uma faixa **e que essa faixa exista em disco**.
+- **Som fechado, pelas decisões do jogador depois de ouvir no aparelho:**
+  - **só a trilha da floresta.** A de aventura, a placa `TRILHA` do menu e a troca de faixa na wave do Guardião saíram. `WaveData.trilha` continua existindo — nenhuma wave pede hoje —, e o teste cobra que qualquer faixa pedida exista em disco;
+  - **combate mudo por inteiro**: além das armas, calaram a morte de criatura e o dano no druida. O teste cobra os três como silêncio, não só como ausência de arquivo;
+  - **o Guardião ganhou som baixo e suave** ao nascer e ao morrer — baque abafado e madeira pesada caindo, gravados (Kenney, CC0), a 0,30 e 0,35 da escala: marcam o chefe sem virar o som mais alto do jogo;
+  - **o gerador sintético saiu** (`tools/preparar_sons.py`): nenhum som vivo vinha mais dele, e rodá-lo de novo sobrescreveria os gravados com os que o jogador rejeitou. A tabela de volume mudou para `tools/importar_sons.py`.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

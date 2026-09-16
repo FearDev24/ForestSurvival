@@ -68,7 +68,10 @@ extends Resource
 @export var passa_por_tudo: bool = false
 
 ## Som ao morrer, pelo nome do arquivo em `assets/audio/`, sem extensão.
-@export var som_morte: StringName = &"criatura_morre"
+##
+## Vazio por padrão: combate é mudo (decisão do jogador). Só o Guardião marca a
+## própria queda.
+@export var som_morte: StringName = &""
 
 ## Som ao nascer. Vazio na horda inteira: só o chefe se anuncia.
 @export var som_nascimento: StringName = &""

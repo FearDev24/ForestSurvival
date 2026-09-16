@@ -35,22 +35,9 @@ const PASTA_MUSICA := "res://assets/audio/musica/"
 ## Segundos de desvanecimento ao trocar de faixa ou ao parar.
 const _FUSAO := 1.2
 
-## As faixas disponíveis, na ordem em que o menu as oferece.
-##
-## Duas enquanto o clima não está decidido: a floresta é escura e triste, a
-## aventura é mais clara e puxa para a frente. Quem escolhe é o ouvido do
-## jogador, no aparelho, e não uma medida — por isso o menu troca em vez de
-## alguém cravar aqui.
-const FAIXAS := [&"trilha_aventura", &"trilha_floresta"]
-
-## Nome de cada faixa no botão do menu.
-const NOMES_DAS_FAIXAS := {
-	&"trilha_aventura": "AVENTURA",
-	&"trilha_floresta": "FLORESTA",
-}
-
-## Faixa escolhida. Vive só nesta sessão: não há save ainda (FASE 13).
-static var faixa_escolhida: StringName = &"trilha_aventura"
+## A trilha da partida. Houve duas em teste — a floresta e uma de aventura — e
+## o jogador escolheu a floresta, ouvindo no aparelho.
+const TRILHA := &"trilha_floresta"
 
 ## Quantos sons podem soar ao mesmo tempo.
 ##
@@ -94,13 +81,6 @@ static func musica(nome: StringName) -> void:
 	var eu := _garantir()
 	if eu != null:
 		eu._musica_tocar(nome)
-
-
-## Passa para a próxima faixa e devolve a escolhida.
-static func proxima_faixa() -> StringName:
-	var i := FAIXAS.find(faixa_escolhida)
-	faixa_escolhida = FAIXAS[(i + 1) % FAIXAS.size()]
-	return faixa_escolhida
 
 
 ## Volume de um barramento, de 0 a 1. É o gancho para as opções de som.

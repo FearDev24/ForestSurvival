@@ -8,27 +8,23 @@ extends SceneTree
 ## headless — não o que se ouve, mas o que dispara.
 ##
 ## O que se prova aqui:
-## - os doze arquivos existem, carregam e têm duração;
+## - os cinco arquivos existem, carregam e têm duração;
 ## - todo som citado em `WeaponData` e `EnemyData` existe de verdade (um nome
 ##   errado numa `.tres` é mudo em silêncio: ninguém descobre jogando);
 ## - a represa do mesmo som segura repetição no mesmo instante;
-## - e, o que importa de fato, que **os eventos do jogo tocam**: coletar orbe,
-##   subir de nível, tomar dano, disparar arma e matar criatura.
+## - que **os eventos tocam**: coletar orbe, subir de nível, e o Guardião nascer;
+## - e que **o combate é mudo**, por decisão do jogador: disparar arma, matar
+##   criatura e tomar dano não tocam nada.
 ##
-## Este último grupo é o que um teste de arquivo não pega: os doze WAV podem
-## estar perfeitos e o jogo continuar mudo por falta de uma conexão.
+## Os dois últimos grupos são o que um teste de arquivo não pega: os WAV podem
+## estar perfeitos e o jogo mudo por falta de conexão — ou barulhento por sobra.
 
 const GAME_SCENE := "res://scenes/game/game.tscn"
 const PASTA := "res://assets/audio/"
 
 const ESPERADOS := [
-	&"criatura_morre", &"coleta_orbe", &"nivel", &"escolha", &"dano_druida",
-	&"guardiao_rugido", &"guardiao_queda",
+	&"coleta_orbe", &"nivel", &"escolha", &"guardiao_rugido", &"guardiao_queda",
 ]
-
-## As armas são mudas por decisão do jogador: cinco delas disparando em recargas
-## diferentes viravam tapete de ruído, e quem sustenta a partida é a trilha.
-const FAIXA := &"trilha_floresta"
 
 var _failures: Array[String] = []
 var _game: Node = null
@@ -123,10 +119,10 @@ func _conferir_nome(nome: StringName, quem: String) -> void:
 ## juntas somariam amplitude e saturariam.
 func _check_represa() -> void:
 	_calar()
-	Audio.tocar(&"criatura_morre")
+	Audio.tocar(&"coleta_orbe")
 	var depois_de_um := _tocando()
-	Audio.tocar(&"criatura_morre")
-	Audio.tocar(&"criatura_morre")
+	Audio.tocar(&"coleta_orbe")
+	Audio.tocar(&"coleta_orbe")
 	var depois_de_tres := _tocando()
 	if depois_de_um != 1:
 		_fail("Um som pedido deveria ocupar um tocador; ocupou %d" % depois_de_um)
@@ -147,9 +143,7 @@ func _check_eventos() -> void:
 			(_game.get_node("Player/PickupArea") as PickupArea).collected.emit(1.0)],
 		["subir de nível", func() -> void:
 			(_game.get_node("Player/Level") as LevelComponent).add_xp(9999.0)],
-		["o druida tomar dano", func() -> void:
-			(_game.get_node("Player/Health") as HealthComponent).damage(5.0)],
-		["uma criatura morrer", func() -> void: _matar_criatura()],
+		["o Guardião nascer", func() -> void: _nascer_guardiao()],
 	]
 	for evento in eventos:
 		_calar()
@@ -158,10 +152,17 @@ func _check_eventos() -> void:
 			_fail("%s não tocou som nenhum" % evento[0])
 
 	# E o contrário, que também é decisão: combate é mudo.
-	_calar()
-	_disparar()
-	if _tocando() != 0:
-		_fail("Uma arma tocou som: o combate deveria ser mudo")
+	var mudos := [
+		["uma arma disparar", func() -> void: _disparar()],
+		["uma criatura morrer", func() -> void: _matar_criatura()],
+		["o druida tomar dano", func() -> void:
+			(_game.get_node("Player/Health") as HealthComponent).damage(5.0)],
+	]
+	for evento in mudos:
+		_calar()
+		(evento[1] as Callable).call()
+		if _tocando() != 0:
+			_fail("%s tocou som: o combate deveria ser mudo" % evento[0])
 
 
 func _matar_criatura() -> void:
@@ -171,6 +172,13 @@ func _matar_criatura() -> void:
 		_fail("Não consegui fazer nascer uma criatura para matar")
 		return
 	(bicho.get_node("Health") as HealthComponent).damage(99999.0)
+
+
+func _nascer_guardiao() -> void:
+	var spawn := _game.get_node("SpawnManager") as SpawnManager
+	var chefe := spawn.spawn_data(load("res://resources/enemies/guardiao_profanado.tres") as EnemyData)
+	if chefe == null:
+		_fail("Não consegui fazer nascer o Guardião")
 
 
 func _disparar() -> void:
@@ -193,7 +201,7 @@ func _disparar() -> void:
 ## O barramento separado é o que permite baixar a música sem baixar o resto, e o
 ## laço é o que a faz durar mais que 93 segundos de partida.
 func _check_musica() -> void:
-	Audio.musica(FAIXA)
+	Audio.musica(Audio.TRILHA)
 	var tocador := _audio.get_node_or_null("AudioStreamPlayer") as AudioStreamPlayer
 	for filho in _audio.get_children():
 		var p := filho as AudioStreamPlayer
@@ -233,47 +241,17 @@ func _tocando() -> int:
 	return total
 
 
-## A chegada do Guardião troca a trilha, e a troca é da wave, não do relógio.
+## Toda faixa que alguma wave pede existe em disco.
 ##
-## Quem manda é o `WaveData`: qualquer wave pode pedir a sua faixa, e ninguém
-## precisa perguntar a que altura da partida estamos. A troca é cruzada — a que
-## sai desvanece enquanto a que entra sobe —, por isso as duas podem estar
-## tocando no mesmo instante.
+## `WaveData.trilha` continua podendo trocar a música numa wave; hoje nenhuma
+## pede, porque a trilha escolhida é uma só. Se alguém pedir, o nome tem de
+## existir — nome errado seria silêncio sem aviso.
 func _check_trilha_do_chefe() -> void:
 	var ondas := _game.get_node("WaveManager") as WaveManager
-	var chefe: WaveData = null
 	for wave in ondas.waves:
-		if wave.boss != null:
-			chefe = wave
-	if chefe == null:
-		_fail("Nenhuma wave traz o Guardião")
-		return
-	if chefe.trilha == &"":
-		_fail("A wave do Guardião não pede trilha nenhuma: a música não mudaria na chegada dele")
-		return
-	if not ResourceLoader.exists("res://assets/audio/musica/%s.ogg" % chefe.trilha):
-		_fail("A wave do Guardião pede a faixa '%s', que não existe" % chefe.trilha)
-		return
-
-	# Começa na outra faixa, para a troca ter o que trocar.
-	var outra: StringName = &""
-	for faixa in Audio.FAIXAS:
-		if faixa != chefe.trilha:
-			outra = faixa
-	Audio.musica(outra)
-	ondas.enabled = true
-	ondas.set("_elapsed", chefe.start_time + 1.0)
-	ondas.call("_atualizar_wave")
-
-	if _audio.get("_faixa_atual") != chefe.trilha:
-		_fail("Entrando na wave do Guardião a trilha continuou em '%s'" % _audio.get("_faixa_atual"))
-	var tocando := 0
-	for filho in _audio.get_children():
-		var p := filho as AudioStreamPlayer
-		if p != null and p.bus == &"Musica" and p.playing:
-			tocando += 1
-	if tocando < 1:
-		_fail("Depois da troca não há trilha tocando")
+		if wave.trilha != &"" and not ResourceLoader.exists(
+				"res://assets/audio/musica/%s.ogg" % wave.trilha):
+			_fail("A wave %s pede a faixa '%s', que não existe" % [wave.id, wave.trilha])
 
 
 func _fail(message: String) -> void:
@@ -282,7 +260,7 @@ func _fail(message: String) -> void:
 
 func _report() -> void:
 	if _failures.is_empty():
-		print("ÁUDIO OK — sete sons no lugar, combate mudo, trilha em laço e os quatro eventos tocando.")
+		print("ÁUDIO OK — cinco sons no lugar, combate mudo, trilha em laço, Guardião e interface tocando.")
 		return
 	printerr("ÁUDIO FALHOU:")
 	for failure in _failures:

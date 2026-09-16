@@ -2864,15 +2864,12 @@ sobrou:
 - **orbe de XP, joystick e botão de pausa** — os três continuam sendo formas
   desenhadas em código, e continuam declarados como PLACEHOLDER nas cenas. O
   orbe aparece às centenas em tela, então é o que mais pesa dos três;
-- **trilha e ambiência** — o barramento `Musica` existe e está vazio, e não há
-  código de música ainda: quando o arquivo chegar, entra um tocador só, com
-  troca suave na virada da wave do Guardião. Os prompts de geração estão em
-  `docs/PROMPTS_AUDIO.md`;
-- **rugido e queda do Guardião** — são os dois únicos efeitos ainda
-  sintetizados; nenhum pacote de impacto tem garganta de criatura. Prompts em
-  `docs/PROMPTS_AUDIO.md`, e entram por `tools/importar_sons.py` quando vierem;
-- **som de vitória e de derrota** — as duas telas de resultado seguem mudas;
-- **opções de volume** — `Audio.volume()` é o gancho, e não há tela que o chame;
+- **som: fechado por decisão do jogador.** Trilha da floresta em laço; combate
+  mudo (armas, morte de criatura e dano no druida); só interface, level up,
+  coleta e o Guardião — baixo e suave ao nascer e morrer. Os prompts de
+  geração continuam em `docs/PROMPTS_AUDIO.md`, se um dia o chefe precisar de
+  rugido de verdade. Abertos, e pequenos: som de vitória e derrota, e uma tela
+  de volume para `Audio.volume()`;
 - **teto dos orbes de XP** — 397 no chão numa partida medida no aparelho. É
   decisão de design, não conserto: juntar acima de um limite muda como o jogador
   é recompensado por circular pelo mapa;

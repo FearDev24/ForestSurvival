@@ -1,9 +1,9 @@
 """Traz os sons gravados de `assets/_raw/audio/` para `assets/audio/`.
 
-Os doze efeitos nasceram sintetizados em `tools/preparar_sons.py`, e o
-resultado ficou com cara de chiptune: osciladores puros contra uma arte pixel
-quase pintada. Dez deles passaram a vir de biblioteca CC0 (Kenney), que soa
-gravado porque e gravado.
+Os efeitos nasceram sintetizados, e soaram chiptune: osciladores puros contra
+uma arte pixel quase pintada. Todos passaram a vir de biblioteca CC0 (Kenney),
+que soa gravado porque e gravado. O gerador sintetico saiu do projeto -- rodar
+ele de novo sobrescreveria os gravados com os que o jogador rejeitou.
 
 O que este script faz com cada arquivo de origem:
 
@@ -18,48 +18,55 @@ zona que nasce: o rabo do som atropela o proximo disparo.
 44,1. E o pico sai da mesma tabela do gerador sintetico -- a coleta continua bem
 mais baixa que a queda do chefe, porque toca centenas de vezes.
 
-O que NAO vem daqui: o rugido e a queda do Guardiao. Nenhum pacote de impacto
-tem garganta de criatura; esses dois seguem sintetizados ate virem de geracao.
-
 Uso: python tools/importar_sons.py (a partir da raiz do projeto)
 """
 
 import os
-import sys
 import wave
 
 import numpy as np
 import soundfile as sf
 from scipy import signal
 
-# Roda da raiz do projeto, como as outras ferramentas; o import do irmao precisa
-# da pasta dele no caminho.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from preparar_sons import TAXA, VOLUMES  # noqa: E402
+TAXA = 44100
 
 ORIGEM = "assets/_raw/audio/"
 DESTINO = "assets/audio/"
 
+## Volume de pico de cada som, em fracao da escala.
+##
+## Nao e normalizacao cega: a coleta toca centenas de vezes por partida e sai
+## baixa. Os dois do Guardiao saem baixos por outro motivo -- o jogador pediu
+## "so para ter algo": marcam a chegada e a queda sem virar o som mais alto do
+## jogo, agora que o combate e mudo.
+VOLUMES = {
+    "coleta_orbe": 0.22,
+    "escolha": 0.45,
+    "nivel": 0.65,
+    "guardiao_rugido": 0.30,
+    "guardiao_queda": 0.35,
+}
+
 ## Nome no jogo -> arquivo de origem, duracao maxima em segundos, e por que.
 ##
-## As cinco habilidades sairam desta tabela a pedido do jogador: com cinco armas
-## disparando em recargas diferentes, o combate virava tapete de ruido. Agora o
-## combate e mudo e quem sustenta a partida e a musica de fundo.
+## As cinco habilidades, a morte de criatura e o dano no druida sairam desta
+## tabela a pedido do jogador: o combate virava tapete de ruido. Agora o combate
+## e mudo e quem sustenta a partida e a musica de fundo.
 ##
 ## A escolha saiu do nome e da medida (duracao, pico, centro espectral), nao do
 ## ouvido: quem escreveu isto nao consegue ouvir. Trocar um por outro e trocar
 ## uma linha desta tabela e rodar de novo.
 MAPA = {
-    # Corpo mole, grave e curto.
-    "criatura_morre": ("impactSoft_medium_000.ogg", 0.30),
     # Clique curto e brilhante; e o som que mais toca na partida.
     "coleta_orbe": ("click3.ogg", 0.12),
     # Sino: o unico som destes pacotes que soa como conquista.
     "nivel": ("impactBell_heavy_000.ogg", 1.10),
     # Interruptor: a placa de upgrade sendo apertada.
     "escolha": ("switch7.ogg", 0.25),
-    # Soco pesado.
-    "dano_druida": ("impactPunch_heavy_000.ogg", 0.55),
+    # Baque grave e abafado: anuncia o chefe sem ser rugido de verdade.
+    "guardiao_rugido": ("impactSoft_heavy_000.ogg", 0.60),
+    # Madeira pesada caindo: o corpo do chefe no chao.
+    "guardiao_queda": ("impactWood_heavy_000.ogg", 0.50),
 }
 
 ## Abaixo disto e silencio, para efeito de corte das pontas.
@@ -123,8 +130,6 @@ def main():
         x = gravar(nome, encurtar(cortar_pontas(bruto), maximo))
         print("%-16s %-28s %6.2fs %6.2fs %6.2f" % (
             nome, arquivo, antes, len(x) / TAXA, float(np.abs(x).max())))
-    print("\nO rugido e a queda do Guardiao continuam sintetizados:"
-          " rode tools/preparar_sons.py para regera-los.")
 
 
 if __name__ == "__main__":

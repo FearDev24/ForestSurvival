@@ -49,13 +49,12 @@ func _ready() -> void:
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	# A trilha começa com a partida e fica; trocar de cena para o menu e voltar
 	# não a reinicia, porque o `Audio` ignora pedido da faixa que já toca.
-	Audio.musica(Audio.faixa_escolhida)
+	Audio.musica(Audio.TRILHA)
 	_pickup_area.collected.connect(_level.add_xp)
-	# Som dos três eventos que o Game já tem na mão. O resto toca de onde nasce:
-	# a arma no disparo, a criatura ao morrer.
+	# Os dois sons que o Game tem na mão. Combate é mudo por decisão do jogador:
+	# nem arma, nem morte de criatura, nem dano no druida.
 	_pickup_area.collected.connect(func(_valor: float) -> void: Audio.tocar(&"coleta_orbe"))
 	_level.leveled_up.connect(func(_nivel: int) -> void: Audio.tocar(&"nivel"))
-	_player_health.damaged.connect(func(_quanto: float) -> void: Audio.tocar(&"dano_druida"))
 	_upgrade_pool.configure(_stats, _weapons, _game_manager)
 	_level_up_menu.configure(_upgrade_pool, _level)
 	_hud.configure(_player_health, _level)

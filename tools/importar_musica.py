@@ -35,8 +35,6 @@ TAXA = 44100
 FAIXAS = {
     # Emenda em zero: esta faixa ja volta limpa. Ver o cabecalho.
     "trilha_floresta": ("GameMusic_ForestTheme_24_0.mp3", 0.0, 0.70),
-    # Esta precisa: medida, ela salta 16 vezes o normal ao voltar ao inicio.
-    "trilha_aventura": ("a_knights_challenge.wav", 3.0, 0.70),
 }
 
 

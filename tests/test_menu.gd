@@ -34,7 +34,6 @@ func _process(_delta: float) -> bool:
 	match _stage:
 		0:
 			_check_no_menu("ao abrir o jogo")
-			_check_troca_de_trilha()
 			_apertar(_botao(current_scene, "JOGAR"))
 			_proximo(12)
 		1:
@@ -99,49 +98,8 @@ func _check_no_menu(quando: String) -> void:
 		textos.append(botao.text)
 		if not botao.can_process():
 			_fail("O botão %s do menu não processa %s" % [botao.text, quando])
-	# A placa do meio é a troca de trilha, e o rótulo dela muda com a escolha —
-	# por isso a comparação é por posição, e não pela lista inteira.
-	if textos.size() != 3 or textos[0] != "JOGAR" or textos[2] != "SAIR" 			or not textos[1].begins_with("TRILHA: "):
-		_fail("O menu deveria oferecer JOGAR, a trilha e SAIR %s, oferece %s" % [quando, str(textos)])
-		return
-	if textos[1] != "TRILHA: %s" % Audio.NOMES_DAS_FAIXAS.get(Audio.faixa_escolhida, "?"):
-		_fail("A placa diz '%s' e a faixa escolhida é '%s' %s" % [
-			textos[1], Audio.faixa_escolhida, quando])
-
-
-## A placa da trilha gira entre as faixas, e o rótulo acompanha.
-##
-## Existe para o jogador comparar as duas no aparelho — e é a única maneira de
-## decidir clima de música, porque medida nenhuma responde isso.
-func _check_troca_de_trilha() -> void:
-	var antes: StringName = Audio.faixa_escolhida
-	var placa: Button = null
-	for botao in current_scene.botoes():
-		if botao.text.begins_with("TRILHA: "):
-			placa = botao
-	if placa == null:
-		_fail("Não achei a placa da trilha no menu")
-		return
-
-	placa.pressed.emit()
-	if Audio.faixa_escolhida == antes:
-		_fail("Apertar a placa não trocou de faixa: continua em %s" % antes)
-	var depois: StringName = Audio.faixa_escolhida
-	if not Audio.FAIXAS.has(depois):
-		_fail("A troca levou a uma faixa que não existe: %s" % depois)
-	if not ResourceLoader.exists("res://assets/audio/musica/%s.ogg" % depois):
-		_fail("A faixa %s não tem arquivo" % depois)
-
-	var rotulos: Array[String] = []
-	for botao in current_scene.botoes():
-		rotulos.append(botao.text)
-	if not rotulos.has("TRILHA: %s" % Audio.NOMES_DAS_FAIXAS.get(depois, "?")):
-		_fail("O rótulo não acompanhou a troca: %s" % str(rotulos))
-
-	# Volta ao que estava, para o resto do teste não depender da ordem.
-	while Audio.faixa_escolhida != antes:
-		Audio.proxima_faixa()
-
+	if textos != ["JOGAR", "SAIR"]:
+		_fail("O menu deveria oferecer JOGAR e SAIR %s, oferece %s" % [quando, str(textos)])
 
 func _check_na_partida(quando: String) -> void:
 	if current_scene == null or current_scene.scene_file_path != GAME_SCENE:
