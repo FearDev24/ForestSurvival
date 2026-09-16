@@ -478,4 +478,5 @@ def main():
         print("\n  agora: python tools/preparar_inimigo.py %s" % nome)
 
 
-main()
+if __name__ == "__main__":
+    main()

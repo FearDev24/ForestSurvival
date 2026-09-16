@@ -433,6 +433,41 @@ func _pe_do_desenho(sprite: AnimatedSprite2D) -> Variant:
 	return null
 
 
+## Parado, o druida respira nas quatro direções — sem mudar de tamanho.
+##
+## O idle troca com a caminhada a cada vez que o jogador para, dezenas de vezes
+## por partida. Se a silhueta não bater com a da caminhada, o druida pula de
+## tamanho ao parar: foi o defeito que a morte teve. Mede a textura, na mesma
+## régua de `_silhueta`: altura do corpo (±6%) e pé na última linha do quadro,
+## que é o que põe o pé na origem com o `Sprite` em -48.
+func _check_idle_do_druida() -> void:
+	var frames := load(PLAYER_FRAMES) as SpriteFrames
+	var jogador := (load(PLAYER_SCENE) as PackedScene).instantiate()
+	var sprite := jogador.get_node("Visual/Sprite") as AnimatedSprite2D
+	for direcao in ["south", "north", "west", "east"]:
+		var idle := StringName("idle_%s" % direcao)
+		if not frames.has_animation(idle):
+			_fail("O druida não tem %s: parado, congelaria no primeiro quadro da caminhada" % idle)
+			continue
+		if not frames.get_animation_loop(idle):
+			_fail("%s não está em laço: o druida pararia de respirar" % idle)
+		if frames.get_frame_count(idle) < 2:
+			_fail("%s tem menos de dois quadros" % idle)
+		var parado := _silhueta(sprite, idle)
+		var andando := _silhueta(sprite, StringName("walk_%s" % direcao))
+		if parado.is_empty() or andando.is_empty():
+			_fail("Não consegui medir %s contra a caminhada" % idle)
+			continue
+		var razao: float = parado["altura"] / maxf(1.0, andando["altura"])
+		if absf(razao - 1.0) > 0.06:
+			_fail("Parado para %s o druida muda de tamanho: %.0f px contra %.0f andando" % [
+				direcao, parado["altura"], andando["altura"]])
+		if absf(parado["pe"] - (parado["altura_do_quadro"] - 1.0)) > 2.0:
+			_fail("%s: o pé está na linha %.0f de um quadro de %.0f — o druida flutuaria parado" % [
+				idle, parado["pe"], parado["altura_do_quadro"]])
+	jogador.free()
+
+
 ## A morte não pode mudar o tamanho do druida.
 ##
 ## As duas folhas não têm a mesma anatomia: medido linha a linha, o corpo da
@@ -509,6 +544,7 @@ func _check_death_presentation() -> void:
 		_fail("SpriteFrames do druida não encontrado: %s" % PLAYER_FRAMES)
 
 	_check_death_proporcao()
+	_check_idle_do_druida()
 	_check_arte_das_criaturas()
 
 	if not ResourceLoader.exists(GAME_SCENE):

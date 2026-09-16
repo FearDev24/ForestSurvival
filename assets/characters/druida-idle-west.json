@@ -1,0 +1,18 @@
+{
+ "generator": {
+  "name": "extrair_idle_druida.py",
+  "version": "2"
+ },
+ "sheet": "druida-idle-west.png",
+ "frameWidth": 68,
+ "frameHeight": 96,
+ "frames": 16,
+ "layout": "horizontal",
+ "columns": 16,
+ "rows": 1,
+ "pivot": {
+  "x": 0.5,
+  "y": 1.0
+ },
+ "speed": 10.67
+}

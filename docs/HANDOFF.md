@@ -2859,8 +2859,6 @@ própria do bruto, da elite e do Guardião, esporos, vagalumes, os três ícones
 faltavam e o Orbe entraram todos, e a FASE 11 está fechada no roadmap. O que
 sobrou:
 
-- **`idle` do druida** — parado, ele congela no primeiro quadro da caminhada.
-  É a peça de personagem que falta, e está registrada na FASE 11;
 - **orbe de XP, joystick e botão de pausa** — os três continuam sendo formas
   desenhadas em código, e continuam declarados como PLACEHOLDER nas cenas. O
   orbe aparece às centenas em tela, então é o que mais pesa dos três;

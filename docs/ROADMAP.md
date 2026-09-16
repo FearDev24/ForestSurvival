@@ -255,10 +255,9 @@ Detalhes, tabelas e o que ficou de fora em `docs/HANDOFF.md`, "FASE 10".
 - [x] efeitos — as seis habilidades desenhadas; nenhuma é mais forma em código
 - [x] ícones — doze, um por arma e por passiva
 - [x] UI — barras, painéis, placas, títulos das três telas, nome do jogo, fundo do menu e ícone do app
-- [ ] `idle` do druida — parado, ele congela no primeiro quadro da caminhada. É o único personagem que deveria ter pose parada (DEC-019), e a folha nunca chegou
+- [x] `idle` do druida — as quatro direções, tiradas de vídeo por `tools/extrair_idle_druida.py`
 
-Fechada com a arte entregue e integrada. O `idle` fica aberto de propósito: é
-uma folha de sprite que falta, não um sistema — e o jogo não depende dela.
+Fechada com a arte entregue e integrada, incluindo o `idle` do druida.
 
 # FASE 12 — Mobile
 

@@ -367,6 +367,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - **combate mudo por inteiro**: além das armas, calaram a morte de criatura e o dano no druida. O teste cobra os três como silêncio, não só como ausência de arquivo;
   - **o Guardião ganhou som baixo e suave** ao nascer e ao morrer — baque abafado e madeira pesada caindo, gravados (Kenney, CC0), a 0,30 e 0,35 da escala: marcam o chefe sem virar o som mais alto do jogo;
   - **o gerador sintético saiu** (`tools/preparar_sons.py`): nenhum som vivo vinha mais dele, e rodá-lo de novo sobrescreveria os gravados com os que o jogador rejeitou. A tabela de volume mudou para `tools/importar_sons.py`.
+- **O druida respira parado, nas quatro direções.** `idle_south`, `idle_north`, `idle_west` e `idle_east` saem do vídeo de idle por `tools/extrair_idle_druida.py` e entram no `SpriteFrames` por `tools/ligar_idle_druida.gd`, que edita o recurso pela própria Godot sem regerar caminhadas e morte. Nenhuma linha de lógica mudou: `player_visual.gd` já procurava `idle_<direção>` antes de congelar no primeiro quadro da caminhada.
+  - **laço escolhido dentro do trecho**, não o trecho inteiro: o primeiro e o último quadro de cada vista diferiam de 3 a 5 vezes mais que dois vizinhos — um solavanco a cada volta. A ferramenta acha o par de quadros mais parecido (mínimo de 36 quadros entre eles), e a volta passou a custar o mesmo que um quadro para o seguinte;
+  - **escala por direção, casando com a caminhada da mesma direção**: as próprias folhas de caminhada não têm a mesma altura nas quatro vistas, e com escala única o idle oeste saiu com 88 px contra 83 andando — o druida pularia de tamanho ao parar. Agora 84/84, 81/81, 85/85 e 83/83;
+  - **a esfera verde do cajado sobreviveu ao chroma**: o corte das criaturas tratava todo verde vivo como fundo e ainda desbotava a franja, e o cajado saía oco. Aqui fundo é só o verde ligado à borda do quadro; verde cercado pelo desenho fica, salvo se tiver exatamente a cor chapada do fundo;
+  - velocidade tirada do laço do vídeo (9 a 11 fps), e não os 15 fps da caminhada, para respirar no tempo do vídeo;
+  - `tests/test_phase2.gd` cobra as quatro animações em laço, a altura contra a caminhada da mesma direção (±6%) e o pé na última linha do quadro. Foi ele que pegou a diferença de 88 contra 83.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;
