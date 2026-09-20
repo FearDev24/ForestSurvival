@@ -520,3 +520,32 @@ habilidade de meio de partida. As suítes que assumiam o Cajado e a Vinha no
 início (FASE 4 e acerto) passam a pôr essas armas à mão: elas testam uma arma
 disparando e acertando, não qual é a inicial. `tests/test_progressao.gd` guarda
 a tabela acima.
+
+## DEC-026 — Save local em JSON versionado, em `user://`
+
+**Contexto.** A FASE 13 começa pelo save, porque moeda, desbloqueios e upgrades
+permanentes não têm onde morar sem ele. O `docs/03_SYSTEMS.md` §18 já pedia save
+local, versionamento, defaults seguros e nenhuma dependência de servidor.
+
+**Decisão.** Um arquivo JSON em `user://save.json`, lido uma vez por sessão e
+gravado ao fim de cada partida, com um campo `versao` e uma tabela de padrões que
+vale sempre que o arquivo não puder ser confiado.
+
+**Por quê JSON e não `ConfigFile` ou binário.** O save vai crescer com listas
+(desbloqueios, personagens) e dicionários (upgrades comprados), e JSON aceita
+isso sem inventar convenção de chave. É legível: dá para abrir o arquivo e
+entender o progresso, o que vale muito em teste e em suporte. E não há nada
+secreto aqui — um save binário só daria a ilusão de proteção.
+
+**Versão desconhecida vale o padrão, e não uma leitura otimista.** Perder
+recorde é ruim; carregar um campo com o sentido trocado é pior, porque o erro
+aparece longe da causa. O arquivo antigo fica no disco até o próximo
+salvamento, então um save de versão futura não é destruído por abrir o jogo.
+
+**Campo novo não muda a versão.** Campo que falta cai no padrão sozinho. A
+versão sobe quando um campo **muda de sentido** — aí a leitura antiga estaria
+errada, e é isso que a versão protege.
+
+**Falha de escrita não derruba a partida.** Disco cheio perde o registro
+daquela partida e avisa no log; o contrário seria perder a partida inteira por
+causa do disco.

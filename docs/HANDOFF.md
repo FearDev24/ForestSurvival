@@ -2137,6 +2137,39 @@ defeito de propósito — escala de volta a `(1, 1)` acusa "muda de tamanho: 91 
 contra 83 (110%)", e `death_feet_row` errado acusa "os pés saem do chão: 32 px".
 
 
+
+## FASE 13 — Meta-progressão: o save local
+
+Primeiro item da fase, e o que destrava os outros: moeda, desbloqueios e
+upgrades permanentes precisam de algum lugar para morar entre partidas.
+
+`SaveJogo` (`scripts/systems/save_jogo.gd`) guarda partidas, vitórias, melhor
+tempo, melhor nível e tempo total num JSON em `user://save.json`. O desenho está
+na DEC-026; o que vale repetir aqui é **onde o trabalho realmente esteve**:
+não em gravar e ler, que é curto, e sim no que acontece quando o arquivo está
+errado.
+
+Um save é o único arquivo do jogo que o jogador pode ter de uma versão anterior.
+Ele pode estar truncado por falta de espaço, pode ter sido editado à mão, pode
+vir de uma versão futura se alguém voltar atrás numa atualização. Nenhum desses
+casos pode virar tela preta, e por isso cada um tem um teste:
+
+| situação | o que acontece |
+| --- | --- |
+| arquivo ausente | padrões |
+| JSON quebrado | padrões, com aviso no log |
+| `versao` desconhecida | padrões, e o arquivo antigo fica no disco |
+| campo com tipo trocado | só aquele campo vira padrão |
+| falha ao gravar | a partida segue, o registro se perde, avisa no log |
+
+O menu ganhou a linha de recorde embaixo das placas — melhor tempo, partidas e
+vitórias —, que só aparece depois da primeira partida. Serve de prova visível de
+que o save está vivo, e é onde a moeda vai aparecer quando existir.
+
+**O que falta na fase:** moeda (precisa de uma contagem de abates no
+`GameManager`, que hoje só existe dentro da sonda), desbloqueios, seleção de
+personagem e upgrades permanentes.
+
 ## As quatro animações de criatura: do vídeo ao jogo
 
 Chegaram os vídeos do bruto, da elite, do Guardião andando e do Guardião
@@ -2880,9 +2913,10 @@ sobrou:
 
 ## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As **dezoito** suítes continuam passando
+Ver `docs/ROADMAP.md`. As **dezenove** suítes continuam passando
 (`test_foundation`, `test_phase1` a `test_phase10`, `test_phase12`, `test_hud`,
-`test_menu`, `test_acerto`, `test_bot`, `test_progressao` e `test_audio`).
+`test_menu`, `test_acerto`, `test_bot`, `test_progressao`, `test_audio` e
+`test_save`).
 
 # Não alterar sem registrar decisão
 

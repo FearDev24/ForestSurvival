@@ -378,6 +378,14 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - **resíduos do chroma** apareciam em vários quadros do idle, e cada um tinha uma causa. Bolsões de fundo presos entre o cajado e o manto passavam pela regra que salvava a esfera ("verde cercado fica"): agora só fica verde cercado que é compacto, está no terço de cima e tem núcleo aceso. O núcleo precisa ser branco-esverdeado, porque num quadro a gola de pele creme contou como núcleo e arrastou o centro da esfera para longe. A redução passou a ser feita com alfa pré-multiplicado, para a cor invisível do fundo não vazar para a borda. E o halo de alfa quase zero que o LANCZOS deixa é zerado. Resultado medido: nos 48 quadros, verde de chroma só na esfera;
   - `tests/test_phase2.gd` percorre todos os quadros de idle e acusa cor de fundo fora do terço de cima da silhueta. Validei pintando 5 pixels verdes num quadro: o teste acusou.
   - **armadilha nova:** a Godot **trava** ao carregar um `SpriteFrames` que aponta para PNG apagado, em vez de dar erro. Para tirar animações cujas folhas já sumiram, é preciso editar o `.tres` pelo texto.
+- **Save local (FASE 13, `docs/03_SYSTEMS.md` §18).** `SaveJogo` guarda em `user://save.json` o que sobrevive entre partidas: partidas jogadas, vitórias, melhor tempo, melhor nível e tempo total. É a base onde moeda, desbloqueios e upgrades permanentes vão morar.
+  - **classe com métodos estáticos, não autoload** — mesma razão do `Audio`: identificador de autoload não existe para o compilador quando a Godot roda com `--script`, e é assim que as dezenove suítes rodam;
+  - **o §18 pede três coisas, e cada uma tem teste**: versionado (save de versão desconhecida não é adivinhado, vale o padrão), defaults seguros (arquivo ausente, JSON quebrado ou campo de tipo trocado não derrubam o jogo) e nenhuma dependência de servidor;
+  - **recorde só sobe**: uma partida pior não derruba o melhor tempo nem o melhor nível;
+  - o `Game` liga o fim da partida ao save; o `GameManager` continua sem saber que existe disco;
+  - o menu mostra a linha de recorde depois da primeira partida — antes dela, "0 partidas" não informa nada;
+  - `tests/test_save.gd` (décima nona suíte) cobre padrão, contagem, recorde, ida e volta ao disco, arquivo quebrado, versão desconhecida, campo com tipo errado e a ligação com o fim da partida. Conferido com dois defeitos de propósito: recorde que sempre sobrescreve e leitura que aceita qualquer versão;
+  - a suíte roda num arquivo próprio (`SaveJogo.usar_caminho`), para não apagar o progresso de quem joga na mesma máquina.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

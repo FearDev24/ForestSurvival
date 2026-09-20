@@ -65,6 +65,11 @@ func _ready() -> void:
 		_level, _level_up_menu, _enemy_container, _pickup_container)
 	_pause_menu.configure(_game_manager)
 	_result_screen.configure(_game_manager)
+	# O save registra o fim da partida (FASE 13). Fica aqui, e não dentro do
+	# `GameManager`: ele decide o estado da partida e não precisa saber que
+	# existe disco.
+	_game_manager.ended.connect(func(vitoria: bool, tempo: float, nivel: int) -> void:
+		SaveJogo.registrar_partida(vitoria, tempo, nivel))
 
 	# Só em build de depuração num aparelho móvel (FASE 12): mede a partida e
 	# escreve no log, lido pelo `adb logcat`. No PC e nos testes nem existe.

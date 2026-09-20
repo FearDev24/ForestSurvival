@@ -275,7 +275,7 @@ Detalhes e o que ainda falta decidir em `docs/HANDOFF.md`, "FASE 12".
 # FASE 13 — Meta-progressão
 
 Somente depois do vertical slice:
-- [ ] save local
+- [x] save local — JSON versionado em `user://`, com defaults seguros (DEC-026)
 - [ ] moeda
 - [ ] desbloqueios
 - [ ] seleção de personagem

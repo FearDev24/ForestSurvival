@@ -47,6 +47,31 @@ func _montar() -> void:
 		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque, 28)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
+	_montar_recorde()
+
+
+## Linha do recorde, embaixo das placas. Só aparece depois da primeira partida:
+## num jogo recém-instalado, "0 partidas" não informa nada.
+func _montar_recorde() -> void:
+	var save := SaveJogo.dados()
+	if int(save["partidas"]) <= 0:
+		return
+	var rotulo := Label.new()
+	rotulo.text = "%s  ·  %d partida%s  ·  %d vitória%s" % [
+		_tempo(float(save["melhor_tempo"])),
+		int(save["partidas"]), "" if int(save["partidas"]) == 1 else "s",
+		int(save["vitorias"]), "" if int(save["vitorias"]) == 1 else "s"]
+	rotulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rotulo.add_theme_font_size_override("font_size", 22)
+	rotulo.add_theme_color_override("font_color", Color(0.87, 0.96, 0.82))
+	rotulo.add_theme_color_override("font_outline_color", Color.BLACK)
+	rotulo.add_theme_constant_override("outline_size", 6)
+	rotulo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_opcoes.add_child(rotulo)
+
+
+func _tempo(segundos: float) -> String:
+	return "melhor tempo %02d:%02d" % [int(segundos) / 60, int(segundos) % 60]
 
 
 func botoes() -> Array[Button]:
