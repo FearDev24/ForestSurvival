@@ -15,6 +15,7 @@ extends Control
 ## tela funciona inteira (DEC-013).
 
 const GAME_SCENE := "res://scenes/game/game.tscn"
+const LOJA_SCENE := "res://scenes/ui/loja.tscn"
 
 ## Mesma placa e mesmo tamanho da pausa: 5,97:1, a proporção da arte.
 const TAMANHO_BOTAO := Vector2(400.0, 67.0)
@@ -43,7 +44,7 @@ func _ready() -> void:
 func _montar() -> void:
 	for antigo in _opcoes.get_children():
 		antigo.queue_free()
-	for texto in ["JOGAR", "SAIR"]:
+	for texto in ["JOGAR", "MELHORIAS", "SAIR"]:
 		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque, 28)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
@@ -93,5 +94,7 @@ func _on_escolha(texto: String) -> void:
 	match texto:
 		"JOGAR":
 			get_tree().change_scene_to_file(GAME_SCENE)
+		"MELHORIAS":
+			get_tree().change_scene_to_file(LOJA_SCENE)
 		"SAIR":
 			get_tree().quit()

@@ -279,7 +279,7 @@ Somente depois do vertical slice:
 - [x] moeda — abates, tempo e vitória, somados no save e mostrados no resultado
 - [ ] desbloqueios
 - [ ] seleção de personagem
-- [ ] upgrades permanentes
+- [x] upgrades permanentes — vida, dano e velocidade, cinco níveis cada, na tela MELHORIAS
 
 # FASE 14 — Conteúdo
 

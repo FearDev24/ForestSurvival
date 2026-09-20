@@ -2192,9 +2192,47 @@ que o jogo está premiando, porque é isso que decide como ele joga a próxima
 partida.
 
 
-**O que falta na fase:** desbloqueios, seleção de personagem e upgrades
-permanentes — e é aí que a moeda vira decisão de design pesada, porque o que se
-compra muda o balanceamento inteiro.
+### Upgrades permanentes: o que a moeda compra
+
+Três, todos percentuais e nos mesmos stats que as passivas de partida usam:
+
+| item | efeito por nível | níveis | preço |
+| --- | --- | --- | --- |
+| Vitalidade | +10% de vida máxima | 5 | 100, 180, 260, 340, 420 |
+| Força da Mata | +8% de dano | 5 | 120, 220, 320, 420, 520 |
+| Passo Leve | +5% de velocidade | 5 | 80, 140, 200, 260, 320 |
+
+Percentual, e não valor fixo, porque é assim que as passivas já funcionam: um
+bônus fixo de vida seria enorme no primeiro minuto e irrelevante no sétimo. O
+preço cresce para que a primeira compra chegue em uma partida — é quando o
+jogador precisa sentir que a meta-progressão existe — e a última seja uma meta.
+
+**Isto mexe na dificuldade e a sonda ainda não rodou com eles ligados.** No
+teto, os três juntos dão +50% de vida, +40% de dano e +25% de velocidade, o que
+é muito mais do que as cinco calibrações de dificuldade já testaram. Duas
+perguntas ficam abertas, e as duas são de design, não de código: se o
+balanceamento deve ser medido com a loja vazia (jogador novo) ou cheia (jogador
+antigo), e se o preço deve subir mais para atrasar o teto.
+
+A tela `MELHORIAS` fica no menu principal. Placa sem dinheiro aparece apagada, e
+no teto o preço vira "máximo" — preço riscado seria mais bonito e menos claro.
+
+### Duas armadilhas que apareceram aqui
+
+**Dicionário `const` é somente-leitura na Godot 4**, e `duplicate()` herda a
+trava: o save nascia imutável e toda escrita virava
+"Invalid assignment on read-only value". Os padrões passaram a ser montados
+campo a campo, em vez de copiados da constante.
+
+**`queue_free` não esvazia um contêiner no mesmo quadro.** A loja se remonta no
+instante da compra; as placas velhas continuavam na árvore até o fim do quadro e
+responderiam ao clique seguinte. Agora saem com `remove_child` na hora, e só
+depois são apagadas. Vale para qualquer lista que se refaça em resposta a um
+clique.
+
+
+**O que falta na fase:** desbloqueios (de armas ou personagens) e seleção de
+personagem.
 
 ## As quatro animações de criatura: do vídeo ao jogo
 
@@ -2939,10 +2977,10 @@ sobrou:
 
 ## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As **dezenove** suítes continuam passando
+Ver `docs/ROADMAP.md`. As **vinte** suítes continuam passando
 (`test_foundation`, `test_phase1` a `test_phase10`, `test_phase12`, `test_hud`,
-`test_menu`, `test_acerto`, `test_bot`, `test_progressao`, `test_audio` e
-`test_save`).
+`test_menu`, `test_acerto`, `test_bot`, `test_progressao`, `test_audio`,
+`test_save` e `test_permanentes`).
 
 # Não alterar sem registrar decisão
 

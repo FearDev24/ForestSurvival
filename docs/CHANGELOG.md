@@ -392,6 +392,16 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - o `GameManager` passou a **contar abates**, o que só existia dentro da sonda. Conta quem sai do contêiner **enquanto a partida corre**: no fim ele é esvaziado de uma vez, e sem olhar o estado cada partida terminaria com dezenas de abates de brinde;
   - a tela de resultado mostra `+121 moedas   640 abates +64   07:11 +7   vitoria +50`. Discriminado de propósito: "+121 moedas" não diz ao jogador o que o jogo premia, e é isso que decide como ele joga a próxima;
   - `tests/test_save.gd` cobra a fórmula pelos números exatos, a soma entre partidas e a contagem de abates numa partida de verdade. Conferido com dois defeitos de propósito: contador que não conta e fórmula com outra proporção.
+- **Upgrades permanentes e a loja (FASE 13).** A moeda passou a comprar alguma coisa: Vitalidade (+10% de vida por nível), Força da Mata (+8% de dano) e Passo Leve (+5% de velocidade), cinco níveis cada.
+  - **percentual, não valor fixo**, e pelos mesmos stats das passivas de partida: um bônus fixo de vida seria enorme no início e irrelevante depois;
+  - **preço crescente**: o primeiro nível custa cerca de uma partida mediana (89 moedas) e o último, cerca de cinco. A primeira compra chega rápido, que é quando o jogador precisa sentir que a meta-progressão existe;
+  - a tela `MELHORIAS` sai do menu principal, com o mesmo fundo e as mesmas placas — é a mesma casa, não outra tela. Placa sem dinheiro fica apagada, e no teto o preço vira "máximo";
+  - `tests/test_permanentes.gd` (vigésima suíte) cobra preço, teto, compra sem dinheiro (que não pode gastar nem subir nível), persistência, o bônus no `StatComponent` e — a ponta que costuma ficar solta — **o druida entrando em campo com mais vida**. A loja também é testada pelo botão, porque preço certo no código e errado na placa vale zero.
+
+### Fixed
+
+- **Dicionário `const` na Godot 4 é somente-leitura, e a cópia dele herda a trava.** `PADRAO.duplicate()` devolvia um save imutável, e qualquer escrita virava "Invalid assignment on read-only value". Os padrões passaram a ser montados campo a campo.
+- **`queue_free` não esvazia um contêiner no mesmo quadro.** A loja se remonta no instante da compra, e as placas velhas ainda respondiam ao clique seguinte. Agora saem da árvore na hora, e só depois são apagadas.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

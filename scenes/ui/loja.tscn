@@ -1,0 +1,95 @@
+[gd_scene load_steps=5 format=3 uid="uid://bfsloja0fs"]
+
+[ext_resource type="Script" path="res://scripts/ui/loja.gd" id="1_loja"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_normal.png" id="2_normal"]
+[ext_resource type="Texture2D" path="res://assets/ui/opcao_destaque.png" id="3_destaque"]
+[ext_resource type="Texture2D" path="res://assets/ui/fundo_menu.png" id="4_fundo"]
+
+[node name="Loja" type="Control"]
+editor_description = "Loja dos upgrades permanentes (FASE 13). Mesmo fundo e mesmas placas do menu principal: e a mesma casa, nao outra tela. As linhas sao montadas em codigo a partir de Permanentes.CATALOGO."
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_loja")
+textura_placa = ExtResource("2_normal")
+textura_placa_destaque = ExtResource("3_destaque")
+
+[node name="Fundo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.055, 0.09, 0.065, 1)
+
+[node name="FundoArte" type="TextureRect" parent="."]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_fundo")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Escuro" type="ColorRect" parent="."]
+editor_description = "A ilustracao do menu e cheia de detalhe; sem este veu, os precos somem dentro dela."
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Caixa" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -330.0
+offset_top = -250.0
+offset_right = 330.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Titulo" type="Label" parent="Caixa"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.87, 0.96, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 44
+text = "MELHORIAS"
+horizontal_alignment = 1
+
+[node name="Moedas" type="Label" parent="Caixa"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.89, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 26
+text = "0 moedas"
+horizontal_alignment = 1
+
+[node name="Itens" type="VBoxContainer" parent="Caixa"]
+editor_description = "Placas criadas em tempo de execucao, uma por item do catalogo, mais VOLTAR."
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1

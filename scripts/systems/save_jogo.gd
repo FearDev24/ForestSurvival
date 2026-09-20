@@ -42,7 +42,21 @@ const PADRAO := {
 	"tempo_total": 0.0,
 	"moedas": 0,
 	"abates_total": 0,
+	"permanentes": {},
 }
+
+## Uma cópia **mutável** dos padrões.
+##
+## `PADRAO` é `const`, e na Godot 4 isso o deixa somente-leitura — a cópia dele
+## herda a trava, e o save nasceria imutável. Este dicionário é montado na hora
+## a partir dele, campo a campo.
+static func _padrao() -> Dictionary:
+	var novo := {}
+	for chave in PADRAO:
+		var valor: Variant = PADRAO[chave]
+		novo[chave] = valor.duplicate() if typeof(valor) == TYPE_DICTIONARY else valor
+	return novo
+
 
 ## Quantos abates valem uma moeda.
 const ABATES_POR_MOEDA := 10
@@ -60,6 +74,26 @@ static var _dados: Dictionary = {}
 ## Caminho em uso. Só os testes trocam isto, para não mexer no save de verdade
 ## de quem está jogando na mesma máquina.
 static var _caminho := CAMINHO
+
+
+## Nível comprado de um upgrade permanente. Zero para o que nunca foi comprado.
+static func nivel_permanente(id: StringName) -> int:
+	var comprados: Dictionary = dados()["permanentes"]
+	return int(comprados.get(String(id), 0))
+
+
+## Desconta o preço e sobe um nível. Só `Permanentes.comprar` deveria chamar:
+## é lá que mora a regra de preço e de nível máximo.
+static func gastar_no_permanente(id: StringName, custo: int) -> bool:
+	var d := dados()
+	if custo <= 0 or int(d["moedas"]) < custo:
+		return false
+	d["moedas"] = int(d["moedas"]) - custo
+	var comprados: Dictionary = d["permanentes"]
+	comprados[String(id)] = nivel_permanente(id) + 1
+	d["permanentes"] = comprados
+	gravar()
+	return true
 
 
 ## Quanto uma partida rende, discriminado por fonte.
@@ -129,7 +163,7 @@ static func gravar() -> bool:
 static func apagar() -> void:
 	if FileAccess.file_exists(_caminho):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(_caminho))
-	_dados = PADRAO.duplicate()
+	_dados = _padrao()
 
 
 ## Troca o arquivo usado. **Só para teste**: sem isto, rodar a suíte apagaria o
@@ -141,27 +175,27 @@ static func usar_caminho(caminho: String) -> void:
 
 static func _ler() -> Dictionary:
 	if not FileAccess.file_exists(_caminho):
-		return PADRAO.duplicate()
+		return _padrao()
 
 	var arquivo := FileAccess.open(_caminho, FileAccess.READ)
 	if arquivo == null:
 		push_warning("Save existe mas não abriu: %s" % _caminho)
-		return PADRAO.duplicate()
+		return _padrao()
 	var texto := arquivo.get_as_text()
 	arquivo.close()
 
 	var lido: Variant = JSON.parse_string(texto)
 	if typeof(lido) != TYPE_DICTIONARY:
 		push_warning("Save ilegível em %s: vale o padrão" % _caminho)
-		return PADRAO.duplicate()
+		return _padrao()
 	if int((lido as Dictionary).get("versao", -1)) != VERSAO:
 		push_warning("Save da versão %s; este jogo lê a %d. Vale o padrão."
 			% [str((lido as Dictionary).get("versao", "?")), VERSAO])
-		return PADRAO.duplicate()
+		return _padrao()
 
 	# Campo a campo, com o tipo do padrão: um campo faltando ou com tipo trocado
 	# vira o padrão em vez de contaminar o resto.
-	var saida := PADRAO.duplicate()
+	var saida := _padrao()
 	for chave in PADRAO:
 		if not (lido as Dictionary).has(chave):
 			continue
@@ -173,6 +207,18 @@ static func _ler() -> Dictionary:
 			TYPE_FLOAT:
 				if typeof(valor) == TYPE_FLOAT or typeof(valor) == TYPE_INT:
 					saida[chave] = float(valor)
+			TYPE_DICTIONARY:
+				# Só pares nome -> nível inteiro. Um save editado à mão pode
+				# trazer qualquer coisa aqui, e um valor estranho viraria bônus
+				# estranho na partida seguinte.
+				if typeof(valor) != TYPE_DICTIONARY:
+					continue
+				var limpo := {}
+				for k in (valor as Dictionary):
+					var v: Variant = (valor as Dictionary)[k]
+					if typeof(k) == TYPE_STRING and (typeof(v) == TYPE_FLOAT or typeof(v) == TYPE_INT):
+						limpo[k] = maxi(0, int(v))
+				saida[chave] = limpo
 			_:
 				saida[chave] = valor
 	return saida

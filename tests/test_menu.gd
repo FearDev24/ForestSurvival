@@ -98,8 +98,8 @@ func _check_no_menu(quando: String) -> void:
 		textos.append(botao.text)
 		if not botao.can_process():
 			_fail("O botão %s do menu não processa %s" % [botao.text, quando])
-	if textos != ["JOGAR", "SAIR"]:
-		_fail("O menu deveria oferecer JOGAR e SAIR %s, oferece %s" % [quando, str(textos)])
+	if textos != ["JOGAR", "MELHORIAS", "SAIR"]:
+		_fail("O menu deveria oferecer JOGAR, MELHORIAS e SAIR %s, oferece %s" % [quando, str(textos)])
 
 func _check_na_partida(quando: String) -> void:
 	if current_scene == null or current_scene.scene_file_path != GAME_SCENE:

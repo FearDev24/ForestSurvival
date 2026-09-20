@@ -45,6 +45,9 @@ func _ready() -> void:
 	_player.apply_camera_limits(_test_world.get_camera_bounds())
 	_spawn_manager.configure(_player, _enemy_container, bounds)
 	_wave_manager.configure(_spawn_manager)
+	# Os upgrades comprados entram antes das armas e das passivas: eles são o
+	# ponto de partida desta partida, e o resto soma por cima (FASE 13).
+	Permanentes.aplicar(_stats)
 	_weapons.configure(_player, _enemy_container, _effect_container, _stats)
 	_pickup_spawner.configure(_spawn_manager, _pickup_container)
 	# A trilha começa com a partida e fica; trocar de cena para o menu e voltar
