@@ -75,6 +75,16 @@ var _dano_por_tipo := {}
 ## entrar na árvore: `--armas_iniciais=corvo_espiritual` (ids de
 ## `resources/weapons/`). Vazio mantém as da cena do Player.
 var _armas_iniciais: Array = []
+
+## Loja da meta-progressao: "vazia" (padrao) ou "cheia".
+##
+## A sonda sempre mediu com a loja vazia, que e o jogador novo. Com "cheia" ela
+## mede o jogador antigo, com os tres upgrades no teto -- outro jogo, e o numero
+## de vitorias nao se compara direto com as calibracoes anteriores.
+##
+## Em qualquer caso a sonda usa um save proprio: medir nao pode gastar nem
+## encher a carteira de quem joga na mesma maquina.
+var _permanentes := "vazia"
 ## FASE 10: mede o custo de cada quadro ao longo da partida inteira.
 ##
 ## Rode **uma partida por vez**: com varias em paralelo elas disputam o
@@ -149,6 +159,8 @@ func _initialize() -> void:
 			_armas_iniciais = arg.trim_prefix("--armas_iniciais=").split(",", false)
 		elif arg.begins_with("--ajuste="):
 			_ajustes.append(arg.trim_prefix("--ajuste="))
+		elif arg.begins_with("--permanentes="):
+			_permanentes = arg.get_slice("=", 1)
 
 	# Uma semente para tudo: o spawn usa o gerador global, o pool tem o dele.
 	seed(_semente)
@@ -156,6 +168,8 @@ func _initialize() -> void:
 
 	for ajuste in _ajustes:
 		_aplicar_ajuste(ajuste)
+
+	_preparar_save()
 
 	_game = (load(GAME_SCENE) as PackedScene).instantiate()
 	if not _armas_iniciais.is_empty():
@@ -441,6 +455,22 @@ func _on_inimigo_entrou(no: Node) -> void:
 func _on_golpe_recebido(_hurtbox: Node, dano: float, inimigo: Node) -> void:
 	var tipo := String(_tipo(inimigo)) if is_instance_valid(inimigo) else "?"
 	_dano_por_tipo[tipo] = float(_dano_por_tipo.get(tipo, 0.0)) + dano
+
+
+## Save proprio da sonda, com a loja vazia ou cheia.
+func _preparar_save() -> void:
+	SaveJogo.usar_caminho("user://sonda_save.json")
+	SaveJogo.apagar()
+	if _permanentes != "cheia":
+		print("sonda: loja vazia (jogador novo)")
+		return
+
+	SaveJogo.dados()["moedas"] = 999999
+	for linha in Permanentes.CATALOGO:
+		while Permanentes.comprar(linha["id"]):
+			pass
+	SaveJogo.dados()["moedas"] = 0
+	print("sonda: loja cheia -- %s" % Permanentes.resumo())
 
 
 func _aplicar_ajuste_de_no(texto: String) -> void:
