@@ -92,6 +92,16 @@ theme_override_font_sizes/font_size = 24
 text = "Nivel   1"
 horizontal_alignment = 1
 
+[node name="Moedas" type="Label" parent="Caixa"]
+editor_description = "Ganho da partida, discriminado por fonte (FASE 13). Sem o detalhe, o jogador nao entende o que o jogo premia."
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.89, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "+0 moedas"
+horizontal_alignment = 1
+
 [node name="Opcoes" type="VBoxContainer" parent="Caixa"]
 layout_mode = 2
 size_flags_horizontal = 4

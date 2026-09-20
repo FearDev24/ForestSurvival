@@ -2166,9 +2166,35 @@ O menu ganhou a linha de recorde embaixo das placas — melhor tempo, partidas e
 vitórias —, que só aparece depois da primeira partida. Serve de prova visível de
 que o save está vivo, e é onde a moeda vai aparecer quando existir.
 
-**O que falta na fase:** moeda (precisa de uma contagem de abates no
-`GameManager`, que hoje só existe dentro da sonda), desbloqueios, seleção de
-personagem e upgrades permanentes.
+### A moeda, e por que ela vem de três fontes
+
+A partida rende moedas por **abates** (1 a cada 10), por **tempo** (1 por
+minuto) e pela **vitória** (50). A escolha não é estética:
+
+- só abates faria o jogador ignorar o relógio e caçar bicho a partida inteira;
+- só tempo faria ele fugir sem lutar, que é o oposto do que o jogo pede;
+- as duas somadas premiam os dois jeitos de jogar bem, e a vitória dá o pico.
+
+Pelas partidas da sonda, uma mediana (823 abates, 478 s, sem vitória) rende
+**89 moedas**, e uma vitória típica, **cerca de 160**. Isso põe desbloqueios
+entre 100 e 500 na faixa de três a dez partidas por item — o ritmo comum do
+gênero. **Mudar a fórmula sem mudar os preços quebra esse ritmo**, e é por isso
+que o teste cobra os números exatos, e não só "rende alguma coisa".
+
+O `GameManager` ganhou a contagem de abates, que até aqui só existia dentro da
+sonda de balanceamento. Ela conta quem sai do contêiner de inimigos **enquanto o
+estado é JOGANDO**: no fim da partida o contêiner é esvaziado de uma vez, e sem
+essa guarda toda partida terminaria com dezenas de abates de brinde. O teste
+mata três criaturas e cobra exatamente três.
+
+A tela de resultado mostra as parcelas, não só o total: o jogador precisa ver o
+que o jogo está premiando, porque é isso que decide como ele joga a próxima
+partida.
+
+
+**O que falta na fase:** desbloqueios, seleção de personagem e upgrades
+permanentes — e é aí que a moeda vira decisão de design pesada, porque o que se
+compra muda o balanceamento inteiro.
 
 ## As quatro animações de criatura: do vídeo ao jogo
 

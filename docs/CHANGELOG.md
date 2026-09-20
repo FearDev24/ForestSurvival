@@ -386,6 +386,12 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - o menu mostra a linha de recorde depois da primeira partida — antes dela, "0 partidas" não informa nada;
   - `tests/test_save.gd` (décima nona suíte) cobre padrão, contagem, recorde, ida e volta ao disco, arquivo quebrado, versão desconhecida, campo com tipo errado e a ligação com o fim da partida. Conferido com dois defeitos de propósito: recorde que sempre sobrescreve e leitura que aceita qualquer versão;
   - a suíte roda num arquivo próprio (`SaveJogo.usar_caminho`), para não apagar o progresso de quem joga na mesma máquina.
+- **Moeda da meta-progressão (FASE 13).** A partida passa a render moedas, somadas no save e mostradas na tela de resultado com as parcelas à vista.
+  - **três fontes:** 1 moeda a cada 10 abates, 1 por minuto sobrevivido e 50 pela vitória. Só abates faria o jogador ignorar o relógio e ficar caçando; só tempo faria ele fugir a partida inteira sem lutar. Juntas, premiam os dois jeitos de jogar bem;
+  - **ordem de grandeza medida nas partidas da sonda:** uma partida mediana (823 abates, 478 s, sem vitória) rende 89 moedas, e uma vitória típica, cerca de 160. É a escala que vai decidir o preço dos desbloqueios;
+  - o `GameManager` passou a **contar abates**, o que só existia dentro da sonda. Conta quem sai do contêiner **enquanto a partida corre**: no fim ele é esvaziado de uma vez, e sem olhar o estado cada partida terminaria com dezenas de abates de brinde;
+  - a tela de resultado mostra `+121 moedas   640 abates +64   07:11 +7   vitoria +50`. Discriminado de propósito: "+121 moedas" não diz ao jogador o que o jogo premia, e é isso que decide como ele joga a próxima;
+  - `tests/test_save.gd` cobra a fórmula pelos números exatos, a soma entre partidas e a contagem de abates numa partida de verdade. Conferido com dois defeitos de propósito: contador que não conta e fórmula com outra proporção.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

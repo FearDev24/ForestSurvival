@@ -27,6 +27,7 @@ var _manager: GameManager = null
 @onready var _titulo_arte: TextureRect = $Caixa/TituloArte
 @onready var _tempo: Label = $Caixa/Tempo
 @onready var _nivel: Label = $Caixa/Nivel
+@onready var _moedas: Label = $Caixa/Moedas
 @onready var _opcoes: VBoxContainer = $Caixa/Opcoes
 
 
@@ -57,6 +58,20 @@ func botoes() -> Array[Button]:
 
 
 ## Formata o relógio igual ao do HUD, para o jogador reconhecer o número.
+## O ganho da partida, com as parcelas à vista.
+##
+## Discriminado de propósito: "+90 moedas" não diz ao jogador o que o jogo
+## premia, e é justamente isso que decide como ele joga a próxima partida.
+func _mostrar_moedas(vitoria: bool, tempo: float) -> void:
+	var abates := _manager.get_abates() if _manager != null else 0
+	var r := SaveJogo.recompensa(abates, tempo, vitoria)
+	var partes := ["%d abates  +%d" % [abates, r["abates"]],
+		"%s  +%d" % [_relogio(tempo), r["tempo"]]]
+	if vitoria:
+		partes.append("vitoria  +%d" % r["vitoria"])
+	_moedas.text = "+%d moedas     %s" % [r["total"], "   ".join(partes)]
+
+
 func _relogio(segundos: float) -> String:
 	var total := int(maxf(0.0, segundos))
 	if segundos >= 3600.0:
@@ -77,6 +92,7 @@ func _on_ended(vitoria: bool, tempo: float, nivel: int) -> void:
 	_titulo.visible = arte == null
 	_tempo.text = "Tempo   %s" % _relogio(tempo)
 	_nivel.text = "Nivel   %d" % nivel
+	_mostrar_moedas(vitoria, tempo)
 
 	var viewport := get_viewport()
 	if viewport != null and viewport.gui_get_focus_owner() != null:

@@ -69,7 +69,7 @@ func _ready() -> void:
 	# `GameManager`: ele decide o estado da partida e não precisa saber que
 	# existe disco.
 	_game_manager.ended.connect(func(vitoria: bool, tempo: float, nivel: int) -> void:
-		SaveJogo.registrar_partida(vitoria, tempo, nivel))
+		SaveJogo.registrar_partida(vitoria, tempo, nivel, _game_manager.get_abates()))
 
 	# Só em build de depuração num aparelho móvel (FASE 12): mede a partida e
 	# escreve no log, lido pelo `adb logcat`. No PC e nos testes nem existe.

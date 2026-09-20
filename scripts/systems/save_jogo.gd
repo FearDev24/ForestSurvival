@@ -40,7 +40,18 @@ const PADRAO := {
 	"melhor_tempo": 0.0,
 	"melhor_nivel": 0,
 	"tempo_total": 0.0,
+	"moedas": 0,
+	"abates_total": 0,
 }
+
+## Quantos abates valem uma moeda.
+const ABATES_POR_MOEDA := 10
+
+## Moedas por minuto sobrevivido.
+const MOEDAS_POR_MINUTO := 1
+
+## Moedas por derrubar o Guardião.
+const MOEDAS_POR_VITORIA := 50
 
 ## Guardado em memória depois da primeira leitura: o disco é lido uma vez por
 ## sessão, e não a cada consulta do menu.
@@ -51,6 +62,26 @@ static var _dados: Dictionary = {}
 static var _caminho := CAMINHO
 
 
+## Quanto uma partida rende, discriminado por fonte.
+##
+## As três fontes somadas são de propósito. Só abates faria o jogador ignorar o
+## relógio e ficar caçando; só tempo faria ele fugir a partida inteira sem
+## lutar. Juntas, premiam os dois jeitos de jogar bem, e a vitória dá o pico.
+##
+## Ordem de grandeza, pelas partidas da sonda: uma partida mediana (823 abates,
+## 478 s, sem vitória) rende 89 moedas, e uma vitória típica, cerca de 160.
+static func recompensa(abates: int, tempo: float, vitoria: bool) -> Dictionary:
+	var por_abates := int(maxi(0, abates) / ABATES_POR_MOEDA)
+	var por_tempo := int(maxf(0.0, tempo) / 60.0) * MOEDAS_POR_MINUTO
+	var por_vitoria := MOEDAS_POR_VITORIA if vitoria else 0
+	return {
+		"abates": por_abates,
+		"tempo": por_tempo,
+		"vitoria": por_vitoria,
+		"total": por_abates + por_tempo + por_vitoria,
+	}
+
+
 ## Os dados do save, lendo do disco na primeira vez.
 static func dados() -> Dictionary:
 	if _dados.is_empty():
@@ -59,10 +90,12 @@ static func dados() -> Dictionary:
 
 
 ## Registra o fim de uma partida e grava. Devolve `true` se bateu algum recorde.
-static func registrar_partida(vitoria: bool, tempo: float, nivel: int) -> bool:
+static func registrar_partida(vitoria: bool, tempo: float, nivel: int, abates := 0) -> bool:
 	var d := dados()
 	d["partidas"] = int(d["partidas"]) + 1
 	d["tempo_total"] = float(d["tempo_total"]) + maxf(0.0, tempo)
+	d["abates_total"] = int(d["abates_total"]) + maxi(0, abates)
+	d["moedas"] = int(d["moedas"]) + int(recompensa(abates, tempo, vitoria)["total"])
 	if vitoria:
 		d["vitorias"] = int(d["vitorias"]) + 1
 

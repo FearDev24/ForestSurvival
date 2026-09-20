@@ -49,6 +49,14 @@ const MENU_SCENE := "res://scenes/ui/main_menu.tscn"
 
 var estado: Estado = Estado.JOGANDO
 
+## Criaturas mortas nesta partida. É daqui que sai a moeda (FASE 13).
+##
+## Conta quem **sai do contêiner** enquanto a partida corre: o spawn nunca
+## recicla inimigo distante, então sair da árvore é morrer. No fim da partida o
+## contêiner é esvaziado de uma vez, e por isso a contagem só vale em JOGANDO —
+## senão a limpeza contaria como cinquenta abates.
+var _abates := 0
+
 var _elapsed := 0.0
 var _player: Player = null
 var _spawn: SpawnManager = null
@@ -73,6 +81,8 @@ func configure(player: Player, spawn: SpawnManager, waves: WaveManager,
 		weapons: WeaponManager, level: LevelComponent, level_up_menu: Node,
 		enemy_container: Node = null, pickup_container: Node = null) -> void:
 	_inimigos = enemy_container
+	if _inimigos != null and not _inimigos.child_exiting_tree.is_connected(_on_inimigo_saiu):
+		_inimigos.child_exiting_tree.connect(_on_inimigo_saiu)
 	_orbes = pickup_container
 	_player = player
 	_spawn = spawn
@@ -130,6 +140,16 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Conta em passo de física, e não em quadro desenhado: o relógio não depende de
 ## quantos quadros a máquina consegue desenhar, e um teste sabe exatamente
 ## quanto tempo passou depois de N passos.
+## Criaturas mortas nesta partida.
+func get_abates() -> int:
+	return _abates
+
+
+func _on_inimigo_saiu(_no: Node) -> void:
+	if estado == Estado.JOGANDO:
+		_abates += 1
+
+
 func get_elapsed() -> float:
 	return _elapsed
 

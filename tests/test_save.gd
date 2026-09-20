@@ -32,6 +32,8 @@ func _initialize() -> void:
 	_check_arquivo_quebrado()
 	_check_versao_desconhecida()
 	_check_campo_com_tipo_errado()
+	_check_recompensa()
+	_check_moedas_acumulam()
 
 	_game = (load(GAME_SCENE) as PackedScene).instantiate()
 	root.add_child(_game)
@@ -41,6 +43,7 @@ func _process(_delta: float) -> bool:
 	_frames -= 1
 	if _frames > 0:
 		return false
+	_check_abates_da_partida()
 	_check_fim_de_partida()
 
 	SaveJogo.apagar()
@@ -136,6 +139,70 @@ func _check_fim_de_partida() -> void:
 		_fail("O fim da partida não chegou ao save: %s" % str(d))
 	elif not is_equal_approx(float(d["melhor_tempo"]), 234.0):
 		_fail("O tempo da partida não foi registrado: %.0f" % d["melhor_tempo"])
+
+
+## A moeda vem de três fontes, e a conta é a mesma para todo mundo.
+##
+## O número importa: ele decide o preço dos desbloqueios. Uma partida mediana da
+## sonda (823 abates, 478 s, sem vitória) tem de render 89 moedas — mudar a
+## fórmula sem mudar os preços quebra o ritmo da meta-progressão.
+func _check_recompensa() -> void:
+	var r := SaveJogo.recompensa(823, 478.0, false)
+	if int(r["abates"]) != 82 or int(r["tempo"]) != 7 or int(r["vitoria"]) != 0:
+		_fail("Partida mediana: %s" % str(r))
+	if int(r["total"]) != 89:
+		_fail("Partida mediana deveria render 89 moedas, rende %d" % r["total"])
+
+	var v := SaveJogo.recompensa(1000, 550.0, true)
+	if int(v["vitoria"]) != SaveJogo.MOEDAS_POR_VITORIA or int(v["total"]) != 159:
+		_fail("Vitória típica: %s" % str(v))
+
+	# Partida de nada rende nada, e número negativo não vira moeda.
+	if int(SaveJogo.recompensa(0, 0.0, false)["total"]) != 0:
+		_fail("Partida vazia rendeu moeda")
+	if int(SaveJogo.recompensa(-5, -10.0, false)["total"]) != 0:
+		_fail("Número negativo virou moeda")
+
+
+## Moeda e abates somam entre partidas; é disso que a loja vai viver.
+func _check_moedas_acumulam() -> void:
+	SaveJogo.apagar()
+	SaveJogo.registrar_partida(false, 120.0, 8, 200)
+	SaveJogo.registrar_partida(true, 300.0, 20, 400)
+	var d := SaveJogo.dados()
+	var esperado := int(SaveJogo.recompensa(200, 120.0, false)["total"]) 		+ int(SaveJogo.recompensa(400, 300.0, true)["total"])
+	if int(d["moedas"]) != esperado:
+		_fail("As moedas deveriam somar %d, somam %d" % [esperado, d["moedas"]])
+	if int(d["abates_total"]) != 600:
+		_fail("Os abates deveriam somar 600, somam %d" % d["abates_total"])
+
+
+## A partida conta os abates, e a limpeza do fim não conta como abate.
+##
+## O contêiner é esvaziado de uma vez quando a partida acaba; se a contagem não
+## olhasse o estado, cada partida terminaria com dezenas de abates de brinde.
+func _check_abates_da_partida() -> void:
+	var manager := _game.get_node("GameManager") as GameManager
+	var spawn := _game.get_node("SpawnManager") as SpawnManager
+	spawn.enabled = false
+	(_game.get_node("WaveManager") as WaveManager).enabled = false
+	var antes := manager.get_abates()
+
+	var dados := load("res://resources/enemies/imp_corrompido.tres") as EnemyData
+	var nascidos: Array[Node] = []
+	for i in 3:
+		var bicho := spawn.spawn_data(dados)
+		if bicho != null:
+			nascidos.append(bicho)
+	if nascidos.size() != 3:
+		_fail("Não consegui fazer nascer as três criaturas do teste")
+		return
+	for bicho in nascidos:
+		(bicho.get_node("Health") as HealthComponent).damage(99999.0)
+		bicho.free()
+
+	if manager.get_abates() != antes + 3:
+		_fail("Três criaturas morreram e a contagem foi de %d para %d" % [antes, manager.get_abates()])
 
 
 func _escrever(texto: String) -> void:

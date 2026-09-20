@@ -276,7 +276,7 @@ Detalhes e o que ainda falta decidir em `docs/HANDOFF.md`, "FASE 12".
 
 Somente depois do vertical slice:
 - [x] save local — JSON versionado em `user://`, com defaults seguros (DEC-026)
-- [ ] moeda
+- [x] moeda — abates, tempo e vitória, somados no save e mostrados no resultado
 - [ ] desbloqueios
 - [ ] seleção de personagem
 - [ ] upgrades permanentes
