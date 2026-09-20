@@ -2217,6 +2217,38 @@ antigo), e se o preço deve subir mais para atrasar o teto.
 A tela `MELHORIAS` fica no menu principal. Placa sem dinheiro aparece apagada, e
 no teto o preço vira "máximo" — preço riscado seria mais bonito e menos claro.
 
+
+### Medido: o jogo tem duas dificuldades
+
+Vinte partidas com a loja cheia, contra as vinte da loja vazia na mesma build:
+
+| | loja vazia | loja cheia |
+| --- | --- | --- |
+| vitórias | 8/20 (40%) | **18/20 (90%)** |
+| morte no cerco (270-420 s) | 35% | **0%** |
+| morte no Guardião (420 s+) | 20% | 10% |
+| tempo médio | 414 s | 469 s |
+| faixa de tempo | 268-521 s | **433-510 s** |
+| dano do Guardião | 16% | **34%** |
+
+A previsão registrada antes da medição era "acima de 15 em 20", e deu 18. O que
+os números dizem, além do placar:
+
+**O cerco deixou de existir.** Com +50% de vida, ninguém mais morre entre 270 e
+420 s — a fase que matava um terço das partidas some.
+
+**Toda partida vira uma luta de chefe.** A faixa de tempo se fecha em 433-510 s:
+todas chegam ao Guardião e acabam lá. O dano dele dobra de participação (16%
+para 34%) não porque ele ficou mais forte, mas porque é o único que ainda
+acerta.
+
+**Isso não é "fácil demais", é outro jogo.** O balanceamento gravado (C5) mira o
+jogador novo. A decisão de design pendente é qual dos dois o jogo deve mirar, e
+há quatro caminhos: baixar o teto dos upgrades, encarecer para atrasar o teto,
+escalar a horda com o que foi comprado, ou — o que eu recomendo — **dar conteúdo
+depois do Guardião**, porque 90% de vitória só incomoda enquanto o jogo termina
+ali.
+
 ### Duas armadilhas que apareceram aqui
 
 **Dicionário `const` é somente-leitura na Godot 4**, e `duplicate()` herda a
