@@ -86,7 +86,7 @@ identidade, senha ou aceite de contrato.
 3. **Anúncio premiado na tela de resultado** — "assistir para dobrar as moedas".
 4. **Consentimento (UMP)** para usuários da Europa e do Reino Unido, exigido pela
    Google para exibir anúncios personalizados lá.
-5. **Screenshots e imagem de destaque** para a ficha da loja.
+5. **Imagem de destaque** para a ficha da loja (prompt abaixo). As capturas de tela já estão prontas.
 
 ## Como os anúncios devem entrar
 
@@ -221,6 +221,28 @@ endereço, com a data da última atualização.
 
 6. Contato
 [seu e-mail de contato]
+```
+
+## Capturas de tela
+
+Seis capturas em 1920×1080 em `publicacao/screenshots/`, **já na ordem da
+ficha** — a primeira é a que decide o clique, então ela é o chefe em combate, e
+o menu vai por último:
+
+| arquivo | o que mostra |
+| --- | --- |
+| `01_chefe.png` | o Guardião no meio da horda, com vinha e esporos em ação |
+| `02_partida.png` | a horda do cerco e as magias do druida |
+| `03_escolha.png` | a tela de subir de nível, com três magias para escolher |
+| `04_vitoria.png` | a vitória, com o ganho de moedas e o aviso de atualizações |
+| `05_loja.png` | a loja de melhorias permanentes |
+| `06_menu.png` | o menu com a ilustração de fundo |
+
+São partidas de verdade, geradas por `tools/capturar_loja_play.gd`. Para
+regerar depois de uma mudança visual:
+
+```bash
+godot --path . --resolution 1920x1080 --script res://tools/capturar_loja_play.gd --fixed-fps 60
 ```
 
 ## Imagem de destaque (1024 x 500)
