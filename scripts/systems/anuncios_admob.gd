@@ -14,9 +14,9 @@ extends Node
 ## inválido e pode suspender a conta AdMob.
 const PREMIADO_TESTE := "ca-app-pub-3940256099942544/5224354917"
 
-## Unidade premiada de verdade, criada no painel da AdMob pelo dono da conta.
-## Vazia, a build de lançamento simplesmente não mostra anúncio.
-const PREMIADO_REAL := ""
+## Unidade premiada de verdade ("dobrar_moedas", no painel da AdMob). Só a build
+## de lançamento usa; vazia, ela simplesmente não mostraria anúncio.
+const PREMIADO_REAL := "ca-app-pub-4397221687948677/8642654141"
 
 ## Espera entre tentativas depois de uma falha de carga, em segundos. Sem rede
 ## a falha é imediata, e tentar em laço gastaria bateria à toa.

@@ -10,6 +10,7 @@ config_version=5
 
 [admob]
 
+general/android/app_id="ca-app-pub-4397221687948677~3502008100"
 general/ios/enabled=false
 
 [application]

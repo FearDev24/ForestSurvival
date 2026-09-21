@@ -85,8 +85,15 @@ gera:
 
 | código | onde entra | hoje |
 | --- | --- | --- |
-| App ID (`ca-app-pub-...~...`) | `project.godot`, `admob/general/android/app_id` | o de teste da Google |
-| Ad Unit ID premiado (`ca-app-pub-.../...`) | `scripts/systems/anuncios_admob.gd`, `PREMIADO_REAL` | vazio: a build de lançamento fica sem anúncio |
+| App ID (`ca-app-pub-...~...`) | `project.godot`, `admob/general/android/app_id` | `ca-app-pub-4397221687948677~3502008100` |
+| Ad Unit ID premiado (`ca-app-pub-.../...`) | `scripts/systems/anuncios_admob.gd`, `PREMIADO_REAL` | `ca-app-pub-4397221687948677/8642654141` (`dobrar_moedas`) |
+
+**Armadilha:** a Godot não grava em `project.godot` um valor igual ao padrão
+do plugin. Com o App ID de teste, a linha sumia sozinha — e voltar a ela
+achando que ali estava o ID real engana. Confira a linha antes de exportar.
+
+Mensagem de consentimento (RGPD) publicada na AdMob: inglês como padrão e
+português (pt-PT), com "Não consentir" ligado em todos os países.
 
 A build de depuração usa sempre a unidade de teste, e é com ela que se testa no
 aparelho. **Nunca toque no anúncio real do próprio app** — é tráfego inválido e
@@ -271,7 +278,7 @@ Alpha", versão 1 (1.0.0) assinada com a chave de upload (SHA-256
 `0A:1C:47:90:…:12:F5:75`), 177 países, testadores pelo Grupo do Google
 `forest-survival-testers@googlegroups.com` (qualquer pessoa pode entrar),
 feedback para `leonardodev24@gmail.com`. Google Play Games no PC desativado.
-Esta versão **não tem anúncios**: faltam os códigos da AdMob.
+A versão 1 (1.0.0) **não tem anúncios**; a 2 (1.0.1) já sai com a unidade real.
 
 Depois da aprovação: divulgar o link do grupo e o de participação (post em
 inglês para r/AndroidClosedTesting), juntar ~20 testadores, manter 12
