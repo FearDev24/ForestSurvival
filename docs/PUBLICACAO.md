@@ -146,12 +146,16 @@ para chegar até você.
   estratégia
 • Seis magias e várias melhorias por partida
 • Moedas a cada partida, para melhorias permanentes de vida, dano e velocidade
-• Pixel art feita à mão, com criaturas e chefe animados
+• Pixel art com criaturas e chefe animados
 • Jogue offline, sem conta e sem conexão
 
 O jogo continua crescendo: novos chefes e novos níveis de dificuldade chegam nas
 próximas atualizações.
 ```
+
+A arte do jogo e da ficha foi gerada com IA, e os recursos da ficha estão
+**rotulados como criados com IA** na Play Console. Por isso a descrição não diz
+"feita à mão": afirmação falsa na ficha fere a política de metadados.
 
 A última frase promete conteúdo sem data — é o que a política da Play permite
 sem risco. Prometer data ou recurso específico que não chega é propaganda
@@ -252,6 +256,16 @@ regerar depois de uma mudança visual:
 ```bash
 godot --path . --resolution 1920x1080 --script res://tools/capturar_loja_play.gd --fixed-fps 60
 ```
+
+## Estado na Play Console (21/09/2026)
+
+App criado (`com.feardev24.forestsurvival`, jogo, grátis). Concluídos: política
+de privacidade (`https://feardev24.github.io/ForestSurvival/privacidade.html`,
+branch `gh-pages`), anúncios, login, ID de publicidade, público-alvo (13+),
+segurança dos dados, classificação IARC (ClassInd 10, PEGI 7, ESRB 10+),
+apps governamentais, recursos financeiros, saúde, categoria Ação, contato e a
+ficha da loja completa — pronta para revisão. Falta subir o AAB assinado no
+teste fechado.
 
 ## Imagem de destaque (1024 x 500)
 
