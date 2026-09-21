@@ -406,6 +406,14 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
   - preset **"Android Play Store"**: AAB, Gradle, 32 e 64 bits, versão 1.0.0. Separado do preset de depuração, que continua servindo aos testes no aparelho. A senha da chave de assinatura entra por variável de ambiente, nunca pelo arquivo;
   - tela de vitória avisa: *"Novos chefes e dificuldades nas próximas atualizações"* — é o momento em que o jogador acabou de ver o último chefe;
   - registrado o prazo que mais pesa: conta pessoal nova precisa de **teste fechado com 12 testadores por 14 dias** antes da produção.
+- **Anúncio premiado: "dobrar as moedas" (FASE 15).** Na tela de fim de partida, a placa `DOBRAR (ANÚNCIO)` mostra um anúncio premiado da AdMob; assistindo até o fim, o ganho da partida entra de novo.
+  - plugin **poing-studios/godot-admob-plugin 5.1.0** em `addons/admob/`, com os binários Android da Godot 4.7.1 em `addons/admob/android/bin/` (só o SDK de anúncios; nenhuma mediação). O exemplo do plugin foi retirado, e um marcador em `addons/admob/ios/bin/` impede que ele baixe os binários de iOS sozinho a cada exportação;
+  - **consentimento (UMP) antes de tudo**: o SDK só inicia com o consentimento obtido ou dispensado, e na Europa o menu ganha a placa `PRIVACIDADE`, que a Google exige para o jogador rever a escolha;
+  - `Anuncios` é a única porta do jogo para os anúncios, e só liga o plugin no Android. No PC, no editor e nos testes não há anúncio nem dependência de rede;
+  - build de depuração usa sempre a **unidade de teste da Google**; a de lançamento usa a unidade real, que fica vazia até o dono da conta criá-la — e vazia, simplesmente não há anúncio;
+  - o preset de depuração "Android" passou a usar Gradle: o plugin não funciona sem ele;
+  - `tests/test_anuncios.gd` (vigésima primeira suíte), com um provedor falso: botão só com anúncio pronto, botão que aparece se o anúncio carregar com a tela aberta, prêmio só assistindo, uma vez só e gravado no disco.
+
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

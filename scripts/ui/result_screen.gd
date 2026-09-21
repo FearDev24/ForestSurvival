@@ -21,7 +21,14 @@ const TAMANHO_BOTAO := Vector2(330.0, 55.0)
 @export var titulo_derrota: Texture2D
 @export var titulo_vitoria: Texture2D
 
+## Texto do botão do anúncio premiado. Diz que é anúncio de propósito: a
+## política da AdMob exige que o jogador saiba o que vai ver antes de tocar.
+const TEXTO_DOBRAR := "DOBRAR (ANÚNCIO)"
+
 var _manager: GameManager = null
+## O ganho desta partida, que o anúncio premiado repete uma vez.
+var _ganho := 0
+var _dobrou := false
 
 @onready var _titulo: Label = $Caixa/Titulo
 @onready var _titulo_arte: TextureRect = $Caixa/TituloArte
@@ -42,11 +49,39 @@ func configure(manager: GameManager) -> void:
 
 func _montar() -> void:
 	for antigo in _opcoes.get_children():
+		# Sai da árvore na hora: a tela se remonta quando o anúncio acaba de
+		# carregar, e placa velha ainda na árvore responderia ao toque (ver loja).
+		_opcoes.remove_child(antigo)
 		antigo.queue_free()
-	for texto in ["REINICIAR", "MENU"]:
-		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque)
+	var textos := ["REINICIAR", "MENU"]
+	if _oferecer_anuncio():
+		textos.push_front(TEXTO_DOBRAR)
+	for texto in textos:
+		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque,
+			20 if texto == TEXTO_DOBRAR else 24)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
+
+
+## O botão do anúncio só aparece se há o que dobrar, se ainda não dobrou e se o
+## anúncio já está carregado — botão que toca e não mostra nada é pior que
+## botão nenhum.
+func _oferecer_anuncio() -> bool:
+	return _ganho > 0 and not _dobrou and Anuncios.premiado_pronto()
+
+
+func _tem_botao_anuncio() -> bool:
+	for botao in botoes():
+		if botao.text == TEXTO_DOBRAR:
+			return true
+	return false
+
+
+## O anúncio pode terminar de carregar com a tela já aberta. Aí o botão entra
+## sem o jogador precisar fazer nada.
+func _process(_delta: float) -> void:
+	if visible and _oferecer_anuncio() != _tem_botao_anuncio():
+		_montar()
 
 
 func botoes() -> Array[Button]:
@@ -66,6 +101,8 @@ func botoes() -> Array[Button]:
 func _mostrar_moedas(vitoria: bool, tempo: float) -> void:
 	var abates := _manager.get_abates() if _manager != null else 0
 	var r := SaveJogo.recompensa(abates, tempo, vitoria)
+	_ganho = int(r["total"])
+	_dobrou = false
 	var partes := ["%d abates  +%d" % [abates, r["abates"]],
 		"%s  +%d" % [_relogio(tempo), r["tempo"]]]
 	if vitoria:
@@ -97,6 +134,7 @@ func _on_ended(vitoria: bool, tempo: float, nivel: int) -> void:
 	# O Guardião é o último chefe desta versão. Na vitória o jogador acabou de
 	# ver o fim do jogo; é a hora de dizer que ele não acaba aqui.
 	_em_breve.visible = vitoria
+	_montar()
 
 	var viewport := get_viewport()
 	if viewport != null and viewport.gui_get_focus_owner() != null:
@@ -114,7 +152,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_escolha(texto: String) -> void:
 	if _manager == null:
 		return
-	if texto == "REINICIAR":
+	if texto == TEXTO_DOBRAR:
+		Anuncios.mostrar_premiado(_premio_assistido)
+	elif texto == "REINICIAR":
 		_manager.reiniciar()
 	else:
 		_manager.voltar_ao_menu()
+
+
+## O jogador assistiu até o fim: o ganho da partida entra de novo.
+func _premio_assistido() -> void:
+	if _dobrou:
+		return
+	_dobrou = true
+	SaveJogo.somar_moedas(_ganho)
+	_moedas.text = "+%d moedas     dobrado pelo anúncio" % (_ganho * 2)
+	_montar()

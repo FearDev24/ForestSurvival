@@ -296,10 +296,11 @@ Guia completo, com o que é do dono da conta e o que é do projeto, em `docs/PUB
 
 - [ ] nome final
 - [ ] ícone
-- [ ] screenshots
+- [x] screenshots — seis em `publicacao/screenshots/`
 - [x] página Google Play — textos da ficha prontos; falta a imagem de destaque e as screenshots
 - [x] política de privacidade quando aplicável — rascunho pronto; falta hospedar
-- [x] build release — preset "Android Play Store" (AAB, 1.0.0); falta instalar o modelo de build e assinar
+- [x] build release — preset "Android Play Store" (AAB, 1.0.0), modelo de build instalado; falta assinar com a chave de upload
+- [x] anúncio premiado "dobrar as moedas", com consentimento (UMP) — falta o App ID e o Ad Unit ID reais
 - [ ] testes internos
 - [ ] closed testing
 - [ ] release

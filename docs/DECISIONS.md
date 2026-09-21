@@ -549,3 +549,30 @@ errada, e é isso que a versão protege.
 **Falha de escrita não derruba a partida.** Disco cheio perde o registro
 daquela partida e avisa no log; o contrário seria perder a partida inteira por
 causa do disco.
+
+## DEC-027 — Anúncio só premiado, no fim da partida, e atrás de uma porta única
+
+**Contexto.** A publicação na Google Play vem com anúncios (AdMob). O jogo é de
+ação, em paisagem, com o polegar no joystick, e a regra "offline-first" do
+projeto continua valendo.
+
+**Decisão.** Um único formato, o **premiado**, e um único lugar, a tela de fim
+de partida: assistir dobra o ganho daquela partida, uma vez. Sem banner e sem
+intersticial nesta versão. O jogo fala com os anúncios só por `Anuncios`, que
+liga o plugin no Android e, fora dele, responde que não há anúncio.
+
+**Por quê só premiado.** Banner ocupa tela útil e recebe toque acidental no
+meio da ação, e a AdMob pune clique acidental. Intersticial interrompe; entre
+partidas seria tolerável, mas é o formato que mais derruba avaliação. O
+premiado é o único que o jogador escolhe, e casa com a moeda que já existe.
+
+**Por quê uma porta só.** As classes do plugin acordam o módulo nativo, ou um
+simulador de editor, no momento em que são lidas. Com o plugin atrás de um
+`load` que só acontece no Android, o jogo continua rodando no PC e as suítes
+continuam sem rede — e o teste do anúncio usa um provedor falso.
+
+**Offline continua valendo.** Sem rede não há anúncio, e o jogo não muda: a
+placa simplesmente não aparece. Nenhuma parte do jogo espera o anúncio.
+
+**Consentimento antes do SDK.** Na Europa e no Reino Unido o SDK só inicia com
+o consentimento dado, e o menu oferece `PRIVACIDADE` para rever a escolha.

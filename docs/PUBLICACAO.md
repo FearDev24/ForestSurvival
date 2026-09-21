@@ -78,15 +78,23 @@ identidade, senha ou aceite de contrato.
 
 ## O que falta no projeto
 
-1. **Instalar o modelo de build Android** da Godot no projeto (necessário para o
-   AAB e para o plugin de anúncios). O Gradle baixa as dependências dele na
-   primeira compilação.
-2. **Plugin de anúncios**: poing-studios/godot-admob-plugin, versão 5.1.0, com o
-   pacote para a Godot 4.7.1 (`android-template-v4.7.1.zip`, 0,34 MB).
-3. **Anúncio premiado na tela de resultado** — "assistir para dobrar as moedas".
-4. **Consentimento (UMP)** para usuários da Europa e do Reino Unido, exigido pela
-   Google para exibir anúncios personalizados lá.
-5. **Imagem de destaque** para a ficha da loja (prompt abaixo). As capturas de tela já estão prontas.
+Nada que dependa só do projeto. Já entraram o modelo de build Android, o plugin
+de anúncios (poing-studios 5.1.0), o anúncio premiado "dobrar as moedas" e o
+consentimento (UMP). Faltam os dois códigos da AdMob, que só o dono da conta
+gera:
+
+| código | onde entra | hoje |
+| --- | --- | --- |
+| App ID (`ca-app-pub-...~...`) | `project.godot`, `admob/general/android/app_id` | o de teste da Google |
+| Ad Unit ID premiado (`ca-app-pub-.../...`) | `scripts/systems/anuncios_admob.gd`, `PREMIADO_REAL` | vazio: a build de lançamento fica sem anúncio |
+
+A build de depuração usa sempre a unidade de teste, e é com ela que se testa no
+aparelho. **Nunca toque no anúncio real do próprio app** — é tráfego inválido e
+suspende a conta AdMob.
+
+Na AdMob, ative também a **mensagem de consentimento** (Privacidade e
+mensagens → RGPD): sem ela configurada no painel, o formulário não aparece na
+Europa e o anúncio não é pedido lá.
 
 ## Como os anúncios devem entrar
 

@@ -96,6 +96,18 @@ static func gastar_no_permanente(id: StringName, custo: int) -> bool:
 	return true
 
 
+## Soma moedas que não vieram de uma partida — hoje, só o anúncio premiado que
+## dobra o ganho. Separado de `registrar_partida` para o prêmio não contar como
+## outra partida jogada.
+static func somar_moedas(quantia: int) -> bool:
+	if quantia <= 0:
+		return false
+	var d := dados()
+	d["moedas"] = int(d["moedas"]) + quantia
+	gravar()
+	return true
+
+
 ## Quanto uma partida rende, discriminado por fonte.
 ##
 ## As três fontes somadas são de propósito. Só abates faria o jogador ignorar o

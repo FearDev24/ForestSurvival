@@ -22,3 +22,7 @@ logs/
 # Subproduto de importar as ferramentas em tools/
 __pycache__/
 *.pyc
+
+# Modelo de build Android: saída do Gradle (1,3 GB). Refaz-se com
+# `godot --headless --path . --install-android-build-template`.
+android/

@@ -1,6 +1,6 @@
 # HANDOFF
 
-Última atualização: 2026-09-08
+Última atualização: 2026-09-21
 
 # Projeto
 
@@ -2010,20 +2010,78 @@ tropeçou.
 
 # Próxima tarefa
 
-**Nenhuma fase está em andamento.** A 11 (arte) e a 12 (mobile) fecharam: a arte
-entregue está integrada e medida, o jogo se joga por toque no aparelho, e o som
-entrou junto — dezoito suítes passando.
+**FASE 15 — Publicação, em andamento.** O que é do projeto está pronto:
+preset de AAB, ficha da loja, capturas, política de privacidade em rascunho e
+o anúncio premiado — vinte e uma suítes passando.
 
-O que decide a próxima fase é **jogar**. As três coisas que ainda podem mudar o
-desenho do jogo — a leitura do Anel de Esporos, o tamanho das criaturas em tela
-e a dificuldade — não se resolvem por medição: a sonda joga melhor que qualquer
-pessoa num quadro e pior no seguinte, e não julga se foi divertido.
+O que falta agora é do **dono da conta**, na ordem em que um destrava o outro
+(detalhes em `docs/PUBLICACAO.md`):
 
-Pelo roadmap, o que vem é a **FASE 13 — Meta-progressão** (save local, moeda,
-desbloqueios, upgrades permanentes). Antes dela vale a pena olhar a lista acima
-de pendências fora do roadmap, que é curta e quase toda de decisão, não de
-trabalho.
+1. **AdMob**: criar o app e uma unidade premiada, e trazer o *App ID* e o *Ad
+   Unit ID* — entram em `project.godot` e em `anuncios_admob.gd`;
+2. **chave de upload** (`keytool`) e as três variáveis de ambiente;
+3. hospedar a política de privacidade;
+4. com isso, exportar o AAB assinado pelo preset "Android Play Store" e subir
+   no **teste fechado** (12 testadores, 14 dias, se a conta for pessoal).
 
+Do lado do projeto, o próximo passo útil é testar o anúncio de teste no
+aparelho: consentimento, carga, a placa, assistir e fechar antes do fim.
+
+
+## Anúncio premiado: dobrar as moedas (FASE 15)
+
+O único formato é o **premiado**, e o único lugar é o fim da partida: a placa
+`DOBRAR (ANÚNCIO)` aparece acima de REINICIAR e MENU, e quem assiste até o fim
+recebe o ganho da partida de novo. O porquê de não haver banner nem
+intersticial está em `docs/PUBLICACAO.md` e na DEC-027.
+
+### Como está montado
+
+| peça | papel |
+| --- | --- |
+| `addons/admob/` | plugin da Poing Studios, 5.1.0, só a parte Android e o código GDScript |
+| `scripts/systems/anuncios.gd` | `Anuncios`: a única porta do jogo; sem provedor fora do Android |
+| `scripts/systems/anuncios_admob.gd` | provedor do Android: consentimento, SDK, carga e exibição |
+| `scripts/ui/result_screen.gd` | a placa, e o prêmio via `SaveJogo.somar_moedas` |
+| `scripts/ui/main_menu.gd` | chama `Anuncios.iniciar`; placa `PRIVACIDADE` quando exigida |
+
+A ordem no aparelho é a que a Google pede: consentimento (UMP) → iniciar o SDK
+→ carregar o anúncio. O menu dispara isso ao abrir, e o anúncio fica pronto
+enquanto se joga. Falha de carga (sem rede) tenta de novo a cada 30 s.
+
+**O prêmio chega antes de o anúncio fechar**, e é guardado até o fechamento:
+entregue antes, a tela se remontaria com o jogo ainda por trás do anúncio.
+
+### Por que o plugin fica atrás de um `load`
+
+As classes do plugin procuram o módulo nativo **assim que o script é lido**, e
+fora do celular caem num simulador feito para o editor, que abre janelas. Se
+`Anuncios` citasse essas classes, toda suíte as leria. Por isso o provedor
+(`anuncios_admob.gd`) só é carregado no Android com o plugin presente, e o
+teste troca o provedor por um falso.
+
+### O que ainda é do dono da conta
+
+- **App ID** da AdMob em `project.godot` (`admob/general/android/app_id`). Hoje
+  é o App ID de teste da Google;
+- **Ad Unit ID** premiado em `anuncios_admob.gd` (`PREMIADO_REAL`). Vazio, a
+  build de lançamento não mostra anúncio — de propósito: melhor sem anúncio que
+  com o de teste em produção;
+- nunca tocar no anúncio real do próprio app: é tráfego inválido e pode
+  suspender a conta AdMob. A build de depuração usa sempre o de teste.
+
+### Build Android agora é Gradle
+
+O modelo de build está instalado em `android/` (fora do versionamento: tem
+1,3 GB de saída do Gradle e se refaz com `--install-android-build-template`).
+Os dois presets de celular usam Gradle; o do bot continua sem, porque não leva
+anúncio.
+
+- APK de depuração com anúncio de teste: `build/android/ForestSurvival-debug.apk`,
+  ~138 MB (a de antes, sem Gradle, tinha 62 MB — o tamanho vem da build de
+  depuração do Gradle, não do SDK de anúncios, e o AAB da loja é dividido por
+  aparelho);
+- AAB de teste, sem assinatura de lançamento: `build/android/ForestSurvival-teste.aab`.
 
 ## Arte entregue: o que entrou, e o que ainda falta
 
@@ -3009,10 +3067,10 @@ sobrou:
 
 ## Critério de aceite da FASE 11
 
-Ver `docs/ROADMAP.md`. As **vinte** suítes continuam passando
+Ver `docs/ROADMAP.md`. As **vinte e uma** suítes continuam passando
 (`test_foundation`, `test_phase1` a `test_phase10`, `test_phase12`, `test_hud`,
 `test_menu`, `test_acerto`, `test_bot`, `test_progressao`, `test_audio`,
-`test_save` e `test_permanentes`).
+`test_save`, `test_permanentes` e `test_anuncios`).
 
 # Não alterar sem registrar decisão
 

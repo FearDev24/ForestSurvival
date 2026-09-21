@@ -35,6 +35,9 @@ func _ready() -> void:
 	if BotMobile.pedido():
 		get_tree().root.add_child.call_deferred(BotMobile.new())
 		return
+	# Consentimento e primeiro anúncio carregam enquanto o jogador está no menu.
+	# Fora do Android não faz nada.
+	Anuncios.iniciar(get_tree())
 	var com_arte := _titulo_arte.texture != null
 	_titulo_arte.visible = com_arte
 	_titulo.visible = not com_arte
@@ -44,7 +47,12 @@ func _ready() -> void:
 func _montar() -> void:
 	for antigo in _opcoes.get_children():
 		antigo.queue_free()
-	for texto in ["JOGAR", "MELHORIAS", "SAIR"]:
+	var textos := ["JOGAR", "MELHORIAS", "SAIR"]
+	# Só na Europa e no Reino Unido, onde a Google exige que o jogador possa
+	# rever o consentimento. O SDK lembra a resposta entre sessões.
+	if Anuncios.privacidade_necessaria():
+		textos.insert(2, "PRIVACIDADE")
+	for texto in textos:
 		var botao := PlacaUI.criar(texto, TAMANHO_BOTAO, textura_placa, textura_placa_destaque, 28)
 		botao.pressed.connect(_on_escolha.bind(texto))
 		_opcoes.add_child(botao)
@@ -96,5 +104,7 @@ func _on_escolha(texto: String) -> void:
 			get_tree().change_scene_to_file(GAME_SCENE)
 		"MELHORIAS":
 			get_tree().change_scene_to_file(LOJA_SCENE)
+		"PRIVACIDADE":
+			Anuncios.mostrar_privacidade()
 		"SAIR":
 			get_tree().quit()
