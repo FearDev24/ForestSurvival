@@ -264,8 +264,21 @@ de privacidade (`https://feardev24.github.io/ForestSurvival/privacidade.html`,
 branch `gh-pages`), anúncios, login, ID de publicidade, público-alvo (13+),
 segurança dos dados, classificação IARC (ClassInd 10, PEGI 7, ESRB 10+),
 apps governamentais, recursos financeiros, saúde, categoria Ação, contato e a
-ficha da loja completa — pronta para revisão. Falta subir o AAB assinado no
-teste fechado.
+ficha da loja completa.
+
+**Teste fechado enviado para revisão em 21/09/2026**: faixa "Teste fechado -
+Alpha", versão 1 (1.0.0) assinada com a chave de upload (SHA-256
+`0A:1C:47:90:…:12:F5:75`), 177 países, testadores pelo Grupo do Google
+`forest-survival-testers@googlegroups.com` (qualquer pessoa pode entrar),
+feedback para `leonardodev24@gmail.com`. Google Play Games no PC desativado.
+Esta versão **não tem anúncios**: faltam os códigos da AdMob.
+
+Depois da aprovação: divulgar o link do grupo e o de participação (post em
+inglês para r/AndroidClosedTesting), juntar ~20 testadores, manter 12
+instalados por 14 dias e pedir o acesso à produção.
+
+A chave de upload fica em `C:\Users\CPU\forest-survival-upload.keystore`, fora
+do repositório; a senha, só com o dono, nas variáveis de ambiente.
 
 ## Imagem de destaque (1024 x 500)
 
