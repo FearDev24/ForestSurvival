@@ -402,6 +402,10 @@ Formato inspirado em Keep a Changelog, sem obrigação rígida.
 
 - **Dicionário `const` na Godot 4 é somente-leitura, e a cópia dele herda a trava.** `PADRAO.duplicate()` devolvia um save imutável, e qualquer escrita virava "Invalid assignment on read-only value". Os padrões passaram a ser montados campo a campo.
 - **`queue_free` não esvazia um contêiner no mesmo quadro.** A loja se remonta no instante da compra, e as placas velhas ainda respondiam ao clique seguinte. Agora saem da árvore na hora, e só depois são apagadas.
+- **Preparação para a Google Play (FASE 15).** `docs/PUBLICACAO.md` separa o que só o dono da conta pode fazer (conta, AdMob, chave de assinatura, hospedar a política, formulários) do que é do projeto, e traz a ficha da loja, a política de privacidade, as respostas de classificação etária e de segurança dos dados, e o prompt da imagem de destaque.
+  - preset **"Android Play Store"**: AAB, Gradle, 32 e 64 bits, versão 1.0.0. Separado do preset de depuração, que continua servindo aos testes no aparelho. A senha da chave de assinatura entra por variável de ambiente, nunca pelo arquivo;
+  - tela de vitória avisa: *"Novos chefes e dificuldades nas próximas atualizações"* — é o momento em que o jogador acabou de ver o último chefe;
+  - registrado o prazo que mais pesa: conta pessoal nova precisa de **teste fechado com 12 testadores por 14 dias** antes da produção.
 ### Changed
 
 - `README.md`: nova seção "Política de assets" e `ASSET_WORKFLOW.md` na lista de documentação;

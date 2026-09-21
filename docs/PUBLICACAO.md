@@ -1,0 +1,242 @@
+# Publicação na Google Play
+
+Guia para levar a versão 1.0.0 à Play Store com anúncios. Está dividido pelo que
+só o dono da conta pode fazer e pelo que se faz no projeto — e o primeiro grupo é
+o que decide o prazo.
+
+## Antes de tudo: o prazo real
+
+**Conta pessoal criada depois de 13/11/2023 não publica direto.** A Google exige
+um **teste fechado com pelo menos 12 testadores, por 14 dias seguidos**, antes de
+liberar a produção. Isso vale para contas pessoais; conta de organização (com
+CNPJ/D-U-N-S) não tem essa exigência.
+
+Na prática, com conta pessoal nova:
+
+| etapa | tempo |
+| --- | --- |
+| criar a conta e verificar identidade | de 1 a vários dias |
+| subir o AAB no teste fechado e juntar 12 testadores | o quanto demorar para juntar |
+| manter o teste por 14 dias | 14 dias |
+| pedir acesso à produção e passar pela revisão | alguns dias |
+
+Então o lançamento público fica, no mínimo, **três semanas** depois de a conta
+estar pronta. Vale usar esse tempo: o teste fechado é exatamente quando
+aparecem os defeitos que só um aparelho diferente do seu mostra.
+
+## O que só o dono da conta pode fazer
+
+Nenhum destes passos pode ser feito por quem não é o dono — envolvem pagamento,
+identidade, senha ou aceite de contrato.
+
+1. **Conta de desenvolvedor na Play Console** (taxa única de US$ 25, verificação
+   de identidade).
+2. **Conta no AdMob**, ligada ao app, com uma unidade de anúncio **premiado**
+   (rewarded). Ela dá dois códigos: o *App ID* e o *Ad Unit ID*.
+3. **Chave de upload.** Gerada uma vez, com uma senha que só você sabe:
+
+   ```bash
+   keytool -genkeypair -v -keystore forest-survival-upload.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+   Guarde o arquivo e a senha **fora do repositório**, em dois lugares. Com a
+   *Play App Signing* ligada (é o padrão), perder a chave de upload tem
+   conserto pelo suporte da Google, mas custa dias.
+
+   Para exportar, a Godot lê a chave de variáveis de ambiente — a senha nunca
+   entra no `export_presets.cfg`:
+
+   ```bash
+   setx GODOT_ANDROID_KEYSTORE_RELEASE_PATH "C:\caminho\forest-survival-upload.keystore"
+   ```
+   ```bash
+   setx GODOT_ANDROID_KEYSTORE_RELEASE_USER "upload"
+   ```
+   ```bash
+   setx GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD "sua-senha"
+   ```
+
+4. **Hospedar a política de privacidade** num endereço público. Com anúncios,
+   ela é obrigatória. O texto está pronto mais abaixo; o GitHub Pages do próprio
+   repositório serve.
+5. **Preencher na Play Console**: classificação etária, segurança dos dados,
+   público-alvo, declaração de anúncios e a ficha da loja. As respostas
+   sugeridas estão abaixo.
+6. **Decidir o nome de pacote.** Hoje é `com.feardev24.forestsurvival`. **Depois
+   do primeiro envio ele não muda nunca mais** — nem com o app removido.
+
+## O que o projeto já tem
+
+- preset **"Android Play Store"** em `export_presets.cfg`: AAB (formato que a
+  Play exige), Gradle ligado, 32 e 64 bits, versão **1.0.0 (código 1)**. O
+  preset "Android" de depuração continua como estava, para os testes no
+  aparelho;
+- aviso de conteúdo futuro na tela de vitória: *"Novos chefes e dificuldades nas
+  próximas atualizações"*;
+- ícone do app (512 px) e ícones adaptativos;
+- save local, moeda e loja de melhorias — a base para o anúncio premiado.
+
+## O que falta no projeto
+
+1. **Instalar o modelo de build Android** da Godot no projeto (necessário para o
+   AAB e para o plugin de anúncios). O Gradle baixa as dependências dele na
+   primeira compilação.
+2. **Plugin de anúncios**: poing-studios/godot-admob-plugin, versão 5.1.0, com o
+   pacote para a Godot 4.7.1 (`android-template-v4.7.1.zip`, 0,34 MB).
+3. **Anúncio premiado na tela de resultado** — "assistir para dobrar as moedas".
+4. **Consentimento (UMP)** para usuários da Europa e do Reino Unido, exigido pela
+   Google para exibir anúncios personalizados lá.
+5. **Screenshots e imagem de destaque** para a ficha da loja.
+
+## Como os anúncios devem entrar
+
+**Premiado, e não banner.** O jogo é de ação, em paisagem, com o polegar no
+joystick: um banner ocupa tela útil e recebe toque acidental — o que a política
+da AdMob pune. O anúncio premiado é o formato que o jogador escolhe ver, e ele
+casa com o que já existe: ao fim da partida, **assistir para dobrar as moedas**.
+
+**Intersticial, se entrar, só entre partidas** — nunca durante o jogo, e no
+máximo um a cada algumas partidas. Anúncio que interrompe a jogada é motivo de
+suspensão na Play.
+
+**Expectativa honesta de receita.** Anúncio em jogo novo rende pouco até haver
+muitos jogadores por dia: receita de anúncio é proporcional a quem abre o jogo,
+e um jogo recém-lançado sem divulgação costuma ter poucas dezenas. O que move o
+número é retenção (voltar para outra partida) — e é por isso que a
+meta-progressão e as atualizações prometidas importam mais que o formato do
+anúncio.
+
+## Ficha da loja
+
+**Nome** (até 30 caracteres):
+
+```text
+Forest Survival
+```
+
+**Descrição curta** (até 80 caracteres):
+
+```text
+Proteja a floresta corrompida: sobreviva à horda e derrube o Guardião Profanado.
+```
+
+**Descrição completa:**
+
+```text
+A floresta está sendo corrompida, e só um druida ainda resiste.
+
+Forest Survival é um jogo de sobrevivência contra hordas: você se move, e o
+druida ataca sozinho. A cada nível, escolha uma nova magia ou fortaleça as que já
+tem — raios que caem do céu, vinhas que brotam do chão, um corvo espiritual,
+anéis de esporos e vagalumes guardiões.
+
+Resista às ondas de criaturas corrompidas por sete minutos e enfrente o
+Guardião Profanado, um cervo colossal de madeira e lava que atravessa a floresta
+para chegar até você.
+
+• Controles simples, feitos para o toque: um dedo para andar, o resto é
+  estratégia
+• Seis magias e várias melhorias por partida
+• Moedas a cada partida, para melhorias permanentes de vida, dano e velocidade
+• Pixel art feita à mão, com criaturas e chefe animados
+• Jogue offline, sem conta e sem conexão
+
+O jogo continua crescendo: novos chefes e novos níveis de dificuldade chegam nas
+próximas atualizações.
+```
+
+A última frase promete conteúdo sem data — é o que a política da Play permite
+sem risco. Prometer data ou recurso específico que não chega é propaganda
+enganosa, e rende avaliação ruim antes de render punição.
+
+**Categoria:** Jogos › Ação. **Tags sugeridas:** sobrevivência, roguelite,
+pixel art, fantasia.
+
+## Classificação etária (questionário IARC)
+
+Respostas que descrevem o jogo como ele é:
+
+- violência: **fantasia**, contra criaturas não humanas, sem sangue realista;
+- sem linguagem ofensiva, sexo, drogas, apostas ou jogo de azar;
+- sem interação entre usuários, sem compartilhamento de localização;
+- **contém anúncios: sim**.
+
+A classificação esperada fica na faixa de 10 a 12 anos. Com anúncios, **não
+marque o público-alvo como infantil**: app para crianças segue a política de
+Famílias, que restringe quais anúncios podem aparecer.
+
+## Segurança dos dados
+
+O jogo em si não coleta nada: o save fica no aparelho e não há servidor. O que
+coleta é o **SDK do AdMob**:
+
+- **coletado:** identificador de publicidade do aparelho, dados de uso e
+  diagnóstico do app (pelo SDK de anúncios);
+- **finalidade:** publicidade e análise;
+- **compartilhado:** sim, com a Google (AdMob);
+- **criptografado em trânsito:** sim;
+- **o usuário pode pedir exclusão:** o identificador de publicidade é
+  redefinível nas configurações do Android;
+- **o jogo não coleta** nome, e-mail, localização precisa, contatos, fotos nem
+  arquivos.
+
+## Política de privacidade (rascunho)
+
+```text
+Política de Privacidade — Forest Survival
+
+Última atualização: [data da publicação]
+
+Forest Survival é um jogo para Android desenvolvido por [seu nome ou nome de
+desenvolvedor]. Esta política explica quais dados são tratados quando você joga.
+
+1. Dados que o jogo guarda
+O jogo guarda o seu progresso (recordes, moedas e melhorias compradas) somente
+no seu aparelho. Esses dados não são enviados para nenhum servidor nosso. Ao
+desinstalar o jogo, eles são apagados.
+
+2. Anúncios
+O jogo exibe anúncios fornecidos pelo Google AdMob. Para isso, o SDK do AdMob
+pode coletar e processar o identificador de publicidade do seu aparelho,
+informações sobre o aparelho e dados de uso, com a finalidade de exibir e medir
+anúncios. Esse tratamento segue a Política de Privacidade da Google:
+https://policies.google.com/privacy
+
+Você pode redefinir ou restringir o identificador de publicidade nas
+configurações do Android (Google > Anúncios). Usuários do Espaço Econômico
+Europeu e do Reino Unido podem escolher, na primeira abertura, se aceitam
+anúncios personalizados.
+
+3. Crianças
+O jogo não é direcionado a crianças menores de 13 anos e não coleta
+intencionalmente dados pessoais delas.
+
+4. Dados que não coletamos
+Não coletamos nome, e-mail, número de telefone, localização precisa, contatos,
+fotos ou arquivos do seu aparelho.
+
+5. Alterações
+Esta política pode ser atualizada. A versão vigente estará sempre neste
+endereço, com a data da última atualização.
+
+6. Contato
+[seu e-mail de contato]
+```
+
+## Imagem de destaque (1024 x 500)
+
+Prompt de geração, no estilo dos outros pacotes de arte do projeto:
+
+```text
+Wide promotional banner for a pixel art survival game, 1024x500, no text. A
+hooded forest druid in a green cloak with a glowing green orb staff stands on
+the left, facing a colossal corrupted stag made of charred wood and molten lava
+cracks on the right, with a horde of small red demonic creatures between them.
+Dark enchanted forest at dusk, a burning corrupted castle glowing orange on the
+horizon, mist and ember particles. Detailed painterly pixel art, strong
+silhouettes, high contrast, dramatic rim lighting, cinematic composition, empty
+space at the center top for the game logo.
+```
+
+Deixe o **centro de cima vazio**: é onde entra o nome do jogo, que já existe
+como arte (`assets/ui/titulo_jogo.png`).

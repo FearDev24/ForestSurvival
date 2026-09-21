@@ -102,6 +102,17 @@ theme_override_font_sizes/font_size = 24
 text = "+0 moedas"
 horizontal_alignment = 1
 
+[node name="EmBreve" type="Label" parent="Caixa"]
+editor_description = "Aviso de conteudo futuro, so na vitoria: e quando o jogador acabou de derrubar o ultimo chefe e se pergunta o que vem depois."
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 1, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 20
+text = "Novos chefes e dificuldades nas próximas atualizações"
+horizontal_alignment = 1
+
 [node name="Opcoes" type="VBoxContainer" parent="Caixa"]
 layout_mode = 2
 size_flags_horizontal = 4

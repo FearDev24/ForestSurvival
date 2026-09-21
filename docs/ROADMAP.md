@@ -292,12 +292,14 @@ Somente depois do vertical slice:
 
 # FASE 15 — Publicação
 
+Guia completo, com o que é do dono da conta e o que é do projeto, em `docs/PUBLICACAO.md`.
+
 - [ ] nome final
 - [ ] ícone
 - [ ] screenshots
-- [ ] página Google Play
-- [ ] política de privacidade quando aplicável
-- [ ] build release
+- [x] página Google Play — textos da ficha prontos; falta a imagem de destaque e as screenshots
+- [x] política de privacidade quando aplicável — rascunho pronto; falta hospedar
+- [x] build release — preset "Android Play Store" (AAB, 1.0.0); falta instalar o modelo de build e assinar
 - [ ] testes internos
 - [ ] closed testing
 - [ ] release

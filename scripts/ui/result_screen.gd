@@ -28,6 +28,7 @@ var _manager: GameManager = null
 @onready var _tempo: Label = $Caixa/Tempo
 @onready var _nivel: Label = $Caixa/Nivel
 @onready var _moedas: Label = $Caixa/Moedas
+@onready var _em_breve: Label = $Caixa/EmBreve
 @onready var _opcoes: VBoxContainer = $Caixa/Opcoes
 
 
@@ -93,6 +94,9 @@ func _on_ended(vitoria: bool, tempo: float, nivel: int) -> void:
 	_tempo.text = "Tempo   %s" % _relogio(tempo)
 	_nivel.text = "Nivel   %d" % nivel
 	_mostrar_moedas(vitoria, tempo)
+	# O Guardião é o último chefe desta versão. Na vitória o jogador acabou de
+	# ver o fim do jogo; é a hora de dizer que ele não acaba aqui.
+	_em_breve.visible = vitoria
 
 	var viewport := get_viewport()
 	if viewport != null and viewport.gui_get_focus_owner() != null:
